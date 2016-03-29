@@ -1,0 +1,8 @@
+useDynLib(Linnorm, .registration = TRUE)
+export(Linnorm, Linnorm.limma, RnaXSim)
+import(MASS)
+import(limma)
+importFrom(Rcpp, evalCpp)
+importFrom(RcppArmadillo)
+importFrom("stats", "aov", "lm", "median", "na.omit", "p.adjust" ,"pnorm", "rgamma", "rlnorm", "rnbinom", "rnorm", "rpois", "setNames")
+importFrom("utils", "flush.console")
