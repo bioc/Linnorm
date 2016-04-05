@@ -1,10 +1,10 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based normalization method (Linnorm)
-Version: 0.99.7
-Date: 2016-03-17
-Author: Ken Shun Hang Yip <shunyip@bu.edu> <u3003188@connect.hku.hk>,
-        Pak Chung Sham <pcsham@hku.hk>, Junwen Wang <junwen@uw.edu>
+Version: 0.99.8
+Date: 2016-04-05
+Author: Ken Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
+	Pak Chung Sham <pcsham@hku.hk>, Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
 Description: A Normalization method for RNA-seq Expression data or
         large scale count data for parametric tests. This package also
