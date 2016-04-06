@@ -35,7 +35,7 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of RNA-seq expression data. Its main function is to normalize RNA-seq expression data for parametric tests. Examples of such tests include using \Biocpkg{limma} for differential expression analysis or calculating Pearson Correlation Coefficient for gene correlation study. Compared to previous methods, Linnorm has great compatibility and can be used to normalize raw count, CPM, RPKM, FPKM and TPM units in positive real numbers. Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions. 
+ Linnorm is an R package for the analysis of RNA-seq expression data. Its main function is to normalize/transform RNA-seq expression data for parametric tests. Examples of such tests include using \Biocpkg{limma} for differential expression analysis or calculating Pearson Correlation Coefficient for gene correlation study. Compared to previous methods, Linnorm has great compatibility and can be used to transform raw count, CPM, RPKM, FPKM and TPM units in positive real numbers. Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions. 
 \end{abstract}
 
 \newpage
@@ -179,7 +179,7 @@ rownames(design) <- colnames(datamatrix)
 5. Linnorm-limma Normalization + Differential Expression Analysis
 
 * Please note that there is no need to filter low count genes with Linnorm.
-* This function is created for users because voom and limma expect raw counts as input. So, input Linnorm normalized data into the limma pipeline will result in wrong log 2 fold change and expression values.
+* This function is created for users because voom and limma expect raw counts as input. So, input Linnorm transformed data into the limma pipeline will result in wrong log 2 fold change and expression values.
 	- This function will correct this incompatibility.
 
 
@@ -253,9 +253,9 @@ xlab="log2 Fold Change", ylab="q values", cex = 0.5)
 \newpage
 ###Linnorm Normlization for Parametric Tests
 
-In this section, we are going to perform a normalization on SEQC's Sample A RNA-seq data and perform Gene Correlation Analysis as an example.
+In this section, we are going to perform a transformation on SEQC's Sample A RNA-seq data and perform Gene Correlation Analysis as an example.
 
-####Linnorm Normalization
+####Linnorm Transformation
 
 Here, we will demonstrate how to generate and ouput Linnorm Normalized dataset into a tab delimited file.
 
@@ -265,7 +265,7 @@ Here, we will demonstrate how to generate and ouput Linnorm Normalized dataset i
 library(seqc)
 SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
 rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
-#We are only normalizing part of the matrix for an example.
+#We are only transforming part of the matrix for an example.
 SampleA <- SampleA[,1:10]
 ```
 
@@ -286,7 +286,7 @@ col.names=TRUE, row.names=TRUE)
 
 
 ####Gene Correlation Analysis
-In this section, we will use the normalized Gene Expression Matrix from the last section for gene correlation analysis.
+In this section, we will use the transformed Gene Expression Matrix from the last section for gene correlation analysis.
 
 1. Filter Genes with more than 25% of the values being zero.
 ```{r, echo=TRUE}
@@ -320,7 +320,7 @@ density.info='none' ,key.ylab=NA, col = colorRampPalette(c("blue",  "white",
 
 
 ####Calculate Fold Change
-Fold change can be calculated by the Linnorm.limma function. It is included in Differential Expression Analysis results. However, for users who would like to calculate fold change from Linnorm normalized dataset and analyze it. Here is an example.
+Fold change can be calculated by the Linnorm.limma function. It is included in Differential Expression Analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
 
 
 1. Get RNA-seq data from Sample A and B.
@@ -494,10 +494,10 @@ Sample2 <- ExpMatrix[,4:6]
 ```
 
 #Frequently Asked Questions
-##How do I convert Linnorm Normalized dataset back to CPM/TPM?
+##How do I convert Linnorm Transformed dataset back to CPM/TPM?
 Answer: Here is an example:
 ```{r, echo=TRUE}
-#Obtain a normalized dataset for an example.
+#Obtain a transformed dataset for an example.
 library(seqc)
 SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
 rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
