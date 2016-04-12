@@ -48,7 +48,7 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
 
 The Linnorm R package contains a variety of functions for RNA-seq data analysis. Currently, it has two main functions.
 
-* RNA-seq Expression Normalization \( Linnorm \)
+* RNA-seq Expression Normalization/Transformation \( Linnorm \)
     * Differential Expression Analysis
     * Gene Correlation Analysis
 * RNA-seq Raw Count Simulation \( RnaXSim \)
@@ -176,11 +176,12 @@ rownames(design) <- colnames(datamatrix)
 ```
 
 
-5. Linnorm-limma Normalization + Differential Expression Analysis
+5. Linnorm-limma Transformation + Differential Expression Analysis
 
 * Please note that there is no need to filter low count genes with Linnorm.
 * This function is created for users because voom and limma expect raw counts as input. So, input Linnorm transformed data into the limma pipeline will result in wrong log 2 fold change and expression values.
 	- This function will correct this incompatibility.
+* Please cite \Biocpkg{limma} separately if you are using this function for published work.
 
 
 	
@@ -206,7 +207,7 @@ DEG_Results <- BothResults$DEResults
 TransformedMatrix <- BothResults[[2]]
 #Or
 TransformedMatrix <- BothResults$TMatrix
-#The TransformedMatrix matrix now contains a Linnorm Normalized dataset.
+#The TransformedMatrix matrix now contains a Linnorm Transformed dataset.
 ```
 
 
@@ -257,7 +258,7 @@ In this section, we are going to perform a transformation on SEQC's Sample A RNA
 
 ####Linnorm Transformation
 
-Here, we will demonstrate how to generate and ouput Linnorm Normalized dataset into a tab delimited file.
+Here, we will demonstrate how to generate and ouput Linnorm Transformed dataset into a tab delimited file.
 
 1. Get RNA-seq data from Sample A.
 
@@ -270,17 +271,17 @@ SampleA <- SampleA[,1:10]
 ```
 
 
-2. Linnorm Normalization
+2. Linnorm Transformation
 ```{r, echo=TRUE}
 library(Linnorm)
-Normalized <- Linnorm(SampleA)
+Transformed <- Linnorm(SampleA)
 ```
 
 
 3. Write out the results to a tab delimited file.
 ```{r, echo=TRUE}
 #You can use this file with Excel.
-write.table(Normalized, "Normalized_Matrix.txt", quote=FALSE, sep="\t", 
+write.table(Transformed, "Transformed_Matrix.txt", quote=FALSE, sep="\t", 
 col.names=TRUE, row.names=TRUE)
 ```
 
@@ -290,7 +291,7 @@ In this section, we will use the transformed Gene Expression Matrix from the las
 
 1. Filter Genes with more than 25% of the values being zero.
 ```{r, echo=TRUE}
-Normalized <- Normalized[rowSums(Normalized == 0) <= length(Normalized[1,])/4,]
+Transformed <- Transformed[rowSums(Transformed == 0) <= length(Transformed[1,])/4,]
 ```
 
 
@@ -299,10 +300,10 @@ Normalized <- Normalized[rowSums(Normalized == 0) <= length(Normalized[1,])/4,]
 #Here, we randomly choose 100 genes for an example. 
 #However, users can provide a custom gene list here.
 set.seed(12345)
-Normalized <- Normalized[sample(1:length(Normalized[,1]),100),]
+Transformed <- Transformed[sample(1:length(Transformed[,1]),100),]
 
 #Calculate correlation.
-PCC <- cor(t(Normalized))
+PCC <- cor(t(Transformed))
 ```
 
 4. Check their correlation with each other using a heatmap.
@@ -342,7 +343,7 @@ datamatrix <- cbind(SampleA[,1:5],SampleB[,1:5])
 ```
 
 
-4. Linnorm Normalization.
+4. Linnorm Transformation.
 ```{r, echo=TRUE}
 library(Linnorm)
 LNormData <- Linnorm(datamatrix)
@@ -351,7 +352,7 @@ LNormData <- Linnorm(datamatrix)
 
 5. Undo Logarithm from LNormData.
 ```{r, echo=TRUE}
-#Let LNormData be a matrix of Linnorm Normalized dataset. 
+#Let LNormData be a matrix of Linnorm Transformed dataset. 
 Newdata <- exp(LNormData)
 ```
 
@@ -505,16 +506,7 @@ SampleA <- SampleA[,1:4]
 library(Linnorm)
 LNormData <- Linnorm(SampleA)
 
-#LNormData is a matrix of Linnorm Normalized dataset.
-#XPMdata is a CPM or TPM matrix.
-XPMdata <- ((exp(LNormData) - 1)/mean(colSums(LNormData))) * 1000000
-#Now, XPMdata contains a CPM dataset if the original data is raw count or CPM.
-#It contains a TPM dataset if the original data is RPKM, FPKM or TPM.
-
-
-#On the other hand, if LNormData was filtered or changed in some unknown ways;
-# and that there is no way to obtain the original dataset for the calculation
-#of CPM or TPM. Then, you can convert it this way:
+#LNormData is a matrix of Linnorm Transformed dataset.
 XPMdata <- exp(LNormData) - 1
 for (i in seq_along(XPMdata[1,])) {
 	XPMdata[,i] <- (XPMdata[,i]/sum(XPMdata[,i])) * 1000000
@@ -524,11 +516,11 @@ for (i in seq_along(XPMdata[1,])) {
 
 ```
 
-##Can I use Linnorm Normalized dataset to calculate Fold Change?
-Answer: Linnorm Normalized dataset is a log transformed dataset. You should not use it to calculate fold change directly. To do it correctly, please refer to the calculate fold change section.
+##Can I use Linnorm Transformed dataset to calculate Fold Change?
+Answer: Linnorm Transformed dataset is a log transformed dataset. You should not use it to calculate fold change directly. To do it correctly, please refer to the calculate fold change section.
 
 
-##I only have 1 replicate for each sample set. Can I perform Linnorm Normalization?
+##I only have 1 replicate for each sample set. Can I perform Linnorm Transformation?
 Answer: Yes, you can.
 
 

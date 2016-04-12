@@ -1,15 +1,16 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based transformation method (Linnorm)
-Version: 0.99.10
-Date: 2016-04-06
+Version: 0.99.11
+Date: 2016-04-12
 Author: Ken Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
 	Pak Chung Sham <pcsham@hku.hk>, Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
-Description: A normalization/transformation method for RNA-seq Expression data or
-        large scale count data for parametric tests. This package also
-        includes several functions for the simulation of RNA-seq count
-        data based on known distributions.
+Description: A normalization/transformation method for RNA-seq Expression
+	data or large scale count data for parametric tests. A differntial
+	expression analysis pipeline using limma is also implemented.
+	Additionally, this package includes several functions for the simulation
+	of RNA-seq count data based on known distributions.
 License: MIT + file LICENSE
 Imports: Rcpp (>= 0.12.2), RcppArmadillo, MASS, limma, stats, utils
 LinkingTo: Rcpp, RcppArmadillo
