@@ -39,11 +39,11 @@ If output is set to "DEResults", this function will output a matrix with Differn
 If output is set to Both, this function will output a list with the following objects:
 \itemize{
  \item{DEResults:}{ Differntial Expression Analysis Results as described above.}
- \item{TMatrix:}{ A Linnorm Normalized Expression Matrix.}
+ \item{TMatrix:}{ A Linnorm Transformed Expression Matrix.}
 }
 }
 \description{
-This function first performs Linnorm normalization on the dataset. Then, it will perform limma for DEG analysis. Finally, it will correct fold change outputs from limma results, that will be wrong otherwise. Please cite both Linnorm and limma when you use this function for publications.
+This function first performs Linnorm transformation on the dataset. Then, it will perform limma for DEG analysis. Finally, it will correct fold change outputs from limma results, that will be wrong otherwise. Please cite both Linnorm and limma when you use this function for publications.
 }
 \details{
 This function performs both Linnorm and limma for users who are interested in differential expression analysis. Please note that if you directly use a Linnorm Nomralized dataset with limma, the output fold change and average expression with be wrong. (p values and adj.pvalues will be fine.) This is because the voom-limma pipeline assumes input to be in raw counts. This function is written to fix this problem.

@@ -1,12 +1,12 @@
-#' Linnorm Normalization Function
+#' Linnorm Transformation Function
 #'
-#' This function performs the Linear model and normality based normalization method (Linnorm) for RNA-seq expression data or large scale count data.
+#' This function performs the Linear model and normality based transformation method (Linnorm) for RNA-seq expression data or large scale count data.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Undefined values such as NA are not supported.
 #' @param showinfo Logical. Show lambda value calculated. Defaults to FALSE.
 #' @param method	"default" or "lambda" The program will output the transformed matrix if the method is "default". If the method is "lambda", the program will output a lambda value.
 #' @param minZeroPortion Double >=0, <= 1. Featuress without at least this portion of non-zero values will not be used in the calculation of normalizing parameter. Defaults to 2/3.
 #' @param perturbation Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
-#' @details  If method is default, Linnorm outputs a transformed expression matrix. For users who wish to work with lambda instead, the output is a single lambda value. Please note that users with the lambda value can obtain a normalized Linnorm dataset by: log1p(lambda * datamatrix). There is no need to rerun the program if a lambda is already calculated.
+#' @details  If method is default, Linnorm outputs a transformed expression matrix. For users who wish to work with lambda instead, the output is a single lambda value. Please note that users with the lambda value can obtain a transformed Linnorm dataset by: log1p(lambda * datamatrix). There is no need to rerun the program if a lambda is already calculated.
 #' @return This function returns either a transformed data matrix or a lambda value.
 #' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric
 #' @export
@@ -17,8 +17,8 @@
 #' rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 #' #Extract a portion of the matrix for an example
 #' expMatrix <- SampleA[,1:3]
-#' normalizedExp <- Linnorm(expMatrix)
-#' normalizedExp <- Linnorm(expMatrix, method = "lambda")
+#' transformedExp <- Linnorm(expMatrix)
+#' transformedExp <- Linnorm(expMatrix, method = "lambda")
 #' @import
 #' Rcpp
 #' RcppArmadillo
@@ -71,7 +71,7 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 
 #' Linnorm-limma pipeline for Differentially Expression Analysis
 #'
-#' This function first performs Linnorm normalization on the dataset. Then, it will perform limma for DEG analysis. Finally, it will correct fold change outputs from limma results, that will be wrong otherwise. Please cite both Linnorm and limma when you use this function for publications.
+#' This function first performs Linnorm transformation on the dataset. Then, it will perform limma for DEG analysis. Finally, it will correct fold change outputs from limma results, that will be wrong otherwise. Please cite both Linnorm and limma when you use this function for publications.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Undefined values such as NA are not supported.
 #' @param design	A design matrix required for limma. Please see limma's documentation or our vignettes for more detail.
 #' @param output Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.
@@ -93,7 +93,7 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 #' @return If output is set to Both, this function will output a list with the following objects:
 ##' \itemize{
 ##'  \item{DEResults:}{ Differntial Expression Analysis Results as described above.}
-##'  \item{TMatrix:}{ A Linnorm Normalized Expression Matrix.}
+##'  \item{TMatrix:}{ A Linnorm Transformed Expression Matrix.}
 ##' }
 #' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric limma
 #' @export
@@ -118,7 +118,7 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, showinfo = FALSE, perturbation=10, minZeroPortion=2/3, robust=TRUE) {
 	expdata <- as.matrix(datamatrix)
 	
-	#Linnorm normalization
+	#Linnorm transformation
 	if (length(expdata[1,]) < 2) {
 		stop("Number of samples is less than 2.")
 	}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/Linnorm.R
 \name{Linnorm}
 \alias{Linnorm}
-\title{Linnorm Normalization Function}
+\title{Linnorm Transformation Function}
 \usage{
 Linnorm(datamatrix, showinfo = FALSE, method = "default",
   perturbation = 10, minZeroPortion = 2/3)
@@ -22,10 +22,10 @@ Linnorm(datamatrix, showinfo = FALSE, method = "default",
 This function returns either a transformed data matrix or a lambda value.
 }
 \description{
-This function performs the Linear model and normality based normalization method (Linnorm) for RNA-seq expression data or large scale count data.
+This function performs the Linear model and normality based transformation method (Linnorm) for RNA-seq expression data or large scale count data.
 }
 \details{
-If method is default, Linnorm outputs a transformed expression matrix. For users who wish to work with lambda instead, the output is a single lambda value. Please note that users with the lambda value can obtain a normalized Linnorm dataset by: log1p(lambda * datamatrix). There is no need to rerun the program if a lambda is already calculated.
+If method is default, Linnorm outputs a transformed expression matrix. For users who wish to work with lambda instead, the output is a single lambda value. Please note that users with the lambda value can obtain a transformed Linnorm dataset by: log1p(lambda * datamatrix). There is no need to rerun the program if a lambda is already calculated.
 }
 \examples{
 #Obtain example matrix:
@@ -34,8 +34,8 @@ SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
 rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 #Extract a portion of the matrix for an example
 expMatrix <- SampleA[,1:3]
-normalizedExp <- Linnorm(expMatrix)
-normalizedExp <- Linnorm(expMatrix, method = "lambda")
+transformedExp <- Linnorm(expMatrix)
+transformedExp <- Linnorm(expMatrix, method = "lambda")
 }
 \keyword{CPM}
 \keyword{Count}
