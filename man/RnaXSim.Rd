@@ -35,14 +35,13 @@ SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
 rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 #Extract a portion of the matrix for an example
 expMatrix <- SampleA[,1:10]
-
-Example for Negative Binomial distribution
+#Example for Negative Binomial distribution
 simulateddata <- RnaXSim(expMatrix, distribution="NB", NumRep=3, NumDiff = 500, NumFea = 3000)
-Example for Poisson distribution
+#Example for Poisson distribution
 simulateddata <- RnaXSim(expMatrix, distribution="Poisson", NumRep=3, NumDiff = 500, NumFea = 3000)
-Example for Log Normal distribution
+#Example for Log Normal distribution
 simulateddata <- RnaXSim(expMatrix, distribution="LogNorm", NumRep=3, NumDiff = 500, NumFea = 3000)
-Example for Gamma distribution
+#Example for Gamma distribution
 simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=3, NumDiff = 500, NumFea = 3000)
 }
 \keyword{"Log}
