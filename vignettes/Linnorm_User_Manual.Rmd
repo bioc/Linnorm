@@ -16,9 +16,9 @@ library("knitr")
 opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
 
 ```
-\date{March 16, 2016}
+\date{April 15, 2016}
 
-\author{Shun H. Yip$^{1,2}$, Panwen Wang$^{1}$, Pak Chung Sham$^{1,3,4}$, Junwen Wang$^{1}$ \\[1em]
+\author{Shun H. Yip$^{1,2}$, Panwen Wang$^{1}$, Pak Chung Sham$^{1,3,4}$, Junwen Wang$^{1,5}$ \\[1em]
   \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,} \\ 
   \small{The University of Hong Kong, Hong Kong SAR, China;} \\
   \small{$^{2}$ School of Biomedical Sciences, LKS Faculty of Medicine,} \\
@@ -27,15 +27,22 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
   \small{The University of Hong Kong, Hong Kong SAR, China;} \\
   \small{$^{4}$ State Key Laboratory in Cognitive and Brain Sciences,}  \\
   \small{The University of Hong Kong, Hong Kong SAR, China.} \\
+  \small{$^{5}$ Department of Health Sciences Research, Center for}  \\
+  \small{Individualized Medicine, Mayo Clinic and Department of} \\
+  \small{Biomedical Informatics, Arizona State University, Scottsdale,} \\
+  \small{AZ 85259, USA.} \\
 }
 
 \bioctitle[Linnorm User Manual]{Linnorm User Manual}
 
 \maketitle
+
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of RNA-seq expression data. Its main function is to normalize/transform RNA-seq expression data for parametric tests. Examples of such tests include using \Biocpkg{limma} for differential expression analysis or calculating Pearson Correlation Coefficient for gene correlation study. Compared to previous methods, Linnorm has great compatibility and can be used to transform raw count, CPM, RPKM, FPKM and TPM units in positive real numbers. Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions. 
+ Linnorm is an R package for the analysis of RNA-seq expression data, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Examples of parametric tests include using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.} or calculating Pearson correlation coefficient for gene correlation study. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
+ 
+ Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions.
 \end{abstract}
 
 \newpage
@@ -46,43 +53,34 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
 \newpage
 #Introduction
 
-The Linnorm R package contains a variety of functions for RNA-seq data analysis. Currently, it has two main functions.
+Many existing differential expression analysis methods assume the negative binomial or similar distributions for analysis\footnote{\Biocpkg{edgeR}, \Biocpkg{DESeq2}, \Biocpkg{DSS}, \Biocpkg{EBSeq}}. This approach performs well when the distribution in the RNA-seq dataset satisfies their assumptions. However, in practice, there are factors which can disturb the underlining distribution of the dataset. For example, a group of samples from one condition could come from distinct individuals instead of being replicates of each other; or, the dataset could come from a supervised learning algorithm that does not output data in the negative binomial distribution. To overcome this problem, the voom-\Biocpkg{limma} pipeline uses a different approach. Since \Biocpkg{limma} uses the linear models, which assumes homoscedasticity, voom models the dataset's mean-variance relationship and outputs a set of precision weights, which is a weight parameter for each gene, such that the empirical Bayes method in \Biocpkg{limma} can take homoscedasticity into consideration. However, there are issues that voom does not consider. First, voom utilizes logarithmic transformation. However, it does not consider the mean bias problem induced by performing logarithm on count datasets\footnote{O'hara, R. B. and Kotze, D. J. [2010]. Do not log-transform count data. Methods in Ecology and Evolution, 1 [2], 118-122.}. Second, other than homoscedasticity, voom does not seem to examine the other assumptions made by the linear models, such as normality in the residuals. Third, since voom gives a different weight parameter for each gene, it may be prone to over-fitting, especially when sample sizes are small. Therefore, Linnorm uses a different approach. Linnorm utilizes the mean bias induced by logarithmic transformation to transform the dataset toward homoscedasticity and normality; and it only has one transformation parameter for the whole dataset. This approach is less prone to over-fitting and the resulting dataset can better satisfy the assumptions made by the linear models, which is used by \Biocpkg{limma}. Furthermore, since Linnorm is actively transforming the dataset toward homoscedasticity and normality, it performs well with datasets which are deviated from the negative binomial distribution. Additionally, since homoscedasticity and normality are also assumed by many other parametric tests, such as the Pearson correlation coefficient, Linnorm transformed datasets are not restricted to differential expression analysis.
+
+The Linnorm R package contains a variety of functions for RNA-seq data analysis. It has three functions.
 
 * RNA-seq Expression Normalization/Transformation \( Linnorm \)
-    * Differential Expression Analysis
+	* Output transformed data matrix for analysis
     * Gene Correlation Analysis
+* The Linnorm-limma pipeline \( Linnorm.limma \)
+	* Differential expression analysis
+	* Differential peak detection
 * RNA-seq Raw Count Simulation \( RnaXSim \)
 
 ##Linnorm
 
-###Input Format
+###Datatypes and Input Format
 
 Linnorm accepts any RNA-seq Expression data, including but not limited to
 
-* Raw Count
+* Raw Count \( RNA-seq or ChIP-seq \)
 * Count per Million       \( CPM \)
 * Reads per Kilobase per Million reads sequenced       \( RPKM \)
 * expected Fragments Per Kilobase of transcript per Million fragments sequenced       \( FPKM \)
 * Transcripts per Million       \( TPM \)
 
 
-###Compatible Upstream Expression Quantification Tools
-
-Linnorm inputs can accept raw counts generated by simple count methods like [HTSeq](http://www-huber.embl.de/HTSeq/doc/overview.html) and \Biocpkg{Rsubread}. Expression matrices generated by supervised learning algorithms, such as [RSEM](http://deweylab.github.io/RSEM/), [Sailfish](http://www.cs.cmu.edu/~ckingsf/software/sailfish/), [Cufflinks](http://cole-trapnell-lab.github.io/cufflinks/) and etc are also compatible.
-
-###Expression Types
-
-Linnorm can accept any RNA-seq expression data, including but not limited to
-
-* Gene
-* Exon
-* Isoform
-* miRNA
-* smRNA
-
-###Data Types and Format
-
 Linnorm accepts matrix as its data type. Data frames are also accepted and will be automatically converted into the matrix format before analysis. Each column in the matrix should be a sample or replicate. Each row should be a Gene/Exon/Isoform/etc.
+
+\newpage
 
 Example:
 
@@ -95,10 +93,8 @@ Example:
 |...  |...     |...     |...     |...  |
 |...  |...     |...     |...     |...  |
 
-
 Please note that undefined values such as NA, NaN, INF, etc are **NOT** supported.
-
-
+  
 ##RnaXSim
 
 The Linnorm package provides the RnaXSim function for the simulation of RNA-seq expression data given a distribution. Supported distributions include:
@@ -112,7 +108,7 @@ The Linnorm package provides the RnaXSim function for the simulation of RNA-seq 
 
 Acceptable input format, expression types and data types are the same as Linnorm's section.
 
-However, each sample in the data matrix are assumed to be replicates of each other. One good source of such data is the \Biocpkg{seqc} package.
+However, each sample in the data matrix are assumed to be replicates of each other. The \Biocpkg{seqc} package is a good source of such datasets.
 
 \newpage
 #Examples with Source Codes
@@ -121,7 +117,7 @@ However, each sample in the data matrix are assumed to be replicates of each oth
 * SEQC dataset
 	- In our examples, we will use RNA-seq data from \Biocpkg{seqc}.
 * limma package
-	- \Biocpkg{limma} is imported with Linnorm. Please cite it separately if you use limma for differential expression analysis in published work.
+	- \Biocpkg{limma} is imported with Linnorm. Please cite both Linnorm and limma if you use the Linnorm.limma function for differential expression analysis for publication.
 
 
 ##Linnorm
@@ -179,10 +175,7 @@ rownames(design) <- colnames(datamatrix)
 5. Linnorm-limma Transformation + Differential Expression Analysis
 
 * Please note that there is no need to filter low count genes with Linnorm.
-* This function is created for users because voom and limma expect raw counts as input. So, input Linnorm transformed data into the limma pipeline will result in wrong log 2 fold change and expression values.
-	- This function will correct this incompatibility.
-* Please cite \Biocpkg{limma} separately if you are using this function for published work.
-
+* Please cite both Linnorm and \Biocpkg{limma} if you are using this function for publication.
 
 	
 a. This is an example that outputs only Differential Expression Analysis Results.
@@ -252,7 +245,7 @@ xlab="log2 Fold Change", ylab="q values", cex = 0.5)
 
 
 \newpage
-###Linnorm Normlization for Parametric Tests
+###Linnorm Transformation for Parametric Tests
 
 In this section, we are going to perform a transformation on SEQC's Sample A RNA-seq data and perform Gene Correlation Analysis as an example.
 
@@ -298,7 +291,7 @@ Transformed <- Transformed[rowSums(Transformed == 0) <= length(Transformed[1,])/
 2. Calculate Pearson correlation coefficients between combinations of genes.
 ```{r, echo=TRUE}
 #Here, we randomly choose 100 genes for an example. 
-#However, users can provide a custom gene list here.
+#However, users can provide a customized gene list here.
 set.seed(12345)
 Transformed <- Transformed[sample(1:length(Transformed[,1]),100),]
 
@@ -321,7 +314,7 @@ density.info='none' ,key.ylab=NA, col = colorRampPalette(c("blue",  "white",
 
 
 ####Calculate Fold Change
-Fold change can be calculated by the Linnorm.limma function. It is included in Differential Expression Analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
+Fold change can be calculated by the Linnorm.limma function. It is included in differential expression analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
 
 
 1. Get RNA-seq data from Sample A and B.
@@ -504,9 +497,10 @@ SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
 rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 SampleA <- SampleA[,1:4]
 library(Linnorm)
+#LNormData is a matrix of Linnorm Transformed dataset.
 LNormData <- Linnorm(SampleA)
 
-#LNormData is a matrix of Linnorm Transformed dataset.
+#To convert Linnorm Transformed dataset into CPM or TPM:
 XPMdata <- exp(LNormData) - 1
 for (i in seq_along(XPMdata[1,])) {
 	XPMdata[,i] <- (XPMdata[,i]/sum(XPMdata[,i])) * 1000000
@@ -521,7 +515,7 @@ Answer: Linnorm Transformed dataset is a log transformed dataset. You should not
 
 
 ##I only have 1 replicate for each sample set. Can I perform Linnorm Transformation?
-Answer: Yes, you can.
+Answer: Yes, you can. However, replicates are needed for a more accurate transformation.
 
 
 ##I only have 1 replicate for each sample set. Can I perform Differential Expression Analysis with Linnorm and limma?
@@ -529,7 +523,7 @@ Answer: No, linear model based methods must have replicates. So, limma wouldn't 
 
 
 ##There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?
-Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is mathematically correct to generate INFs. However, it is possible for Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE.
+Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE.
 
 
 #Bug Reports, Questions and Suggestions

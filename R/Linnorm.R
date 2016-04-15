@@ -231,14 +231,13 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 #' rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 #' #Extract a portion of the matrix for an example
 #' expMatrix <- SampleA[,1:10]
-#' 
-#' Example for Negative Binomial distribution
+#' #Example for Negative Binomial distribution
 #' simulateddata <- RnaXSim(expMatrix, distribution="NB", NumRep=3, NumDiff = 500, NumFea = 3000)
-#' Example for Poisson distribution
+#' #Example for Poisson distribution
 #' simulateddata <- RnaXSim(expMatrix, distribution="Poisson", NumRep=3, NumDiff = 500, NumFea = 3000)
-#' Example for Log Normal distribution
+#' #Example for Log Normal distribution
 #' simulateddata <- RnaXSim(expMatrix, distribution="LogNorm", NumRep=3, NumDiff = 500, NumFea = 3000)
-#' Example for Gamma distribution
+#' #Example for Gamma distribution
 #' simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=3, NumDiff = 500, NumFea = 3000)
 RnaXSim <- function(thisdata, distribution="Poisson", NumRep=3, NumDiff = 5000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5) {
 	thisdata <- na.omit(as.matrix(thisdata))
