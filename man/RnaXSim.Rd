@@ -4,8 +4,9 @@
 \alias{RnaXSim}
 \title{This function simulates a RNA-seq dataset based on a given distribution.}
 \usage{
-RnaXSim(thisdata, distribution = "Poisson", NumRep = 3, NumDiff = 5000,
-  NumFea = 20000, showinfo = FALSE, MaxLibSizelog2FC = 0.5)
+RnaXSim(thisdata, distribution = "Poisson", NumRep = 3, NumDiff = 2000,
+  NumFea = 20000, showinfo = FALSE, DEGlog2FC = "Auto",
+  MaxLibSizelog2FC = 0.5)
 }
 \arguments{
 \item{thisdata}{Matrix:    The matrix or data frame that contains your dataset. Each row is a gene and each column is a replicate. Undefined values such as NA are not supported. This program assumes that all columns are replicates of the same sample.}
@@ -14,11 +15,13 @@ RnaXSim(thisdata, distribution = "Poisson", NumRep = 3, NumDiff = 5000,
 
 \item{NumRep}{Integer: The number of replicates. This is half of the number of output samples. Defaults to 3.}
 
-\item{NumDiff}{Integer: The number of Differentially Changed Features. Defaults to 5000.}
+\item{NumDiff}{Integer: The number of Differentially Changed Features. Defaults to 2000.}
 
 \item{NumFea}{Integer: The number of Total Features. Defaults to 20000.}
 
 \item{showinfo}{Logical: should we show data information on the console? Defaults to FALSE.}
+
+\item{DEGlog2FC}{"Auto" or Double: log 2 fold change threshold that defines differentially expressed genes. If set to "Auto," DEGlog2FC is defined at the level where ANOVA can get a q value of 0.05 with the median mean, where the data values are log1p transformed. Defaults to "Auto".}
 
 \item{MaxLibSizelog2FC}{Double: The maximum library size difference from the mean that is allowed, in terms of log 2 fold change. Set to 0 to prevent program from generating library size differences. Defaults to 0.5.}
 }
@@ -36,13 +39,13 @@ rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 #Extract a portion of the matrix for an example
 expMatrix <- SampleA[,1:10]
 #Example for Negative Binomial distribution
-simulateddata <- RnaXSim(expMatrix, distribution="NB", NumRep=3, NumDiff = 500, NumFea = 3000)
+simulateddata <- RnaXSim(expMatrix, distribution="NB", NumRep=3, NumDiff = 200, NumFea = 2000)
 #Example for Poisson distribution
-simulateddata <- RnaXSim(expMatrix, distribution="Poisson", NumRep=3, NumDiff = 500, NumFea = 3000)
+simulateddata <- RnaXSim(expMatrix, distribution="Poisson", NumRep=3, NumDiff = 200, NumFea = 2000)
 #Example for Log Normal distribution
-simulateddata <- RnaXSim(expMatrix, distribution="LogNorm", NumRep=3, NumDiff = 500, NumFea = 3000)
+simulateddata <- RnaXSim(expMatrix, distribution="LogNorm", NumRep=3, NumDiff = 200, NumFea = 2000)
 #Example for Gamma distribution
-simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=3, NumDiff = 500, NumFea = 3000)
+simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=3, NumDiff = 200, NumFea = 2000)
 }
 \keyword{"Log}
 \keyword{"Negative}

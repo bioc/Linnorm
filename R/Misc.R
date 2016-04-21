@@ -15,35 +15,17 @@ LocateLambda <- function(x,y) {
 }
 
 
-GammaSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5) {
+GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
 	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
-	meanList <- rowMeans(thisdata)
-	b <- log(meanList)
-	
+
 	#Capture distribution from the dataset for simulation
 	#K is the shape parameter from Gamma distribution
-	Klist <- vector(mode="numeric",length(thisdata[,1]))	
-	for (i in seq_along(thisdata[,1])) {
-		Klist[i] <- gammaShape(thisdata[i,])
+	Fit <- lm((log(rowVars(thisdata)))~(log(rowMeans(thisdata))))
+	FindVar <- function(inputmean) {
+		return (exp(log(inputmean) * Fit$coefficients[[2]] + Fit$coefficients[[1]] ))
 	}
 	
-	if (length(Klist) == length(meanList)) {
-		Fit <- lm((log(Klist))~(log(meanList)))
-	} else {
-		Klist <- vector(mode="numeric",length(thisdata[,1]))
-		meanList <- vector(mode="numeric",length(thisdata[,1]))
-		for (i in 1:length(thisdata[,1])) {
-			Klist[i] <- gammaShape(thisdata[i,])
-			meanList[i] <- mean(thisdata[i,])
-		}
-		Fit <- lm((log(Klist))~(log(meanList)))
-	}
-	constant <- Fit$coefficients[[1]]
-	slope <- Fit$coefficients[[2]]
-	Klist <- function (x) {
-		return(exp(slope * log(x) + constant))
-	}
 	gammamatrix <- matrix(0, ncol=(2 * NumRep), nrow=NumFea)
 	RN <- vector(mode="character", NumFea)
 	for (i in 1:NumFea) {
@@ -63,12 +45,13 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinf
 	#Minimum Fold change (FC) for pvalue to reach 0.05
 	pvalue <- 1
 	minBound <- 1
-	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5 not being significant doesn't make sense.
+	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5  not being significant doesn't make sense.
 	maxBound <- 5
 	midBound <- round((minBound + maxBound)/2,4)
 	s <- median(rowMeans(thisdata_ori))
-	theK <- Klist(s)
-	theta1 <- s/theK
+	theta1 <- FindVar(s)/s
+	theK <-s/theta1
+	
 	NR2 <- NumRep
 	design <- matrix(nrow=(NR2 * 2), ncol=2)
 	colnames(design) <- c("SampleInfo", "Gam")
@@ -82,65 +65,94 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinf
 	design[,1] <- col1
 	design <- as.data.frame(design)
 	pvstore <- vector(mode="numeric",100)
-	while (midBound != minBound || midBound != maxBound) {
-		s2 <- s * midBound
-		theK2 <- Klist(s2)
-		theta2 <- s2/theK2
-		#Do the test 100 times for an average p value.
-		for (i in 1:100) {
-			a <- as.numeric(rgamma(NR2,shape=theK,scale=theta1))
-			b <- as.numeric(rgamma(NR2,shape=theK2,scale=theta2))
-			#WilTest <- wilcox.test(a,b,alternative = c("two.sided"))
-			#pvstore[i] <- as.numeric(WilTest[3])
-			expressionData <- c(log1p(a),log1p(b))
-			design[,2] <- as.numeric(expressionData)
-			AnovaSum <- summary(aov(Gam~SampleInfo,data=design))
-			pvstore[i] <- AnovaSum[[1]][,5][1]
-			if (is.na(pvstore[i])) {
-				pvstore[i] <- 1
+	if (DEGlog2FC != "Auto") {
+		SigFC <- log(2^DEGlog2FC)
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find its stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
+		midBound <- (minBound + maxBound)/2
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
 			}
+			Probability[is.na(Probability)] <- 1
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
 		}
-		if (mean(pvstore, na.rm=TRUE) < 0.05) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
 		}
+	} else { 
+		while (midBound != minBound || midBound != maxBound) {
+			s2 <- s * midBound
+			theta2 <- FindVar(s2)/s2
+			theK2 <- s2/theta2
+			#Do the test 100 times for an average p value.
+			for (i in 1:100) {
+				a <- as.numeric(rgamma(NR2,shape=theK,scale=theta1))
+				b <- as.numeric(rgamma(NR2,shape=theK2,scale=theta2))
+				#WilTest <- wilcox.test(a,b,alternative = c("two.sided"))
+				#pvstore[i] <- as.numeric(WilTest[3])
+				expressionData <- c(log1p(a),log1p(b))
+				design[,2] <- as.numeric(expressionData)
+				AnovaSum <- summary(aov(Gam~SampleInfo,data=design))
+				pvstore[i] <- AnovaSum[[1]][,5][1]
+				if (is.na(pvstore[i])) {
+					pvstore[i] <- 1
+				}
+			}
+			if (mean(pvstore, na.rm=TRUE) < 0.05) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		SigFC <- log(midBound)
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find its stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
 		midBound <- (minBound + maxBound)/2
-	}
-	SigFC <- log(midBound)
-	#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find its stddev.
-	minBound <- 0
-	#FC of 100 is sure to be significant, so there is no need to search for boundary
-	maxBound <- 100
-	midBound <- (minBound + maxBound)/2
-	Probability <- vector(mode="double",NumFea)
-	while (midBound != minBound && midBound != maxBound) {
-		normmodel <- rnorm(NumFea,0,midBound)
-		for (i in seq_along(normmodel)) {
-			Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
+			}
+			Probability[is.na(Probability)] <- 1
+			Probability <- as.numeric(p.adjust(Probability,method ="BH"))
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
 		}
-		Probability[is.na(Probability)] <- 1
-		Probability <- as.numeric(p.adjust(Probability,method ="BH"))
-		answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
-		if (answer1 < 0) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
 		}
-		midBound <- (minBound + maxBound)/2
 	}
-	FCstddev <- midBound
-	if (showinfo) {
-		message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
-		message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
-		flush.console()
-	}
-	
 	#Define Fold Change of Genes.
 	#Non differential features will have mean of 0 and stddev of SigFC
 	changes <- sort(rnorm(NumFea,0,FCstddev))
-	begin <- round(NumFea/2 - NumDiff/2,0)
-	ending <- round(NumFea/2 + NumDiff/2,0)
+	begin <- round(NumDiff/2,0)
+	ending <- round(NumFea - NumDiff/2,0)
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
 
@@ -153,8 +165,8 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinf
 		TDsample <- sample(1:length(thisdata_ori[,1]),1)
 		thisrow <- thisdata_ori[TDsample,]
 		dmean <- mean(thisrow)
-		theK <- Klist(dmean)
-		theta <- dmean/theK
+		theta <- FindVar(dmean)/dmean
+		theK <- dmean/theta
 		if (dmean == 0) {
 			gammamatrix[i,] <- rep(0,length(gammamatrix[1,]))
 		} else {
@@ -163,15 +175,15 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinf
 					gammamatrix[i,1:NumRep] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 					TBC <- sample(changing,1)
 					dmean <- dmean * TBC
-					theK <- Klist(dmean)
-					theta <- dmean/theK
+					theta <- FindVar(dmean)/dmean
+					theK <- dmean/theta
 					gammamatrix[i,(NumRep + 1):length(gammamatrix[1,])] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 				} else {
 					gammamatrix[i,(NumRep + 1):length(gammamatrix[1,])] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 					TBC <- sample(changing,1)
 					dmean <- dmean * TBC
-					theK <- Klist(dmean)
-					theta <- dmean/theK
+					theta <- FindVar(dmean)/dmean
+					theK <- dmean/theta
 					gammamatrix[i,1:NumRep] <- sample(as.vector(rgamma(NumRep * 2, shape=theK,scale=theta)),NumRep)
 				}
 			} else {
@@ -179,15 +191,15 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinf
 					gammamatrix[i,1:NumRep] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 					TBC <- sample(unchanged,1)
 					dmean <- dmean * TBC
-					theK <- Klist(dmean)
-					theta <- dmean/theK
+					theta <- FindVar(dmean)/dmean
+					theK <- dmean/theta
 					gammamatrix[i,(NumRep + 1):length(gammamatrix[1,])] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 				} else {
 					gammamatrix[i,(NumRep + 1):length(gammamatrix[1,])] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 					TBC <- sample(unchanged,1)
 					dmean <- dmean * TBC
-					theK <- Klist(dmean)
-					theta <- dmean/theK
+					theta <- FindVar(dmean)/dmean
+					theK <- dmean/theta
 					gammamatrix[i,1:NumRep] <- sample(as.vector(rgamma(NumRep * 2,shape=theK,scale=theta)),NumRep)
 				}
 			}
@@ -209,7 +221,9 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinf
 	return (results)
 }
 
-PoissonSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5) {
+PoissonSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
+	thisdata_ori <- thisdata
+	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
 	poismatrix <- matrix(0, ncol=(2 * NumRep), nrow=NumFea)
 	RN <- vector(mode="character", NumFea)
 	for (i in 1:NumFea) {
@@ -228,10 +242,10 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showi
 	#Minimum FC for pvalue to reach 0.05
 	pvalue <- 1
 	minBound <- 1
-	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5 not being significant doesn't make sense.
+	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5  not being significant doesn't make sense.
 	maxBound <- 5
 	midBound <- round((minBound + maxBound)/2,4)
-	s <- median(rowMeans(thisdata))
+	s <- median(rowMeans(thisdata_ori))
 	NR2 <- NumRep
 	design <- matrix(nrow=(NR2 * 2), ncol=2)
 	colnames(design) <- c("SampleInfo", "POIS")
@@ -247,61 +261,91 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showi
 	design[,1] <- col1
 	design <- as.data.frame(design)
 	pvstore <- vector(mode="numeric",100)
-	while (midBound != minBound || midBound != maxBound) {
-		s2 <- (s*midBound)
-		#Do the test 100 times for an average p value.
-		for (i in 1:100) {
-			expressionData <- c(log1p(as.numeric(rpois(NR2,s))),log1p(as.numeric(rpois(NR2,s2))))
-			design[,2] <- as.numeric(expressionData)
-			AnovaSum <- summary(aov(POIS~SampleInfo,data=design))
-			pvstore[i] <- AnovaSum[[1]][,5][1]
-			#WilTest <- wilcox.test(as.numeric(rpois(NR2,s)),as.numeric(rpois(NR2,s2)),alternative = c("two.sided"))
-			#pvstore[i] <- as.numeric(WilTest[3])
-			if (is.na(pvstore[i])) {
-				pvstore[i] <- 1
-			}
-		}
-		if (mean(pvstore) < 0.05) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
-		}
-		midBound <- (minBound + maxBound)/2
-	}
-	SigFC <- log(midBound)
-
-	#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find the stddev.
-	minBound <- 0
-	#FC of 100 is sure to be significant, so there is no need to search for boundary
-	maxBound <- 100
-	midBound <- (minBound + maxBound)/2
-	Probability <- vector(mode="double",NumFea)
-	while (midBound != minBound && midBound != maxBound) {
-		normmodel <- rnorm(NumFea,0,midBound)
-		for (i in seq_along(normmodel)) {
-			Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
-		}
-		Probability[is.na(Probability)] <- 1
-		Probability <- as.numeric(p.adjust(Probability,method ="BH"))
-		answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
-		if (answer1 < 0) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
-		}
-		midBound <- (minBound + maxBound)/2
-	}
-	FCstddev <- midBound
-	if (showinfo) {
-		message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
-		message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
-		flush.console()
-	}
 	
+	if (DEGlog2FC != "Auto") {
+		SigFC <- log(2^DEGlog2FC)
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find its stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
+		midBound <- (minBound + maxBound)/2
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
+			}
+			Probability[is.na(Probability)] <- 1
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
+		}
+	} else { 
+		while (midBound != minBound || midBound != maxBound) {
+			s2 <- (s*midBound)
+			#Do the test 100 times for an average p value.
+			for (i in 1:100) {
+				expressionData <- c(log1p(as.numeric(rpois(NR2,s))),log1p(as.numeric(rpois(NR2,s2))))
+				design[,2] <- as.numeric(expressionData)
+				AnovaSum <- summary(aov(POIS~SampleInfo,data=design))
+				pvstore[i] <- AnovaSum[[1]][,5][1]
+				#WilTest <- wilcox.test(as.numeric(rpois(NR2,s)),as.numeric(rpois(NR2,s2)),alternative = c("two.sided"))
+				#pvstore[i] <- as.numeric(WilTest[3])
+				if (is.na(pvstore[i])) {
+					pvstore[i] <- 1
+				}
+			}
+			if (mean(pvstore) < 0.05) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		SigFC <- log(midBound)
+
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find the stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
+		midBound <- (minBound + maxBound)/2
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
+			}
+			Probability[is.na(Probability)] <- 1
+			Probability <- as.numeric(p.adjust(Probability,method ="BH"))
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
+		}
+	}
 	#Non differential features will have mean of 0 and stddev of SigFC
 	changes <- sort(rnorm(NumFea,0,FCstddev))
-	begin <- round(NumFea/2 - NumDiff/2,0)
-	ending <- round(NumFea/2 + NumDiff/2,0)
+	begin <- round(NumDiff/2,0)
+	ending <- round(NumFea - NumDiff/2,0)
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
 
@@ -311,8 +355,8 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showi
 	tobechanged <- sample(1:NumFea,NumDiff)
 	for (i in 1:NumFea) {
 		#sample from thisdata
-		TDsample <- sample(1:length(thisdata[,1]),1)
-		dmean <- mean(as.numeric(thisdata[TDsample,]))
+		TDsample <- sample(1:length(thisdata_ori[,1]),1)
+		dmean <- mean(as.numeric(thisdata_ori[TDsample,]))
 		if (dmean == 0) {
 			poismatrix[i,] <- rep(0,length(poismatrix[1,]))
 		} else {
@@ -360,12 +404,11 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showi
 	return (results)
 }
 
-LogNormSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5) {
+LogNormSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
 	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
 	#Capture distribution from the dataset for simulation
 	Fit <- lm((log(rowSDs(thisdata)))~(log(rowMeans(thisdata))))
-	MeanList <- rowMeans(thisdata)
 	FindSD <- function(inputmean) {
 		return (exp(log(inputmean) * Fit$coefficients[[2]] + Fit$coefficients[[1]] ))
 	}
@@ -388,10 +431,9 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showi
 	#Minimum FC for pvalue to reach 0.05
 	pvalue <- 1
 	minBound <- 1
-	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5 not being significant doesn't make sense.
+	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5  not being significant doesn't make sense.
 	maxBound <- 5
 	midBound <- round((minBound + maxBound)/2,4)
-	mediandata <- thisdata[round(length(thisdata[,1])/2,0),]
 	theMean <- median(rowMeans(thisdata_ori))
 	theSD <- FindSD(theMean)
 	LNMean <- log(theMean) - 0.5 * log((theSD/theMean)^2 + 1)
@@ -409,66 +451,97 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showi
 	design[,1] <- col1
 	design <- as.data.frame(design)
 	pvstore <- vector(mode="numeric",100)
-	while (midBound != minBound || midBound != maxBound) {
-		theMean2 <- theMean * midBound
-		theSD2 <- FindSD(theMean2)
-		LNMean2 <- log(theMean2) - 0.5 * log((theSD2/theMean2)^2 + 1)
-		LNSD2 <- (log((theSD2/theMean2)^2 + 1) )^0.5
-		#Do the test 100 times for an average p value.
-		for (i in 1:100) {
-			a <- abs(as.numeric(rlnorm(NR2,meanlog = LNMean, sdlog = LNSD)))
-			b <- abs(as.numeric(rlnorm(NR2,meanlog = LNMean2, sdlog = LNSD2)))
-			#WilTest <- wilcox.test(a,b,alternative = c("two.sided"))
-			#pvstore[i] <- as.numeric(WilTest[3])
-			expressionData <- c(log1p(a),log1p(b))
-			design[,2] <- as.numeric(expressionData)
-			AnovaSum <- summary(aov(lnorm~SampleInfo,data=design))
-			pvstore[i] <- AnovaSum[[1]][,5][1]
-			if (is.na(pvstore[i])) {
-				pvstore[i] <- 1
+	if (DEGlog2FC != "Auto") {
+		SigFC <- log(2^DEGlog2FC)
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find its stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
+		midBound <- (minBound + maxBound)/2
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
 			}
+			Probability[is.na(Probability)] <- 1
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
 		}
-		if (mean(pvstore) < 0.05) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
 		}
-		midBound <- (minBound + maxBound)/2
-	}
-	SigFC <- log(midBound)
+	} else { 
+		while (midBound != minBound || midBound != maxBound) {
+			theMean2 <- theMean * midBound
+			theSD2 <- FindSD(theMean2)
+			LNMean2 <- log(theMean2) - 0.5 * log((theSD2/theMean2)^2 + 1)
+			LNSD2 <- (log((theSD2/theMean2)^2 + 1) )^0.5
+			#Do the test 100 times for an average p value.
+			for (i in 1:100) {
+				a <- as.numeric(rlnorm(NR2,meanlog = LNMean, sdlog = LNSD))
+				b <- as.numeric(rlnorm(NR2,meanlog = LNMean2, sdlog = LNSD2))
+				a[a < 0] <- 0
+				b[b < 0] <- 0
+				#WilTest <- wilcox.test(a,b,alternative = c("two.sided"))
+				#pvstore[i] <- as.numeric(WilTest[3])
+				expressionData <- c(log1p(a),log1p(b))
+				design[,2] <- as.numeric(expressionData)
+				AnovaSum <- summary(aov(lnorm~SampleInfo,data=design))
+				pvstore[i] <- AnovaSum[[1]][,5][1]
+				if (is.na(pvstore[i])) {
+					pvstore[i] <- 1
+				}
+			}
+			if (mean(pvstore) < 0.05) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		SigFC <- log(midBound)
 
-	#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find the stddev.
-	minBound <- 0
-	#FC of 100 is sure to be significant, so there is no need to search for boundary
-	maxBound <- 100
-	midBound <- (minBound + maxBound)/2
-	Probability <- vector(mode="double",NumFea)
-	while (midBound != minBound && midBound != maxBound) {
-		normmodel <- rnorm(NumFea,0,midBound)
-		for (i in seq_along(normmodel)) {
-			Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
-		}
-		Probability[is.na(Probability)] <- 1
-		Probability <- as.numeric(p.adjust(Probability,method ="BH"))
-		answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
-		if (answer1 < 0) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
-		}
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find the stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
 		midBound <- (minBound + maxBound)/2
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
+			}
+			Probability[is.na(Probability)] <- 1
+			Probability <- as.numeric(p.adjust(Probability,method ="BH"))
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
+		}
 	}
-	FCstddev <- midBound
-	if (showinfo) {
-		message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
-		message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
-		flush.console()
-	}
-	
 	#Non differential features will have mean of 0 and stddev of SigFC
 	changes <- sort(rnorm(NumFea,0,FCstddev))
-	begin <- round(NumFea/2 - NumDiff/2,0)
-	ending <- round(NumFea/2 + NumDiff/2,0)
+	begin <- round(NumDiff/2,0)
+	ending <- round(NumFea - NumDiff/2,0)
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
 
@@ -540,9 +613,9 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showi
 	return (results)
 }
 
-NBSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5) {
+NBSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
-	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]	
+	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
 	#Capture distribution from the dataset for simulation
 	MeanList <- vector(mode="numeric",length(thisdata[,1]))
 	d <- vector(mode="numeric",length(thisdata[,1]))
@@ -579,7 +652,7 @@ NBSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinfo=F
 	#Minimum FC for pvalue to reach 0.05
 	pvalue <- 1
 	minBound <- 1
-	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5 not being significant doesn't make sense.
+	#FC of 5 is sure to be significant, so there is no need to search for boundary. If it ever happens to be not so, it also serves as safety for the program, since FC > 5  not being significant doesn't make sense.
 	maxBound <- 5
 	midBound <- round((minBound + maxBound)/2,4)
 	themean <- median(rowMeans(thisdata_ori))
@@ -598,65 +671,94 @@ NBSim <- function(thisdata, NumRep=3, NumDiff = 5000, NumFea = 20000, showinfo=F
 	design[,1] <- col1
 	design <- as.data.frame(design)
 	pvstore <- vector(mode="numeric",100)
-	while (midBound != minBound || midBound != maxBound) {
-		themean2 <- themean * midBound
-		theDis2 <- FindDispersion(themean2)
-		
-		#Do the test 100 times for an average p value.
-		for (i in 1:100) {
-			a <- as.numeric(rnbinom(NR2,size=theDis,mu=themean))
-			b <- as.numeric(rnbinom(NR2,size=theDis2,mu=themean2))
-			#WilTest <- wilcox.test(a,b,alternative = c("two.sided"))
-			#pvstore[i] <- as.numeric(WilTest[3])
-			expressionData <- c(log1p(a),log1p(b))
-			design[,2] <- as.numeric(expressionData)
-			AnovaSum <- summary(aov(Gam~SampleInfo,data=design))
-			pvstore[i] <- AnovaSum[[1]][,5][1]
-			if (is.na(pvstore[i])) {
-				pvstore[i] <- 1
+	if (DEGlog2FC != "Auto") {
+		SigFC <- log(2^DEGlog2FC)
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find its stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
+		midBound <- (minBound + maxBound)/2
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
 			}
+			Probability[is.na(Probability)] <- 1
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
 		}
-		if (mean(pvstore, na.rm=TRUE) < 0.05) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
 		}
-		midBound <- (minBound + maxBound)/2
-	}
-	SigFC <- log(midBound)
+	} else { 
+		while (midBound != minBound || midBound != maxBound) {
+			themean2 <- themean * midBound
+			theDis2 <- FindDispersion(themean2)
+			
+			#Do the test 100 times for an average p value.
+			for (i in 1:100) {
+				a <- as.numeric(rnbinom(NR2,size=theDis,mu=themean))
+				b <- as.numeric(rnbinom(NR2,size=theDis2,mu=themean2))
+				#WilTest <- wilcox.test(a,b,alternative = c("two.sided"))
+				#pvstore[i] <- as.numeric(WilTest[3])
+				expressionData <- c(log1p(a),log1p(b))
+				design[,2] <- as.numeric(expressionData)
+				AnovaSum <- summary(aov(Gam~SampleInfo,data=design))
+				pvstore[i] <- AnovaSum[[1]][,5][1]
+				if (is.na(pvstore[i])) {
+					pvstore[i] <- 1
+				}
+			}
+			if (mean(pvstore, na.rm=TRUE) < 0.05) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		SigFC <- log(midBound)
 
-	#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find the stddev.
-	minBound <- 0
-	#FC of 100 is sure to be significant, so there is no need to search for boundary
-	maxBound <- 100
-	midBound <- (minBound + maxBound)/2
-	Probability <- vector(mode="double",NumFea)
-	while (midBound != minBound && midBound != maxBound) {
-		normmodel <- rnorm(NumFea,0,midBound)
-		for (i in seq_along(normmodel)) {
-			Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
-		}
-		Probability[is.na(Probability)] <- 1
-		Probability <- as.numeric(p.adjust(Probability,method ="BH"))
-		answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
-		if (answer1 < 0) {
-			maxBound <- midBound
-		} else {
-			minBound <- midBound
-		}
+		#To create Normal Distributed of FCs, where portion of Differential features are satisfied, we need to find the stddev.
+		minBound <- 0
+		#FC of 100 is sure to be significant, so there is no need to search for boundary
+		maxBound <- 100
 		midBound <- (minBound + maxBound)/2
+		Probability <- vector(mode="double",NumFea)
+		while (midBound != minBound && midBound != maxBound) {
+			normmodel <- rnorm(NumFea,0,midBound)
+			for (i in seq_along(normmodel)) {
+				Probability[i] <- 1 - (2 * (pnorm(abs(normmodel[i]),0,SigFC/2, lower.tail = TRUE) - 0.5 ) )
+			}
+			Probability[is.na(Probability)] <- 1
+			Probability <- as.numeric(p.adjust(Probability,method ="BH"))
+			answer1 <- Proportion - length(Probability[Probability < 0.05])/NumFea
+			if (answer1 < 0) {
+				maxBound <- midBound
+			} else {
+				minBound <- midBound
+			}
+			midBound <- (minBound + maxBound)/2
+		}
+		FCstddev <- midBound
+		if (showinfo) {
+			message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
+			message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
+			flush.console()
+		}
 	}
-	FCstddev <- midBound
-	if (showinfo) {
-		message("Significant Log 2 Fold Change for p value is ", log(exp(SigFC),2),".",appendLF=TRUE)
-		message("Final Standard Deviation of log 2 fold change in the dataset is ", log(exp(FCstddev),2),".",appendLF=TRUE)
-		flush.console()
-	}
-	
 	#Non differential features will have mean of 0 and stddev of SigFC
 	changes <- sort(rnorm(NumFea,0,FCstddev))
-	begin <- round(NumFea/2 - NumDiff/2,0)
-	ending <- round(NumFea/2 + NumDiff/2,0)
+	begin <- round(NumDiff/2,0)
+	ending <- round(NumFea - NumDiff/2,0)
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
 
