@@ -1,22 +1,22 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based transformation method (Linnorm)
-Version: 0.99.16
+Version: 0.99.17
 Date: 2016-04-26
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
 	Pak Chung Sham <pcsham@hku.hk>, Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
-Description: Linnorm is an R package for the analysis of RNA-seq expression
-	data, ChIP-seq count data or any large scale count data. Its main function
-	is to normalize and transform these datasets for parametric tests. Examples
-	of parametric tests include using limma for differential expression analysis
-	or differential peak detection, or calculating Pearson correlation coefficient
-	for gene correlation study. Linnorm can work with raw count, CPM, RPKM, FPKM
-	and TPM.
-	Additionally, Linnorm provides the RnaXSim function for the simulation of
-	RNA-seq raw counts for the evaluation of differential expression analysis
-	methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative
-	Binomial or Poisson distributions.
+Description: Linnorm is an R package for the analysis of RNA-seq, 
+	scRNA-seq, ChIP-seq count data or any large scale count data. Its 
+	main function is to normalize and transform these datasets for 
+	parametric tests. Examples of parametric tests include using limma 
+	for differential expression analysis or differential peak detection, 
+	or calculating Pearson correlation coefficient for gene correlation
+	study. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM. 
+	Additionally, Linnorm provides the RnaXSim function for the 
+	simulation of RNA-seq raw counts for the evaluation of differential
+	expression analysis methods. RnaXSim can simulate RNA-seq dataset
+	in Gamma, Log Normal, Negative Binomial or Poisson distributions.
 License: MIT + file LICENSE
 Imports: Rcpp (>= 0.12.2), RcppArmadillo, MASS, limma, stats, utils
 LinkingTo: Rcpp, RcppArmadillo
