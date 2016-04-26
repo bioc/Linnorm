@@ -220,7 +220,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 #' @param NumDiff Integer: The number of Differentially Changed Features. Defaults to 2000.
 #' @param NumFea Integer: The number of Total Features. Defaults to 20000.
 #' @param showinfo Logical: should we show data information on the console? Defaults to FALSE.
-#' @param DEGlog2FC "Auto" or Double: log 2 fold change threshold that defines differentially expressed genes. If set to "Auto," DEGlog2FC is defined at the level where ANOVA can get a q value of 0.05 with the median mean, where the data values are log1p transformed. Defaults to "Auto".
+#' @param DEGlog2FC "Auto" or Double: log 2 fold change threshold that defines differentially expressed genes. If set to "Auto," DEGlog2FC is defined at the level where ANOVA can get a q value of 0.05 with the average expression, where the data values are log1p transformed. Defaults to "Auto".
 #' @param MaxLibSizelog2FC Double: The maximum library size difference from the mean that is allowed, in terms of log 2 fold change. Set to 0 to prevent program from generating library size differences. Defaults to 0.5.
 #' @return This function returns a list that contains a matrix of count data in integer raw count and a vector that shows which genes are differentially expressed. In the matrix, each row is a gene and each column is a replicate. The first NumRep (see parameter) of the columns belong to sample 1, and the last NumRep (see parameter) of the columns belong to sample 2. There will be NumFea (see parameter) number of rows.
 #' @keywords RNA-seq Raw Count Expression Simulation Gamma distribution Simulate Poisson "Log Normal" "Negative Binomial"
@@ -258,10 +258,12 @@ RnaXSim <- function(thisdata, distribution="Poisson", NumRep=3, NumDiff = 2000, 
 	#Turn it into relative expression
 	LibSize <- colSums(thisdata)
 	for (i in seq_along(thisdata[1,])) {
-		thisdata[,i] <- (thisdata[,i] * mean(LibSize))/sum(thisdata[,i])
+		thisdata[,i] <- (thisdata[,i] * min(LibSize))/sum(thisdata[,i])
 	}
 	#sort and remove features with zeros and less than one.
-	thisdata <- thisdata[rowMeans(thisdata) >= 1,]
+	#thisdata <- thisdata[rowMeans(thisdata) >= 1,]
+	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
+
 	thisdata <- thisdata[order(rowMeans(thisdata)),]
 	
 	if (distribution == "Gamma") {		

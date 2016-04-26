@@ -17,8 +17,6 @@ LocateLambda <- function(x,y) {
 
 GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
-	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
-
 	#Capture distribution from the dataset for simulation
 	#K is the shape parameter from Gamma distribution
 	Fit <- lm((log(rowVars(thisdata)))~(log(rowMeans(thisdata))))
@@ -50,7 +48,7 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinf
 	midBound <- round((minBound + maxBound)/2,4)
 	s <- median(rowMeans(thisdata_ori))
 	theta1 <- FindVar(s)/s
-	theK <-s/theta1
+	theK <- s/theta1
 	
 	NR2 <- NumRep
 	design <- matrix(nrow=(NR2 * 2), ncol=2)
@@ -223,7 +221,6 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinf
 
 PoissonSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
-	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
 	poismatrix <- matrix(0, ncol=(2 * NumRep), nrow=NumFea)
 	RN <- vector(mode="character", NumFea)
 	for (i in 1:NumFea) {
@@ -406,7 +403,6 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 
 LogNormSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
-	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
 	#Capture distribution from the dataset for simulation
 	Fit <- lm((log(rowSDs(thisdata)))~(log(rowMeans(thisdata))))
 	FindSD <- function(inputmean) {
@@ -615,7 +611,6 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 
 NBSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
-	thisdata <- thisdata[rowSums(thisdata != 0) == length(thisdata[1,]),]
 	#Capture distribution from the dataset for simulation
 	MeanList <- vector(mode="numeric",length(thisdata[,1]))
 	d <- vector(mode="numeric",length(thisdata[,1]))
