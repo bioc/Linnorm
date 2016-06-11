@@ -10,13 +10,17 @@ output:
 -->
 
 \def\tightlist{}
-
 ```{r, echo=FALSE, eval=TRUE}
 library("knitr")
 opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
-
 ```
-\date{April 26, 2016}
+
+\bioctitle[Linnorm User Manual]{Linnorm User Manual}
+
+\maketitle
+
+\begin{center}
+\date{June 11, 2016}
 
 \author{Shun H. Yip$^{1,2}$, Panwen Wang$^{1}$, Pak Chung Sham$^{1,3,4}$, Junwen Wang$^{1,5}$ \\[1em]
   \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,} \\ 
@@ -29,13 +33,10 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
   \small{The University of Hong Kong, Hong Kong SAR, China.} \\
   \small{$^{5}$ Department of Health Sciences Research, Center for}  \\
   \small{Individualized Medicine, Mayo Clinic and Department of} \\
-  \small{Biomedical Informatics, Arizona State University, Scottsdale,} \\
-  \small{AZ 85259, USA.} \\
+  \small{Biomedical Informatics, Arizona State University,} \\
+  \small{Scottsdale, AZ 85259, USA.} \\
 }
-
-\bioctitle[Linnorm User Manual]{Linnorm User Manual}
-
-\maketitle
+\end{center}
 
 \bigskip
 
@@ -120,7 +121,10 @@ However, each sample in the data matrix are assumed to be replicates of each oth
 ##Linnorm
 
 ###Linnorm-limma Differential Expression Analysis
-####Analysis procedure
+####Obtain example data
+
+
+Please skip this step if a data matrix is already available.
 
 In this example, we are going to randomly choose 6 replicates of RNA-seq expression data from SEQC's sample A and 8 replicates from Sample B. Then, we will perform differential expression analysis on it.
 
@@ -153,55 +157,52 @@ SampleB3 <- SampleB[,sample(1:80,8)]
 datamatrix <- cbind(SampleA3,SampleB3)
 ```
 
+####Analysis procedure
 
-4. Create limma design matrix
+
+The Linnorm-limma pipeline only consists of two steps.
+
+1. Create limma design matrix
 ```{r, echo=TRUE}
-design <- c()
-for (i in 1:6) {
-	design <- c(design, 1)
-}
-for (i in 1:8) {
-	design <- c(design, 2)
-}
+#6 samples for condition 1 and 8 samples for condition 2.
+design <- c(rep(1,6),rep(2,8))
 design <- model.matrix(~ 0+factor(design))
 colnames(design) <- c("group1", "group2")
 rownames(design) <- colnames(datamatrix)
 ```
 
 
-5. Linnorm-limma Transformation + Differential Expression Analysis
+2. Linnorm-limma Differential Expression Analysis
 
-* Please note that there is no need to filter low count genes with Linnorm.
 * Please cite both Linnorm and \Biocpkg{limma} if you are using this function for publication.
 
 	
-a. This is an example that outputs only Differential Expression Analysis Results.
+a. Basic Differential Expression Analysis. (Follow this if you are not sure what to do.)
 ```{r, echo=TRUE}
 library(Linnorm)
 DEG_Results <- Linnorm.limma(datamatrix,design)
-#The DEG_Results matrix contains DEG analysis results.
+#The DEG_Results matrix contains your DEG analysis results.
 ```
 
 
-b. To output both DEG analysis results and the transformed matrix:
+b. Advanced: to output both DEG analysis results and the transformed matrix:
 ```{r, echo=TRUE}
 library(Linnorm)
 BothResults <- Linnorm.limma(datamatrix,design,output="Both")
 
 #To separate results into two matrices for analysis:
-DEG_Results <- BothResults[[1]]
-#Or
+
 DEG_Results <- BothResults$DEResults
 #The DEG_Results matrix now contains DEG analysis results.
 
-TransformedMatrix <- BothResults[[2]]
-#Or
 TransformedMatrix <- BothResults$TMatrix
 #The TransformedMatrix matrix now contains a Linnorm Transformed dataset.
 ```
 
 
+
 ####Data analysis
+
 
 With the results from the previous section, we are going to demonstrate common procedures in analyzing RNA-seq data.
 
@@ -248,6 +249,7 @@ In this section, we are going to perform a transformation on SEQC's Sample A RNA
 
 ####Linnorm Transformation
 
+
 Here, we will demonstrate how to generate and ouput Linnorm Transformed dataset into a tab delimited file.
 
 1. Get RNA-seq data from Sample A.
@@ -277,6 +279,8 @@ col.names=TRUE, row.names=TRUE)
 
 
 ####Gene Correlation Analysis
+
+
 In this section, we will use the transformed Gene Expression Matrix from the last section for gene correlation analysis.
 
 1. Filter Genes with more than 25% of the values being zero.
@@ -311,6 +315,8 @@ density.info='none' ,key.ylab=NA, col = colorRampPalette(c("blue",  "white",
 
 
 ####Calculate Fold Change
+
+
 Fold change can be calculated by the Linnorm.limma function. It is included in differential expression analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
 
 
@@ -389,6 +395,7 @@ legend("topright",legend=paste("mean = ", round(mean(foldchanges),2),
 ###RNA-seq Raw Count Simulation
 ####Default
 
+
 In this section, we will run RnaXSim with default settings as a demonstration.
 
 1. Get RNA-seq data from Sample A.
@@ -431,6 +438,7 @@ Sample2 <- ExpMatrix[,4:6]
 
 
 ####Advanced
+
 
 In this section, we will show an example where RnaXSim is run with customized settings.
 
