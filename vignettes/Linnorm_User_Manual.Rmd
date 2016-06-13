@@ -7,6 +7,7 @@ output:
 <!--
 %\VignetteEngine{knitr::rmarkdown}
 %\VignetteIndexEntry{Linnorm User Manual}
+%\VignetteEncoding{UTF-8} 
 -->
 
 \def\tightlist{}
@@ -16,11 +17,11 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
 ```
 
 \bioctitle[Linnorm User Manual]{Linnorm User Manual}
-
 \maketitle
 
+
 \begin{center}
-\date{June 12, 2016}
+\date{June 14, 2016}
 
 \author{Shun H. Yip$^{1,2}$, Panwen Wang$^{1}$, Pak Chung Sham$^{1,3,4}$, Junwen Wang$^{1,5}$ \\[1em]
   \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,} \\ 
@@ -37,6 +38,7 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
   \small{Scottsdale, AZ 85259, USA.} \\
 }
 \end{center}
+
 
 \bigskip
 
@@ -531,7 +533,7 @@ Answer: No, linear model based methods must have replicates. So, limma wouldn't 
 Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE.
 
 ##During installation, an error says Linnorm is not available on Bioconductor. What is the problem?
-Answer: Linnorm requires Bioconductor 3.3. You can upgrade Bioconductor by removing it with, "remove.packages("BiocInstaller")", then restart R session and install it again with, "source("http://bioconductor.org/biocLite.R")". Please also update R accordingly for Bioconductor 3.3 if needed.
+Answer: Linnorm requires Bioconductor 3\.3\. You can upgrade Bioconductor by removing it with, "remove.packages("BiocInstaller")", then restart R session and install it again with, "source("http://bioconductor.org/biocLite.R")". Please also update R accordingly for Bioconductor 3\.3 if needed.
 
 
 #Bug Reports, Questions and Suggestions
