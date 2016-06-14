@@ -21,21 +21,21 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
 
 
 \begin{center}
-\date{June 14, 2016}
+\date{June 15, 2016}
 
-\author{Shun H. Yip$^{1,2}$, Panwen Wang$^{1}$, Pak Chung Sham$^{1,3,4}$, Junwen Wang$^{1,5}$ \\[1em]
-  \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,} \\ 
-  \small{The University of Hong Kong, Hong Kong SAR, China;} \\
-  \small{$^{2}$ School of Biomedical Sciences, LKS Faculty of Medicine,} \\
-  \small{The University of Hong Kong, Hong Kong SAR, China;} \\  
-  \small{$^{3}$ Department of Psychiatry, LKS Faculty of Medicine,}  \\
-  \small{The University of Hong Kong, Hong Kong SAR, China;} \\
-  \small{$^{4}$ State Key Laboratory in Cognitive and Brain Sciences,}  \\
-  \small{The University of Hong Kong, Hong Kong SAR, China.} \\
-  \small{$^{5}$ Department of Health Sciences Research, Center for}  \\
-  \small{Individualized Medicine, Mayo Clinic and Department of} \\
-  \small{Biomedical Informatics, Arizona State University,} \\
-  \small{Scottsdale, AZ 85259, USA.} \\
+\author{Shun H. Yip$^{1,2}$, Panwen Wang$^{1}$, Pak Chung Sham$^{1,3,4}$, Junwen Wang$^{1,5}$\protect \\[1em]
+  \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,}\protect \\ 
+  \small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
+  \small{$^{2}$ School of Biomedical Sciences, LKS Faculty of Medicine,}\protect \\
+  \small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\  
+  \small{$^{3}$ Department of Psychiatry, LKS Faculty of Medicine,}\protect  \\
+  \small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
+  \small{$^{4}$ State Key Laboratory in Cognitive and Brain Sciences,}\protect  \\
+  \small{The University of Hong Kong, Hong Kong SAR, China.}\protect \\
+  \small{$^{5}$ Department of Health Sciences Research, Center for}\protect  \\
+  \small{Individualized Medicine, Mayo Clinic and Department of}\protect \\
+  \small{Biomedical Informatics, Arizona State University,}\protect \\
+  \small{Scottsdale, AZ 85259, USA.}\protect \\
 }
 \end{center}
 
@@ -532,7 +532,7 @@ Answer: No, linear model based methods must have replicates. So, limma wouldn't 
 ##There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?
 Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE.
 
-##During installation, an error says Linnorm is not available on Bioconductor. What is the problem?
+##During installation, an error says that Linnorm is not available. What is the problem?
 Answer: Linnorm requires Bioconductor 3\.3\. You can upgrade Bioconductor by removing it with, "remove.packages("BiocInstaller")", then restart R session and install it again with, "source("http://bioconductor.org/biocLite.R")". Please also update R accordingly for Bioconductor 3\.3 if needed.
 
 
