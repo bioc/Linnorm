@@ -115,7 +115,7 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 #' DEGResults <- Linnorm.limma(expMatrix, designmatrix)
 #' #Example 2
 #' DEGResults <- Linnorm.limma(expMatrix, designmatrix, output="Both")
-Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, showinfo = FALSE, perturbation=10, minZeroPortion=2/3, robust=TRUE) {
+Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, showinfo = FALSE, perturbation=100, minZeroPortion=2/3, robust=TRUE) {
 	expdata <- as.matrix(datamatrix)
 	
 	#Linnorm transformation
