@@ -17,8 +17,6 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
 ```
 
 \bioctitle[Linnorm User Manual]{Linnorm User Manual}
-\maketitle
-
 
 \begin{center}
 \date{June 16, 2016}
@@ -38,7 +36,7 @@ opts_chunk$set(tidy=FALSE,results="asis", message=FALSE,warning=FALSE)
   \small{Scottsdale, AZ 85259, USA.}\protect \\
 }
 \end{center}
-
+\maketitle
 
 \bigskip
 
