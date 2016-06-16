@@ -40,6 +40,12 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 	if (minZeroPortion >1 || minZeroPortion < 0) {
 		stop("Invalid minZeroPortion.")
 	}
+	if (anyNA(expdata)) {
+		stop("Dataset contains NA.")
+	}
+	if (sum(which(expdata < 0)) != 0) {
+		stop("Dataset contains negative number.")
+	}
 	#Step 1: Relative Expression
 	#Turn it into relative expression
 	for (i in seq_along(expdata[1,])) {
@@ -115,7 +121,7 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 #' DEGResults <- Linnorm.limma(expMatrix, designmatrix)
 #' #Example 2
 #' DEGResults <- Linnorm.limma(expMatrix, designmatrix, output="Both")
-Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, showinfo = FALSE, perturbation=100, minZeroPortion=2/3, robust=TRUE) {
+Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, showinfo = FALSE, perturbation=10, minZeroPortion=2/3, robust=TRUE) {
 	expdata <- as.matrix(datamatrix)
 	
 	#Linnorm transformation
@@ -134,7 +140,12 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 	if (is.null(design)) {
 		stop("design is null.")
 	}
-
+	if (anyNA(expdata)) {
+		stop("Dataset contains NA.")
+	}
+	if (sum(which(expdata < 0)) != 0) {
+		stop("Dataset contains negative number.")
+	}
 	
 	#Step 1: Relative Expression
 	#Turn it into relative expression
