@@ -16,7 +16,7 @@ Linnorm(datamatrix, showinfo = FALSE, method = "default",
 
 \item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
 
-\item{minZeroPortion}{Double >=0, <= 1. Featuress without at least this portion of non-zero values will not be used in the calculation of normalizing parameter. Defaults to 2/3.}
+\item{minZeroPortion}{Double >=0, <= 1. Only features (genes) with more than this portion of non-zero values will be used in the calculation of normalizing parameter. Defaults to 2/3.}
 }
 \value{
 This function returns either a transformed data matrix or a lambda value.

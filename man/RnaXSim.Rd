@@ -21,7 +21,7 @@ RnaXSim(thisdata, distribution = "Poisson", NumRep = 3, NumDiff = 2000,
 
 \item{showinfo}{Logical: should we show data information on the console? Defaults to FALSE.}
 
-\item{DEGlog2FC}{"Auto" or Double: log 2 fold change threshold that defines differentially expressed genes. If set to "Auto," DEGlog2FC is defined at the level where ANOVA can get a q value of 0.05 with the median mean, where the data values are log1p transformed. Defaults to "Auto".}
+\item{DEGlog2FC}{"Auto" or Double: log 2 fold change threshold that defines differentially expressed genes. If set to "Auto," DEGlog2FC is defined at the level where ANOVA can get a q value of 0.05 with the average expression, where the data values are log1p transformed. Defaults to "Auto".}
 
 \item{MaxLibSizelog2FC}{Double: The maximum library size difference from the mean that is allowed, in terms of log 2 fold change. Set to 0 to prevent program from generating library size differences. Defaults to 0.5.}
 }
