@@ -16,7 +16,7 @@ vignette: >
 \maketitle
 
 \begin{center}
-\date{June 21, 2016}
+\date{July 19, 2016}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,}\protect \\ 
@@ -212,6 +212,67 @@ rev(range(NoINF[,5])), main="Volcano Plot",
 xlab="log2 Fold Change", ylab="q values", cex = 0.5)
 ```
 
+
+
+### Single cell RNA-seq DEG Analysis
+
+By default, Linnorm filters gene with excess zero counts for data modeling, which is optimized for RNA-seq data. Since single cell RNA-seq data often contain a larger amount of zeroes, it is suggested to adjust the minZeroPortion argument during analysis
+
+In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform DEG analysis. In this analysis, we are using 48 mouse embryonic stem cells and 44 mouse embryonic fibroblasts.
+
+Read data:
+```{r, echo=TRUE}
+library(Linnorm)
+data(Islam2011)
+IslamData <- Islam2011[,1:92]
+```
+
+####DEG Analysis procedure
+
+1. Create limma design matrix
+```{r, echo=TRUE}
+#10 samples for condition 1 and 10 samples for condition 2.
+#You might need to edit this line
+design <- c(rep(1,48),rep(2,44))
+#Just copy these lines to R
+design <- model.matrix(~ 0+factor(design))
+colnames(design) <- c("group1", "group2")
+rownames(design) <- colnames(IslamData)
+
+```
+2. Analysis
+```{r, echo=TRUE}
+#Example 1: Filter genes with more than 50% of data being zero
+scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0.5)
+
+
+#Example 2: Do not filter gene list.
+scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0)
+```
+
+
+####Linnorm Transformation
+
+1. Linnorm Transformation
+```{r, echo=TRUE}
+library(Linnorm)
+Transformed <- Linnorm(IslamData, minZeroPortion=0.5)
+#Since we will only keep genes with less than half of their
+#expressions being zero. So, minZeroPortion is set to 0.5.
+#It is suggested to decrease this value to 0.5 or lower for
+#single cell RNA-seq data.
+```
+
+
+2. Write out the results to a tab delimited file.
+```{r, echo=TRUE}
+#You can use this file with Excel.
+write.table(Transformed, "Transformed_Matrix.txt",
+quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
+```
+
+
+
 \newpage
 ###Linnorm PCA K-means Clustering. Cell subpopulation analysis.
 
@@ -247,16 +308,22 @@ Groups <- c(Groups, rep("EF_Cells",44))
 Groups <- c(Groups, rep("NegCtrl",4))
 ```
 
-2. Perform PCA analysis. Default will only keep genes with less than half of the samples being zero.
+2. Perform PCA analysis.
 ```{r, echo=TRUE}
-#Use the minZeroPortion argument to tell Linnorm
-#how much zero in each gene is acceptable. Default is 0.5.
-#Use the Group argument to tell Linnorm about
-#each sample's information.
-#Use the num_center argument to tell Linnorm
+#Useful arguments:
+#minZeroPortion:
+#it tells Linnorm how much zero in each gene is acceptable.
+#Suggested: 2/3 for RNA-seq, 0.5 or lower for scRNA-seq
+#Group:
+#allows user to each sample's information.
+#num_center:
 #how many clusters are supposed to be there.
+#num_PC
+#how many principal components should be used in k-means
+#clustering.
+
 PCA.results <- Linnorm.PCA(Islam2011,
-minZeroPortion=0.5, Group=Groups, num_center=3)
+minZeroPortion=0.5, Group=Groups, num_center=3, num_PC=2)
 ```
 
 3. Draw PCA k-means clustering plot.

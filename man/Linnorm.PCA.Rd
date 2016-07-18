@@ -5,7 +5,7 @@
 \title{Linnorm-PCA Clustering pipeline for Single Cell Sub-population Analysis}
 \usage{
 Linnorm.PCA(datamatrix, showinfo = FALSE, perturbation = 10,
-  minZeroPortion = 0.5, num_center = c(1:20), Group = NA,
+  minZeroPortion = 0.5, num_PC = 2, num_center = c(1:20), Group = NA,
   pca.scale = FALSE, kmeans.iter = 2000)
 }
 \arguments{
@@ -16,6 +16,8 @@ Linnorm.PCA(datamatrix, showinfo = FALSE, perturbation = 10,
 \item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
 
 \item{minZeroPortion}{Double >=0, <= 1. Only features (genes) with more than this portion of non-zero values will be used in the calculation of normalizing parameter. Defaults to 0.5.}
+
+\item{num_PC}{Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.}
 
 \item{num_center}{Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).}
 

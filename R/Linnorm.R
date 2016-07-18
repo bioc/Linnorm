@@ -228,6 +228,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 #' @param datamatrix The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Undefined values such as NA are not supported.
 #' @param showinfo Logical. Show information about the computing process. Defaults to FALSE.
 #' @param minZeroPortion Double >=0, <= 1. Only features (genes) with more than this portion of non-zero values will be used in the calculation of normalizing parameter. Defaults to 0.5.
+#' @param num_PC Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
 #' @param perturbation Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param  num_center Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).
 #' @param  Group Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. This is for plotting purposes only. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NA.
@@ -248,7 +249,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 #' data(Islam2011)
 #' #Example 1
 #' PCA.results <- Linnorm.PCA(Islam2011)
-Linnorm.PCA <- function(datamatrix,showinfo = FALSE, perturbation=10, minZeroPortion=0.5, num_center=c(1:20), Group=NA, pca.scale=FALSE, kmeans.iter=2000) {
+Linnorm.PCA <- function(datamatrix,showinfo = FALSE, perturbation=10, minZeroPortion=0.5, num_PC=2, num_center=c(1:20), Group=NA, pca.scale=FALSE, kmeans.iter=2000) {
 	expdata <- as.matrix(datamatrix)
 	
 	#Linnorm transformation
@@ -263,6 +264,9 @@ Linnorm.PCA <- function(datamatrix,showinfo = FALSE, perturbation=10, minZeroPor
 	}
 	if (minZeroPortion >1 || minZeroPortion < 0) {
 		stop("Invalid minZeroPortion.")
+	}
+	if (num_PC < 2) {
+		stop("num_PC is too small.")
 	}
 	if (anyNA(expdata)) {
 		stop("Dataset contains NA.")
@@ -305,8 +309,8 @@ Linnorm.PCA <- function(datamatrix,showinfo = FALSE, perturbation=10, minZeroPor
 	#Principal Component Analysis
 	res.pca <- prcomp(expdata, scale = pca.scale)
 	
-	#Extract Principal Component 1 and Principal Component 2
-	data <- res.pca[[2]][,1:2]
+	#Extract Principal Components for k means clustering.
+	data <- res.pca[[2]][,1:floor(num_PC)]
 	
 	num_clust <- c()
 	if (length(num_center) == 1) {
@@ -401,7 +405,7 @@ Linnorm.PCA <- function(datamatrix,showinfo = FALSE, perturbation=10, minZeroPor
 #' @param showinfo Logical: should we show data information on the console? Defaults to FALSE.
 #' @param DEGlog2FC "Auto" or Double: log 2 fold change threshold that defines differentially expressed genes. If set to "Auto," DEGlog2FC is defined at the level where ANOVA can get a q value of 0.05 with the average expression, where the data values are log1p transformed. Defaults to "Auto".
 #' @param MaxLibSizelog2FC Double: The maximum library size difference from the mean that is allowed, in terms of log 2 fold change. Set to 0 to prevent program from generating library size differences. Defaults to 0.5.
-#' @return This function returns a list that contains a matrix of count data in integer raw count and a vector that shows which genes are differentially expressed. In the matrix, each row is a gene and each column is a replicate. The first NumRep (see parameter) of the columns belong to sample 1, and the last NumRep (see parameter) of the columns belong to sample 2. There will be NumFea (see parameter) number of rows.
+#' @return This function returns a list that contains a matrix of count data in integer raw count and a vector that shows which genes are differentially expressed. In the matrix, each row is a gene and each column is a replicate. The first NumRep (see parameter) of the columns belong to sample 1, and the last NumRep (see parameter) of the columns belong to sample 2. There will be NumFea (see parameter) number of rows. The top NumCorr of genes will be positively or negatively correlated with each other (randomly); and they are evenly separated into groups. Each group is not intended to be correlated to each other, but, by chance, it can happen.
 #' @keywords RNA-seq Raw Count Expression Simulation Gamma distribution Simulate Poisson "Log Normal" "Negative Binomial"
 #' @export
 #' @examples
@@ -433,6 +437,12 @@ RnaXSim <- function(thisdata, distribution="Poisson", NumRep=3, NumDiff = 2000, 
 	if (NumFea < 0) {
 		stop("Invalid NumFea value.")
 	}
+	if (anyNA(thisdata)) {
+		stop("Dataset contains NA.")
+	}
+	if (sum(which(thisdata < 0)) != 0) {
+		stop("Dataset contains negative number.")
+	}
 	
 	#Turn it into relative expression
 	LibSize <- colSums(thisdata)
@@ -445,11 +455,11 @@ RnaXSim <- function(thisdata, distribution="Poisson", NumRep=3, NumDiff = 2000, 
 
 	thisdata <- thisdata[order(rowMeans(thisdata)),]
 	
-	if (distribution == "Gamma") {		
+	if (distribution == "Gamma") {
 		return (GammaSim(thisdata, NumRep=NumRep, NumDiff = NumDiff, NumFea = NumFea, showinfo=showinfo, MaxLibSizelog2FC=MaxLibSizelog2FC, DEGlog2FC=DEGlog2FC))
 	}
 
-	if (distribution == "Poisson") {			
+	if (distribution == "Poisson") {
 		return (PoissonSim(thisdata, NumRep=NumRep, NumDiff = NumDiff, NumFea = NumFea, showinfo=showinfo, MaxLibSizelog2FC=MaxLibSizelog2FC, DEGlog2FC=DEGlog2FC))
 	}
 
