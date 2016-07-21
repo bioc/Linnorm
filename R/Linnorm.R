@@ -4,7 +4,7 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Undefined values such as NA are not supported.
 #' @param showinfo Logical. Show lambda value calculated. Defaults to FALSE.
 #' @param method	"default" or "lambda" The program will output the transformed matrix if the method is "default". If the method is "lambda", the program will output a lambda value.
-#' @param minZeroPortion Double >=0, <= 1. Only features (genes) with more than this portion of non-zero values will be used in the calculation of normalizing parameter. Defaults to 2/3.
+#' @param minZeroPortion Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 2/3.
 #' @param perturbation Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @details  If method is default, Linnorm outputs a transformed expression matrix. For users who wish to work with lambda instead, the output is a single lambda value. Please note that users with the lambda value can obtain a transformed Linnorm dataset by: log1p(lambda * datamatrix). There is no need to rerun the program if a lambda is already calculated.
 #' @return This function returns either a transformed data matrix or a lambda value.
@@ -83,7 +83,7 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 #' @param output Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.
 #' @param noINF	Logical. Prevent generating INF in the fold change column by using Linnorm's lambda and adding one. If it is set to FALSE, INF will be generated if one of the conditions has zero expression. Defaults to TRUE. 
 #' @param showinfo Logical. Show lambda value calculated. Defaults to FALSE.
-#' @param minZeroPortion Double >=0, <= 1. Only features (genes) with more than this portion of non-zero values will be used in the calculation of normalizing parameter. Defaults to 2/3.
+#' @param minZeroPortion Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 2/3.
 #' @param perturbation Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param robust Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to TRUE.
 #' @details  This function performs both Linnorm and limma for users who are interested in differential expression analysis. Please note that if you directly use a Linnorm Nomralized dataset with limma, the output fold change and average expression with be wrong. (p values and adj.pvalues will be fine.) This is because the voom-limma pipeline assumes input to be in raw counts. This function is written to fix this problem.
@@ -227,7 +227,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform Principal component analysis on the dataset and use k-means clustering to identify subpopulations of cells.
 #' @param datamatrix The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Undefined values such as NA are not supported.
 #' @param showinfo Logical. Show information about the computing process. Defaults to FALSE.
-#' @param minZeroPortion Double >=0, <= 1. Only features (genes) with more than this portion of non-zero values will be used in the calculation of normalizing parameter. Defaults to 0.5.
+#' @param minZeroPortion Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 0.
 #' @param num_PC Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
 #' @param perturbation Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param  num_center Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).
@@ -249,7 +249,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 #' data(Islam2011)
 #' #Example 1
 #' PCA.results <- Linnorm.PCA(Islam2011)
-Linnorm.PCA <- function(datamatrix,showinfo = FALSE, perturbation=10, minZeroPortion=0.5, num_PC=2, num_center=c(1:20), Group=NA, pca.scale=FALSE, kmeans.iter=2000) {
+Linnorm.PCA <- function(datamatrix,showinfo = FALSE, perturbation=10, minZeroPortion=0, num_PC=2, num_center=c(1:20), Group=NA, pca.scale=FALSE, kmeans.iter=2000) {
 	expdata <- as.matrix(datamatrix)
 	
 	#Linnorm transformation

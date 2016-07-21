@@ -16,7 +16,7 @@ vignette: >
 \maketitle
 
 \begin{center}
-\date{July 19, 2016}
+\date{July 21, 2016}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,}\protect \\ 
@@ -256,11 +256,11 @@ scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0)
 1. Linnorm Transformation
 ```{r, echo=TRUE}
 library(Linnorm)
-Transformed <- Linnorm(IslamData, minZeroPortion=0.5)
-#Since we will only keep genes with less than half of their
-#expressions being zero. So, minZeroPortion is set to 0.5.
-#It is suggested to decrease this value to 0.5 or lower for
-#single cell RNA-seq data.
+Transformed <- Linnorm(IslamData, minZeroPortion=0)
+#Since we will keep all genes regardless of the amount
+#of existing zero counts, minZeroPortion is set to 0.
+#It is suggested to decrease this value to 0 for single
+#cell RNA-seq data.
 ```
 
 
@@ -313,7 +313,7 @@ Groups <- c(Groups, rep("NegCtrl",4))
 #Useful arguments:
 #minZeroPortion:
 #it tells Linnorm how much zero in each gene is acceptable.
-#Suggested: 2/3 for RNA-seq, 0.5 or lower for scRNA-seq
+#Suggested: 2/3 for RNA-seq, 0 for scRNA-seq.
 #Group:
 #allows user to each sample's information.
 #num_center:
@@ -323,7 +323,7 @@ Groups <- c(Groups, rep("NegCtrl",4))
 #clustering.
 
 PCA.results <- Linnorm.PCA(Islam2011,
-minZeroPortion=0.5, Group=Groups, num_center=3, num_PC=2)
+minZeroPortion=0, Group=Groups, num_center=3, num_PC=2)
 ```
 
 3. Draw PCA k-means clustering plot.
@@ -348,9 +348,8 @@ Here, we will demonstrate how to generate and ouput Linnorm Transformed dataset 
 1. Linnorm Transformation
 ```{r, echo=TRUE}
 library(Linnorm)
-Transformed <- Linnorm(Islam2011, minZeroPortion=0.5)
-#Since we will only keep genes with less than half of their
-#expressions being zero. So, minZeroPortion is set to 0.5.
+Transformed <- Linnorm(Islam2011, minZeroPortion=0)
+#minZeroPortion is suggested to be 0 for scRNA-seq.
 ```
 
 
