@@ -1,6 +1,6 @@
 17th, August, 2016
 	o Updated author list.
-	o Error preventing checks now implemented in release 1.0.3.
+	o Error preventing checks now implemented in release 1.0.4.
 	o Critical: Fixed a bug that might cause Linnorm to underestimate fold change.
 	
 21st, July, 2016
