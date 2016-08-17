@@ -1,7 +1,12 @@
+17th, August, 2016
+	o Updated author list.
+	o Error preventing checks now implemented in release 1.0.3.
+	o Critical: Fixed a bug that might cause Linnorm to underestimate fold change.
+	
 21st, July, 2016
 	o Several new updates for the last few versions:
-	o PCA analysis pipeline has been added to Linnorm
-	o Error preventing checks have been implemented, as suggested by Jing Qin. Thanks.
+	o PCA analysis pipeline has been added to Linnorm.
+	o Error preventing checks have been implemented, as suggested by Dr. Jing Qin. Thanks.
 	o Vignetes updated and its graphics are fixed.
 
 16th, March, 2016

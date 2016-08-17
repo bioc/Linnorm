@@ -1,7 +1,7 @@
 ---
 toc: false
 author:
-  Shun H. Yip^1,2^, Panwen Wang^1^, Pak Chung Sham^1,3,4^, Junwen Wang^1,5^
+  Shun H. Yip^1,2,3^, Panwen Wang^3^, Pak Chung Sham^1,4,5^, Junwen Wang^3,6^
 output:
  BiocStyle::pdf_document2
 vignette: >
@@ -16,30 +16,31 @@ vignette: >
 \maketitle
 
 \begin{center}
-\date{July 21, 2016}
+\date{August 17, 2016}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,}\protect \\ 
 \small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
 \small{$^{2}$ School of Biomedical Sciences, LKS Faculty of Medicine,}\protect \\
-\small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\  
-\small{$^{3}$ Department of Psychiatry, LKS Faculty of Medicine,}\protect  \\
 \small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
-\small{$^{4}$ State Key Laboratory in Cognitive and Brain Sciences,}\protect  \\
-\small{The University of Hong Kong, Hong Kong SAR, China.}\protect \\
-\small{$^{5}$ Department of Health Sciences Research, Center for}\protect  \\
-\small{Individualized Medicine, Mayo Clinic and Department}\protect \\
-\small{of Biomedical Informatics, Arizona State University,}\protect \\
-\small{Scottsdale, AZ 85259, USA.}\protect \\
+\small{$^{3}$ Department of Health Sciences Research and Center for}\protect \\
+\small{Individualized Medicine, Mayo Clinic, Scottsdale,}\protect \\
+\small{AZ, 85259, USA;}\protect \\
+\small{$^{4}$ Department of Psychiatry, LKS Faculty of Medicine,}\protect  \\
+\small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
+\small{$^{5}$ State Key Laboratory in Cognitive and Brain Sciences,}\protect  \\
+\small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
+\small{$^{6}$ Department of Biomedical Informatics, Arizona State}\protect  \\
+\small{University, Scottsdale, AZ, 85259, USA.}\protect \\
+
 
 \end{center}
-
 
 
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Examples of parametric tests include using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.} or calculating Pearson correlation coefficient for gene correlation study. A single cell RNA-seq subpopulation analysis pipeline with PCA and k-means clustering is also implemented. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
+ Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Examples of parametric tests include using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.} or calculating Pearson correlation coefficient for gene correlation study. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
  
  Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions.
 \end{abstract}
@@ -52,7 +53,7 @@ vignette: >
 \newpage
 #Introduction
 
-Linnorm is a count data transformation method. Linnorm transforms the dataset toward both homoscedasticity and normality; and it only has one transformation parameter for the whole dataset. This approach ensures that the resulting dataset can better satisfy the assumptions made by the linear models, which is used by \Biocpkg{limma}. Furthermore, since Linnorm is transforming the dataset toward homoscedasticity and normality, it performs well with datasets which may be deviated from the negative binomial distribution, such as those generated by supervised learning based gene quantification software. Additionally, since homoscedasticity and normality are also assumed by many other parametric tests, such as the Pearson correlation coefficient, Linnorm transformed datasets are not restricted to differential expression analysis.
+Linnorm is a count data transformation method. Linnorm transforms the dataset toward both homoscedasticity and normality; and it only has one transformation parameter for the whole dataset. This approach ensures that the resulting dataset can better satisfy the assumptions made by the linear models, which is used by \Biocpkg{limma}. Furthermore, since Linnorm is actively transforming the dataset toward homoscedasticity and normality, it performs well with datasets which may be deviated from the negative binomial distribution, such as those generated by supervised learning based gene quantification software. Additionally, since homoscedasticity and normality are also assumed by many other parametric tests, such as the Pearson correlation coefficient, Linnorm transformed datasets are not restricted to differential expression analysis.
 
 The Linnorm R package contains a variety of functions for RNA-seq data analysis. It has three functions.
 
@@ -62,8 +63,6 @@ The Linnorm R package contains a variety of functions for RNA-seq data analysis.
 * The Linnorm-limma pipeline \( Linnorm.limma \)
 	* Differential expression analysis
 	* Differential peak detection
-* PCA k-means clustering \( Linnorm.PCA \)
-	* Single cell RNA-seq subpopulation analysis
 * RNA-seq Raw Count Simulation \( RnaXSim \)
 
 ##Linnorm
@@ -78,7 +77,6 @@ Linnorm accepts any RNA-seq Expression data, including but not limited to
 * expected Fragments Per Kilobase of transcript per Million fragments sequenced       \( FPKM \)
 * Transcripts per Million       \( TPM \)
 
-We suggest RPKM, FPKM or TPM for most purposes.
 
 Linnorm accepts matrix as its data type. Data frames are also accepted and will be automatically converted into the matrix format before analysis. Each column in the matrix should be a sample or replicate. Each row should be a Gene/Exon/Isoform/etc.
 
@@ -107,27 +105,55 @@ The Linnorm package provides the RnaXSim function for the simulation of RNA-seq 
 
 Acceptable input format, expression types and data types are the same as Linnorm's section.
 
-Each sample in the data matrix is assumed to be replicates of each other. The \Biocpkg{seqc} package is a good source of such datasets.
+However, each sample in the data matrix are assumed to be replicates of each other. The \Biocpkg{seqc} package is a good source of such datasets.
 
 \newpage
 #Examples with Source Codes
+##Before we get started
+
+* SEQC dataset
+	- In our examples, we will use RNA-seq data from \Biocpkg{seqc}.
+* limma package
+	- \Biocpkg{limma} is imported with Linnorm. Please cite both Linnorm and limma if you use the Linnorm.limma function for differential expression analysis for publication.
+
 
 ##Linnorm
 
 ###Linnorm-limma Differential Expression Analysis
-
-* limma package
-	- \Biocpkg{limma} is imported with Linnorm. Please cite both Linnorm and limma if you use the Linnorm.limma function for differential expression analysis for publication.
-
 ####Obtain example data
 
 
-1. Get 20 samples of RNA-seq data. These 20 samples are paired tumor and adjacent normal tissue samples from 10 individuals from TCGA LIHC dataset.
+Please skip this step if a data matrix is already available.
+
+In this example, we are going to randomly choose 6 replicates of RNA-seq expression data from SEQC's sample A and 8 replicates from Sample B. Then, we will perform differential expression analysis on it.
+
+
+1. Get RNA-seq data from Sample A and B.
 
 ```{r, echo=TRUE}
-library(Linnorm)
-data(LIHC)
-datamatrix <- LIHC
+library(seqc)
+
+SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
+rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
+
+SampleB <- ILM_aceview_gene_BGI[,grepl("B_",colnames(ILM_aceview_gene_BGI))]
+rownames(SampleB) <- ILM_aceview_gene_BGI[,2]
+```
+
+
+2. Randomly extract replicates from each sample. We are choosing 6 replicates from Sample A and 8 replicates from Sample B.
+  
+```{r, echo=TRUE}
+set.seed(12345)
+SampleA3 <- SampleA[,sample(1:80,6)]
+SampleB3 <- SampleB[,sample(1:80,8)]
+
+```
+
+
+3. Combine them into one matrix.
+```{r, echo=TRUE}
+datamatrix <- cbind(SampleA3,SampleB3)
 ```
 
 ####Analysis procedure
@@ -137,10 +163,8 @@ The Linnorm-limma pipeline only consists of two steps.
 
 1. Create limma design matrix
 ```{r, echo=TRUE}
-#10 samples for condition 1 and 10 samples for condition 2.
-#You might need to edit this line
-design <- c(rep(1,10),rep(2,10))
-#Just copy these lines to R
+#6 samples for condition 1 and 8 samples for condition 2.
+design <- c(rep(1,6),rep(2,8))
 design <- model.matrix(~ 0+factor(design))
 colnames(design) <- c("group1", "group2")
 rownames(design) <- colnames(datamatrix)
@@ -149,56 +173,61 @@ rownames(design) <- colnames(datamatrix)
 
 2. Linnorm-limma Differential Expression Analysis
 
+* Please cite both Linnorm and \Biocpkg{limma} if you are using this function for publication.
+
+	
 a. Basic Differential Expression Analysis. (Follow this if you are not sure what to do.)
 ```{r, echo=TRUE}
 library(Linnorm)
-#The Linnorm-limma pipeline only consists of one line.
 DEG_Results <- Linnorm.limma(datamatrix,design)
 #The DEG_Results matrix contains your DEG analysis results.
 ```
 
 
-b. Advanced: to output both DEG analysis results and the transformed matrix for further analysis
+b. Advanced: to output both DEG analysis results and the transformed matrix:
 ```{r, echo=TRUE}
 library(Linnorm)
-#Just add output="Both" into the argument list
 BothResults <- Linnorm.limma(datamatrix,design,output="Both")
 
-#To separate results into two matrices:
+#To separate results into two matrices for analysis:
+
 DEG_Results <- BothResults$DEResults
-TransformedMatrix <- BothResults$TMatrix
 #The DEG_Results matrix now contains DEG analysis results.
-#The TransformedMatrix matrix now contains a Linnorm
-#Transformed dataset.
+
+TransformedMatrix <- BothResults$TMatrix
+#The TransformedMatrix matrix now contains a Linnorm Transformed dataset.
 ```
 
 
 
-####Print out the most significant genes
+####Data analysis
+
+
+With the results from the previous section, we are going to demonstrate common procedures in analyzing RNA-seq data.
 
 1. Write out the results to a tab delimited file.
 ```{r}
-write.table(DEG_Results, "DEG_Results.txt", quote=FALSE, sep="\t",
-col.names=TRUE,row.names=TRUE)
+write.table(DEG_Results, "DEG_Results.txt", quote=FALSE, sep="\t", col.names=TRUE, 
+row.names=TRUE)
 ```
 
 
-2. Print out the most significant 10 genes.
+2. Print out the most significant 15 genes.
 ```{r, echo=TRUE}
-Genes10 <- DEG_Results[order(DEG_Results[,"adj.P.Val"]),][1:10,]
+Genes15 <- DEG_Results[order(DEG_Results[,"adj.P.Val"]),][1:15,]
 #Users can print the gene list by the following command:
-#print(Genes10)
+#print(Genes15)
 ```
 ```{r,kable, echo=FALSE}
 library(knitr)
-kable(Genes10, digits=4)
+kable(Genes15, digits=4)
 ```
 
 
-#### Volcano Plot
+3. Volcano Plot
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
-#Remove Genes which fold changes are INF. You can skip this if
-#there are no INF values in the fold change column.
+#Remove Genes which fold changes are INF. You can skip this if there is no INF 
+#values in the fold change column.
 NoINF <- DEG_Results[which(!is.infinite(DEG_Results[,1])),]
 
 #Record significant genes for coloring
@@ -206,158 +235,45 @@ SignificantGenes <- NoINF[NoINF[,5] <= 0.05,1]
 
 #Draw volcano plot with Log q values. 
 #Green dots are non-significant, red dots are significant.
-plot(x=NoINF[,1], y=NoINF[,5], col=ifelse(NoINF[,1] %in%
-SignificantGenes, "red", "green"),log="y", ylim = 
-rev(range(NoINF[,5])), main="Volcano Plot", 
+plot(x=NoINF[,1], y=NoINF[,5], col=ifelse(NoINF[,1] %in% SignificantGenes, 
+"red", "green"),log="y", ylim = rev(range(NoINF[,5])), main="Volcano Plot", 
 xlab="log2 Fold Change", ylab="q values", cex = 0.5)
 ```
 
 
-
-### Single cell RNA-seq DEG Analysis
-
-By default, Linnorm filters gene with excess zero counts for data modeling, which is optimized for RNA-seq data. Since single cell RNA-seq data often contain a larger amount of zeroes, it is suggested to adjust the minZeroPortion argument during analysis
-
-In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform DEG analysis. In this analysis, we are using 48 mouse embryonic stem cells and 44 mouse embryonic fibroblasts.
-
-Read data:
-```{r, echo=TRUE}
-library(Linnorm)
-data(Islam2011)
-IslamData <- Islam2011[,1:92]
-```
-
-####DEG Analysis procedure
-
-1. Create limma design matrix
-```{r, echo=TRUE}
-#10 samples for condition 1 and 10 samples for condition 2.
-#You might need to edit this line
-design <- c(rep(1,48),rep(2,44))
-#Just copy these lines to R
-design <- model.matrix(~ 0+factor(design))
-colnames(design) <- c("group1", "group2")
-rownames(design) <- colnames(IslamData)
-
-```
-2. Analysis
-```{r, echo=TRUE}
-#Example 1: Filter genes with more than 50% of data being zero
-scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0.5)
-
-
-#Example 2: Do not filter gene list.
-scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0)
-```
-
-
-####Linnorm Transformation
-
-1. Linnorm Transformation
-```{r, echo=TRUE}
-library(Linnorm)
-Transformed <- Linnorm(IslamData, minZeroPortion=0)
-#Since we will keep all genes regardless of the amount
-#of existing zero counts, minZeroPortion is set to 0.
-#It is suggested to decrease this value to 0 for single
-#cell RNA-seq data.
-```
-
-
-2. Write out the results to a tab delimited file.
-```{r, echo=TRUE}
-#You can use this file with Excel.
-write.table(Transformed, "Transformed_Matrix.txt",
-quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
-```
-
-
-
-\newpage
-###Linnorm PCA K-means Clustering. Cell subpopulation analysis.
-
-In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform subpopluation analysis. The 96 samples are consisted of 48 mouse embryonic stem cells, 44 mouse embryonic fibroblasts and 4 negative controls.
-
-1. Read data.
-```{r, echo=TRUE}
-library(Linnorm)
-data(Islam2011)
-```
-
-####Simple subpopulation analysis
-1. Perform PCA analysis using default configurations. Only keep genes with less than half of the samples being zero.
-```{r, echo=TRUE}
-PCA.results <- Linnorm.PCA(Islam2011)
-```
-
-2. Draw PCA k-means clustering plot.
-```{r, echo=TRUE, fig.height=6, fig.width=6}
-#Here, we can see three clusters.
-print(PCA.results$plot$plot)
-```
-
-
-####Analysis with known subpopulations
-1. Assign known groups to samples.
-```{r, echo=TRUE}
-#The first 48 samples belong to mouse embryonic stem cells.
-Groups <- rep("ES_Cells",48)
-#The next 44 samples are mouse embryonic fibroblasts.
-Groups <- c(Groups, rep("EF_Cells",44))
-#The next 4 samples are negative controls.
-Groups <- c(Groups, rep("NegCtrl",4))
-```
-
-2. Perform PCA analysis.
-```{r, echo=TRUE}
-#Useful arguments:
-#minZeroPortion:
-#it tells Linnorm how much zero in each gene is acceptable.
-#Suggested: 2/3 for RNA-seq, 0 for scRNA-seq.
-#Group:
-#allows user to each sample's information.
-#num_center:
-#how many clusters are supposed to be there.
-#num_PC
-#how many principal components should be used in k-means
-#clustering.
-
-PCA.results <- Linnorm.PCA(Islam2011,
-minZeroPortion=0, Group=Groups, num_center=3, num_PC=2)
-```
-
-3. Draw PCA k-means clustering plot.
-```{r, echo=TRUE, fig.height=6, fig.width=6}
-#Here, we can see three clusters.
-print(PCA.results$plot$plot)
-```
-
-It is revealed that there are several embryonic stem cells that are very similar to the negative controls.
-
 \newpage
 ###Linnorm Transformation for Parametric Tests
 
-In this section, we are going to Islam2011 single cell RNA-seq data and perform Gene Correlation Analysis as an example.
+In this section, we are going to perform a transformation on SEQC's Sample A RNA-seq data and perform Gene Correlation Analysis as an example.
 
 ####Linnorm Transformation
 
 
 Here, we will demonstrate how to generate and ouput Linnorm Transformed dataset into a tab delimited file.
 
+1. Get RNA-seq data from Sample A.
 
-1. Linnorm Transformation
 ```{r, echo=TRUE}
-library(Linnorm)
-Transformed <- Linnorm(Islam2011, minZeroPortion=0)
-#minZeroPortion is suggested to be 0 for scRNA-seq.
+library(seqc)
+SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
+rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
+#We are only transforming part of the matrix for an example.
+SampleA <- SampleA[,1:10]
 ```
 
 
-2. Write out the results to a tab delimited file.
+2. Linnorm Transformation
+```{r, echo=TRUE}
+library(Linnorm)
+Transformed <- Linnorm(SampleA)
+```
+
+
+3. Write out the results to a tab delimited file.
 ```{r, echo=TRUE}
 #You can use this file with Excel.
-write.table(Transformed, "Transformed_Matrix.txt",
-quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
+write.table(Transformed, "Transformed_Matrix.txt", quote=FALSE, sep="\t", 
+col.names=TRUE, row.names=TRUE)
 ```
 
 
@@ -366,10 +282,9 @@ quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 
 In this section, we will use the transformed Gene Expression Matrix from the last section for gene correlation analysis.
 
-1. Filter Genes with more than 50% of the values being zero.
+1. Filter Genes with more than 25% of the values being zero.
 ```{r, echo=TRUE}
-Transformed <- Transformed[rowSums(Transformed == 0)
-<= length(Transformed[1,])/2,]
+Transformed <- Transformed[rowSums(Transformed == 0) <= length(Transformed[1,])/4,]
 ```
 
 
@@ -384,7 +299,7 @@ Transformed <- Transformed[sample(1:length(Transformed[,1]),100),]
 PCC <- cor(t(Transformed))
 ```
 
-3. Check their correlation with each other using a heatmap.
+4. Check their correlation with each other using a heatmap.
 	* Draw Heatmap
 ```{r, echo=TRUE, fig.height=8, fig.width=8}
 #Please install these libraries if you need to.
@@ -392,8 +307,8 @@ library(RColorBrewer)
 library(gplots)
 heatmap.2(as.matrix(PCC), Rowv=TRUE, Colv=TRUE, dendrogram='none',
 symbreaks=TRUE , trace="none", xlab = 'Genes', ylab = "Genes", 
-density.info='none' ,key.ylab=NA, col = colorRampPalette(c("blue",
-"white", "yellow"))(n = 1000), lmat=rbind(c(4, 3), c(2, 
+density.info='none' ,key.ylab=NA, col = colorRampPalette(c("blue",  "white", 
+"yellow"))(n = 1000), lmat=rbind(c(4, 3), c(2, 
 1)),cexRow=0.3,cexCol=0.3,margins = c(8, 8))
 ```
 
@@ -404,35 +319,45 @@ density.info='none' ,key.ylab=NA, col = colorRampPalette(c("blue",
 Fold change can be calculated by the Linnorm.limma function. It is included in differential expression analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
 
 
-1. Get 20 samples of TCGA RNA-seq data.
+1. Get RNA-seq data from Sample A and B.
 ```{r, echo=TRUE}
-library(Linnorm)
-data(LIHC)
-datamatrix <- LIHC
+library(seqc)
+
+SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
+rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
+
+SampleB <- ILM_aceview_gene_BGI[,grepl("B_",colnames(ILM_aceview_gene_BGI))]
+rownames(SampleB) <- ILM_aceview_gene_BGI[,2]
 ```
 
 
-2. Linnorm Transformation.
+2. Combine them into one matrix.
+```{r, echo=TRUE}
+#Again, we are only using part of the matrices for an example.
+datamatrix <- cbind(SampleA[,1:5],SampleB[,1:5])
+```
+
+
+4. Linnorm Transformation.
 ```{r, echo=TRUE}
 library(Linnorm)
 LNormData <- Linnorm(datamatrix)
 ```
 
 
-3. Undo Logarithm from LNormData.
+5. Undo Logarithm from LNormData.
 ```{r, echo=TRUE}
 #Let LNormData be a matrix of Linnorm Transformed dataset. 
 Newdata <- exp(LNormData)
 ```
 
-4. Calculate Fold Change.
+6. Calculate Fold Change.
 ```{r, echo=TRUE}
-#Now, we can calculate fold changes between
-#sample set 1 and sample set 2.
+#Now, we can calculate fold changes between sample set 1 and sample set 2.
 #Index of sample set 1 from LNormData and Newdata:
-set1 <- 1:10
+set1 <- 1:5
 #Index of sample set 2 from LNormData and Newdata:
-set2 <- 11:20
+set2 <- 6:10
 
 #Define a function that calculates log 2 fold change:
 log2fc <- function(x) {
@@ -451,19 +376,17 @@ FCMatrix[,1] <- foldchanges
 #Now FCMatrix contains fold change results.
 ```
 
-5. Draw a probability density plot of the fold changes in the dataset.
+7. Draw a probability density plot of the fold changes in the dataset.
 
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
 Density <- density(foldchanges)
-plot(Density$x,Density$y,type="n",xlab="Log 2 Fold Change",
-ylab="Probability Density",)
+plot(Density$x,Density$y,type="n",xlab="Log 2 Fold Change", ylab="Probability Density",)
 lines(Density$x,Density$y, lwd=1.5, col="blue")
-title("Probability Density of Fold Change.\nTCGA Partial LIHC data
-Paired Tumor vs Adjacent Normal")
-legend("topright",legend=paste("mean = ", 
-round(mean(foldchanges),2),
+title("Probability Density of Fold Change.\nSEQC Sample A vs Sample B")
+legend("topright",legend=paste("mean = ", round(mean(foldchanges),2),
 "\nStdev = ", round(sd(foldchanges),2)))
 ```
+
 
 \newpage
 ##RnaXSim
@@ -474,13 +397,12 @@ round(mean(foldchanges),2),
 
 In this section, we will run RnaXSim with default settings as a demonstration.
 
-1. Get RNA-seq data from SEQC Sample A.
+1. Get RNA-seq data from Sample A.
 
 ```{r, echo=TRUE}
 library(seqc)
 
-SampleA <- ILM_aceview_gene_BGI[,grepl("A_",
-colnames(ILM_aceview_gene_BGI))]
+SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
 rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 #We are only using part of the matrix for an example.
 #However, users are encouraged to use the whole matrix.
@@ -519,13 +441,12 @@ Sample2 <- ExpMatrix[,4:6]
 
 In this section, we will show an example where RnaXSim is run with customized settings.
 
-1. Get RNA-seq data from SEQC Sample A.
+1. Get RNA-seq data from Sample A.
 
 ```{r, echo=TRUE}
 library(seqc)
 
-SampleA <- ILM_aceview_gene_BGI[,grepl("A_",
-colnames(ILM_aceview_gene_BGI))]
+SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
 rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 
 #We are only using part of the matrix for an example.
@@ -533,22 +454,29 @@ rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
 SampleA <- SampleA[,1:10]
 ```
 
-2. Simulate an RNA-seq dataset using the above parameters.
+
+2. Prepare custom parameters for the simulation.
+```{r, echo=TRUE}
+#Number of replicates for each sample set.
+NumReplicates <- 5
+#Number of Genes in the Samples.
+NumGenes <- 5000
+#Number of Differentially Expressed Genes.
+NumDiffGenes <- 1000
+#Distribution. Put "NB" for Negative Binomial, "Gamma" for Gamma,
+#"Poisson" for Poisson and "LogNorm" for Log Normal distribution.
+Distribution <- "Gamma"
+```
+
+3. Simulate an RNA-seq dataset using the above parameters.
 ```{r, echo=TRUE}
 library(Linnorm)
-SimulatedData <- RnaXSim(SampleA,
-distribution="Gamma", #Distribution in the simulated dataset.
-#Put "NB" for Negative Binomial, "Gamma" for Gamma,
-#"Poisson" for Poisson and "LogNorm" for Log Normal distribution.
-NumRep=5, #Number of replicates in each sample set. 
-#5 will generate 10 samples in total.
-NumDiff = 1000, #Number of differentially expressed genes.
-NumFea = 5000 #Total number of genes in the dataset
-)
+SimulatedData <- RnaXSim(SampleA, distribution=Distribution,
+NumRep=NumReplicates, NumDiff = NumDiffGenes, NumFea = NumGenes)
 ```
 
 
-3. Separate data into matrices and vectors for further usage.
+4. Separate data into matrices and vectors for further usage.
 ```{r, echo=TRUE}
 #Index of differentially expressed genes.
 DE_Index <- SimulatedData[[2]]
@@ -556,34 +484,33 @@ DE_Index <- SimulatedData[[2]]
 #Expression Matrix
 ExpMatrix <- SimulatedData[[1]]
 
-#Simulated Sample Set 1
+#Sample Set 1
 Sample1 <- ExpMatrix[,1:3]
 
-#Simulated Sample Set 2
+#Sample Set 2
 Sample2 <- ExpMatrix[,4:6]
 ```
 
-\newpage
 #Frequently Asked Questions
 ##How do I convert Linnorm Transformed dataset back to CPM/TPM?
 Answer: Here is an example:
 ```{r, echo=TRUE}
 #Obtain a transformed dataset for an example.
-data(LIHC)
+library(seqc)
+SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
+rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
+SampleA <- SampleA[,1:4]
 library(Linnorm)
 #LNormData is a matrix of Linnorm Transformed dataset.
-LNormData <- Linnorm(LIHC)
+LNormData <- Linnorm(SampleA)
 
 #To convert Linnorm Transformed dataset into CPM or TPM:
 XPMdata <- exp(LNormData) - 1
 for (i in seq_along(XPMdata[1,])) {
 	XPMdata[,i] <- (XPMdata[,i]/sum(XPMdata[,i])) * 1000000
 }
-#Now, XPMdata contains a CPM dataset if the
-#original data is raw count or CPM.
-
-#It contains a TPM dataset if the original
-#data is RPKM, FPKM or TPM.
+#Now, XPMdata contains a CPM dataset if the original data is raw count or CPM. 
+#It contains a TPM dataset if the original data is RPKM, FPKM or TPM.
 
 ```
 
