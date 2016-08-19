@@ -163,7 +163,7 @@ double SkewVarKurt	(const arma::mat& GeneExp, const double& lambda2) {
 }
 
 //Given a range of lambda, this function finds lambda that minimizes F(lambda) (see article) based on the expression matrix by using binary search.
-double LocalSearch(const arma::mat& GeneExp, double minBound, double maxBound, double& smallest) {
+double LocalSearch(const arma::mat& GeneExp, double minBound, double maxBound, double& smallest, double search_exponent) {
 	minBound = round(minBound);
 	maxBound = round(maxBound);
 	//cout << "here1 " << minBound<<   " " << maxBound << endl;
@@ -188,8 +188,8 @@ double LocalSearch(const arma::mat& GeneExp, double minBound, double maxBound, d
 		//cout << "here1 " << smallestBound<<   " " << midBound << endl;
 		if (index > 0) {
 			//Reset boundary to center at smallestBound
-			minBound = round(smallestBound - (smallestBound - GminBound)/pow(2,index));
-			maxBound = round(smallestBound + (GmaxBound - smallestBound)/pow(2,index));
+			minBound = round(smallestBound - (smallestBound - GminBound)/pow(search_exponent,index));
+			maxBound = round(smallestBound + (GmaxBound - smallestBound)/pow(search_exponent,index));
 			midBound = round((minBound + maxBound)/2);
 			//cout << minBound << " " << maxBound << endl;
 		}
@@ -224,12 +224,12 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP) {
    //Boundary of ILS are minBound and maxBound
 	//Here, we define the range of lambda based on the dataset.
 	double leastMean = 0;
-	int fivepercent = GeneExp.n_cols / 20;
+	int fivepercent = GeneExp.n_rows / 20;
 	if (fivepercent < 1)
 		fivepercent = 1;
 	int numnonzero = 0;
 	for (int j = 0; j < fivepercent; j++) {
-		for (int i = 0; i < int(GeneExp.n_cols); i ++) {
+		for (int i = 0; i < int(GeneExp.n_cols); i++) {
 			if ( GeneExp.at(j,i) > 0) {
 				leastMean += GeneExp.at(j,i);
 				numnonzero++;
@@ -240,9 +240,10 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP) {
 	double maxBound = 1/leastMean;
 	double minBound = 1;
 	
+
 	//Find local minima
 	double localminIntegral;
-	double localmin = LocalSearch(GeneExp, minBound, maxBound,localminIntegral);
+	double localmin = LocalSearch(GeneExp, minBound, maxBound,localminIntegral,search_exponent);
 	
 	//First, iterated local search starting on the left hand side of the local minima.  
 	//LHS search
@@ -254,7 +255,7 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP) {
 	while (newminBound >= minBound) {
 		//cout << "LHS " << searchIndex <<  " " << newminBound <<endl;
 		//2.applying local search after starting from the modified solution.
-		newmin = LocalSearch(GeneExp, newminBound, lastnewminBound, newminIntegral);
+		newmin = LocalSearch(GeneExp, newminBound, lastnewminBound, newminIntegral,search_exponent);
 		//If new minimum is smaller than the local minimal, reset local minimal and start the process again.
 		if (newminIntegral < localminIntegral) {
 			localmin = newmin;
@@ -284,6 +285,8 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP) {
 			}
 		}
 	}
+
+	
 	//Lastly, iterated local search on the right hand side of the local minima.  
 	//RHS search
 	searchIndex = 1;
@@ -294,7 +297,7 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP) {
 	while (newmaxBound <= maxBound) {
 		//cout << "RHS " << searchIndex <<  " " << newmaxBound <<endl;
 		//2.applying local search after starting from the modified solution.
-		newmax = LocalSearch(GeneExp, lastnewmaxBound, newmaxBound, newmaxIntegral);
+		newmax = LocalSearch(GeneExp, lastnewmaxBound, newmaxBound, newmaxIntegral,search_exponent);
 		//If new maximum is smaller than the local maximal, reset local maximal and start the process again.
 		if (newmaxIntegral < localminIntegral) {
 			localmin = newmax;

@@ -40,6 +40,12 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 	if (minZeroPortion >1 || minZeroPortion < 0) {
 		stop("Invalid minZeroPortion.")
 	}
+	if (anyNA(expdata)) {
+		stop("Dataset contains NA.")
+	}
+	if (sum(which(expdata < 0)) != 0) {
+		stop("Dataset contains negative number.")
+	}
 	#Step 1: Relative Expression
 	#Turn it into relative expression
 	for (i in seq_along(expdata[1,])) {
@@ -131,8 +137,11 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 	if (minZeroPortion >1 || minZeroPortion < 0) {
 		stop("Invalid minZeroPortion.")
 	}
-	if (is.null(design)) {
-		stop("design is null.")
+	if (anyNA(expdata)) {
+		stop("Dataset contains NA.")
+	}
+	if (sum(which(expdata < 0)) != 0) {
+		stop("Dataset contains negative number.")
 	}
 
 	
@@ -189,7 +198,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 		set2 <- as.numeric(which(design[,1] != 1))
 		limmaResults[,2] <- unlist(apply(datamatrix,1,mean)) * 1000000
 		if (noINF) {
-			datamatrix <- datamatrix * X + 1
+			datamatrix <- datamatrix * 1000000 + 1
 			limmaResults[,1] <- unlist(apply(datamatrix,1,function(x){return(log(mean(x[set1])/mean(x[set2] ),2) )}))
 		} else {
 			limmaResults[,1] <- unlist(apply(datamatrix,1,function(x){return(log(mean(x[set1])/mean(x[set2]),2) )}))
@@ -208,8 +217,6 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 		results <- setNames(listing, c("DEResults", "TMatrix"))
 		return (results)
 	}
-		
-	
 }
 
 
