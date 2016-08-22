@@ -64,6 +64,8 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 		if (keepAll) {
 			zeroes <- rownames(datamatrix[rowSums(datamatrix) == 0,])
 			datamatrix <- datamatrix[rowSums(datamatrix) > 0,]
+		} else {
+			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
 		}
 		XPMdata <- exp(datamatrix)
 		for (i in seq_along(XPMdata[1,])) {
