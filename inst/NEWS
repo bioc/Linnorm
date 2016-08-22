@@ -1,12 +1,3 @@
-23th, August, 2016
-	o Critical update for developmental version:
-		o Added HVar and Cor functions for highly variable gene discovery and gene correlation study.
-		o Also updated vignette regarding these two functions.
-		o Added the "input" argument to allow functions to reuse Linnrom transformed dataset.
-		o Added the "keepAll" argument to allow users to control whether the results will output filtered genes.
-		o Split each function into individual files for easier code maintenance.
-	o 1.0.5 for release
-		o Minor fixes on author lists.
 17th, August, 2016
 	o Updated author list.
 	o Error preventing checks now implemented in release 1.0.4.

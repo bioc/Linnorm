@@ -46,8 +46,13 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 	expdata <- 0
 	XPM <- 0
 	XPMSD <- 0
+	zeroes <- 0
 	if (input == "Raw") {
 		#Linnorm transformation
+		if (keepAll) {
+			zeroes <- datamatrix[rowSums(datamatrix) == 0,]
+			datamatrix <- datamatrix[rowSums(datamatrix) > 0,]
+		}
 		expdata <- Linnorm(datamatrix, showinfo = showinfo, method="internal",perturbation=perturbation, minZeroPortion = minZeroPortion, keepAll = keepAll)
 		X <- expdata[[2]]
 		expdata <- expdata[[1]]
@@ -56,6 +61,10 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 		expdata <- log1p(expdata * X)
 	} 
 	if (input == "Linnorm"){
+		if (keepAll) {
+			zeroes <- rownames(datamatrix[rowSums(datamatrix) == 0,])
+			datamatrix <- datamatrix[rowSums(datamatrix) > 0,]
+		}
 		XPMdata <- exp(datamatrix)
 		for (i in seq_along(XPMdata[1,])) {
 			XPMdata[,i] <- (XPMdata[,i] * 1000000)/sum(XPMdata[,i])
@@ -63,7 +72,7 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 		XPM <- rowMeans(XPMdata) 
 		XPMSD <- rowSDs(XPMdata)
 		expdata <- datamatrix
-	}
+	}	
 	
 	datamean <- rowMeans(expdata)
 	dataSD <- rowSDs(expdata)
@@ -72,7 +81,7 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 	logitit <- loess(dataSD~datamean)
 	
 	#In case of negative fit, where negative stdev is impossible in our case, change them into the smallest stdev in the dataset
-	logitit$fitted[which(logitit$fitted <= 0)] <- min(dataSD)
+	logitit$fitted[which(logitit$fitted <= 0)] <- min(dataSD[which(dataSD != 0)])
 	
 	#Obtain Stdev ratios to adjust for technical noise.
 	SDRatio <- log(dataSD/logitit$fitted, 2)
@@ -122,7 +131,14 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 		results[,6] <- exp(pvalues)
 		results[,7] <- qvalues
 	}
-	
+		
+	if (keepAll) {
+		ZERO <- matrix(0, ncol=7, nrow=length(zeroes))
+		colnames(ZERO) <- c("XPM", "XPM.SD", "Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
+		rownames(ZERO) <- zeroes
+		results <- rbind(results, ZERO)
+	}
+
 	groups <- rep("non-sig", length(SDRatio))
 	groups[which(qvalues <= sig.q)] <- "Significant"
 	groups[spikes] <- "Spike in"

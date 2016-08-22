@@ -328,9 +328,9 @@ data(Islam2011)
 ```
 
 2. Calculate Pearson correlation coefficients between combinations of genes.
-We randomly choose 100 genes as an example.
+We randomly choose 1000 genes as an example.
 ```{r, echo=TRUE}
-results <- Linnorm.Cor(Islam2011[sample(1:nrow(Islam2011),500),])
+results <- Linnorm.Cor(Islam2011[sample(1:nrow(Islam2011),1000),])
 ```
 
 3. Print out the most significant 10 pairs of genes.
