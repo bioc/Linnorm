@@ -5,10 +5,10 @@
 \title{Linnorm Transformation Function}
 \usage{
 Linnorm(datamatrix, showinfo = FALSE, method = "default",
-  perturbation = 10, minZeroPortion = 2/3)
+  perturbation = 10, minZeroPortion = 2/3, keepAll = TRUE)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Undefined values such as NA are not supported.}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
 \item{showinfo}{Logical. Show lambda value calculated. Defaults to FALSE.}
 
@@ -16,7 +16,9 @@ Linnorm(datamatrix, showinfo = FALSE, method = "default",
 
 \item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
 
-\item{minZeroPortion}{Double >=0, <= 1. Featuress without at least this portion of non-zero values will not be used in the calculation of normalizing parameter. Defaults to 2/3.}
+\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 2/3.}
+
+\item{keepAll}{Boolean. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
 }
 \value{
 This function returns either a transformed data matrix or a lambda value.

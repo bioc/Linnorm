@@ -5,7 +5,6 @@ rowSDs <- function(x) {
   return ((rowSums((x - rowMeans(x))^2)/(dim(x)[2] - 1) ) ^ 0.5 )
 }
 
-
 gammaShape <- function(x) {
     .Call(gammaShapeCpp, x)
 }
@@ -14,6 +13,22 @@ LocateLambda <- function(x,y) {
     .Call(LocateLambdaCpp, x,y)
 }
 
+createUpperIndex <- function(colLength,TotalLength) {
+	index <- matrix(0,nrow=TotalLength,ncol=2)
+	TL <- 1
+	for (i in 2:colLength) {
+		for (j in 1:(i-1)) {
+			index[TL,] <- c(j,i)
+			TL <- TL + 1
+		}
+	}
+	return (index)
+}
+
+r.sig <- function(r,n) {
+	tvalue <- abs(r) * sqrt((n - 2)/(1 - r^2))
+	return(2*pt(tvalue, n, lower=FALSE))
+}
 
 GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	thisdata_ori <- thisdata
@@ -154,6 +169,7 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinf
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
 
+	Group1 <- c()
 	
 	unchanged <- exp(unchanged)
 	changing <- exp(changing)
@@ -172,6 +188,9 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinf
 				if (sample(1:2,1) == 1) {
 					gammamatrix[i,1:NumRep] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 					TBC <- sample(changing,1)
+					if (TBC > 1) {
+						Group1 <- c(Group1, i)
+					}
 					dmean <- dmean * TBC
 					theta <- FindVar(dmean)/dmean
 					theK <- dmean/theta
@@ -179,6 +198,9 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinf
 				} else {
 					gammamatrix[i,(NumRep + 1):length(gammamatrix[1,])] <- sample(as.vector(rgamma(NumRep* 2, shape=theK,scale=theta)),NumRep)
 					TBC <- sample(changing,1)
+					if (TBC < 1) {
+						Group1 <- c(Group1, i)
+					}
 					dmean <- dmean * TBC
 					theta <- FindVar(dmean)/dmean
 					theK <- dmean/theta
@@ -206,6 +228,9 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinf
 	gammamatrix[is.na(gammamatrix)] = 0
 	gammamatrix[is.infinite(gammamatrix)] = 0
 	gammamatrix[gammamatrix < 0] = 0
+	
+	
+	#Induce library size differences
 	changes <- 2^(seq(-MaxLibSizelog2FC,0,0.001) )
 	thesechanges <- sample(changes,length(gammamatrix[1,]),replace=TRUE)
 
@@ -214,8 +239,8 @@ GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinf
 	}
 
 	gammamatrix <-  as.matrix(floor(gammamatrix))
-	listing <- list(gammamatrix,as.numeric(sort(tobechanged)))
-	results <- setNames(listing, c("data", "DiffList"))
+	listing <- list(gammamatrix,as.numeric(sort(tobechanged)), as.numeric(sort(Group1)), as.numeric(sort( tobechanged[!(tobechanged %in% Group1)])))
+	results <- setNames(listing, c("data", "DiffList", "CorGroup1", "CorGroup2"))
 	return (results)
 }
 
@@ -346,7 +371,7 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
 
-	
+	Group1 <- c()
 	unchanged <- exp(unchanged)
 	changing <- exp(changing)
 	tobechanged <- sample(1:NumFea,NumDiff)
@@ -361,11 +386,17 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 				if (sample(1:2,1) == 1) {
 					poismatrix[i,1:NumRep] <- sample(as.vector(rpois(NumRep* 2, dmean)),NumRep)
 					TBC <- sample(changing,1)
+					if (TBC > 1) {
+						Group1 <- c(Group1, i)
+					}
 					dmean <- dmean * TBC
 					poismatrix[i,(NumRep + 1):length(poismatrix[1,])] <- sample(as.vector(rpois(NumRep* 2, dmean)),NumRep)
 				} else {
 					poismatrix[i,(NumRep + 1):length(poismatrix[1,])] <- sample(as.vector(rpois(NumRep* 2, dmean)),NumRep)
 					TBC <- sample(changing,1)
+					if (TBC < 1) {
+						Group1 <- c(Group1, i)
+					}
 					dmean <- dmean * TBC
 					poismatrix[i,1:NumRep] <- sample(as.vector(rpois(NumRep * 2, dmean)),NumRep)
 				}
@@ -387,6 +418,9 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 	poismatrix[is.na(poismatrix)] = 0
 	poismatrix[is.infinite(poismatrix)] = 0
 	poismatrix[poismatrix < 0] = 0
+	
+
+	#Induce library size differences
 	changes <- 2^(seq(-MaxLibSizelog2FC,0,0.001) )
 	thesechanges <- sample(changes,length(poismatrix[1,]),replace=TRUE)
 	
@@ -395,8 +429,8 @@ PoissonSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 	}
 
 	poismatrix <-  as.matrix(floor(poismatrix))
-	listing <- list(poismatrix,as.numeric(sort(tobechanged)))
-	results <- setNames(listing, c("data", "DiffList"))
+	listing <- list(poismatrix,as.numeric(sort(tobechanged)), as.numeric(sort(Group1)), as.numeric(sort( tobechanged[!(tobechanged %in% Group1)])))
+	results <- setNames(listing, c("data", "DiffList", "CorGroup1", "CorGroup2"))
 
 	return (results)
 }
@@ -540,7 +574,7 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 	ending <- round(NumFea - NumDiff/2,0)
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
-
+	Group1 <- c()
 	unchanged <- exp(unchanged)
 	changing <- exp(changing)
 	tobechanged <- sample(1:NumFea,NumDiff)
@@ -559,6 +593,9 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 				if (sample(1:2,1) == 1) {
 					lnormmatrix[i,1:NumRep] <- (sample(as.vector(rlnorm(NumRep* 2,meanlog = LNMean, sdlog = LNSD)),NumRep))
 					TBC <- sample(changing,1)
+					if (TBC > 1) {
+						Group1 <- c(Group1, i)
+					}
 					theMean <- theMean * TBC
 					theSD <- FindSD(theMean)
 					LNMean <- log(theMean) - 0.5 * log((theSD/theMean)^2 + 1)
@@ -567,6 +604,9 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 				} else {
 					lnormmatrix[i,(NumRep + 1):length(lnormmatrix[1,])] <- (sample(as.vector(rlnorm(NumRep* 2,meanlog = LNMean, sdlog = LNSD)),NumRep))
 					TBC <- sample(changing,1)
+					if (TBC < 1) {
+						Group1 <- c(Group1, i)
+					}
 					theMean <- theMean * TBC
 					theSD <- FindSD(theMean)
 					LNMean <- log(theMean) - 0.5 * log((theSD/theMean)^2 + 1)
@@ -598,14 +638,17 @@ LogNormSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showi
 	lnormmatrix[is.na(lnormmatrix)] = 0
 	lnormmatrix[is.infinite(lnormmatrix)] = 0
 	lnormmatrix[lnormmatrix < 0] = 0
+	
+
+	#Induce library size differences
 	changes <- 2^(seq(-MaxLibSizelog2FC,0,0.001) )
 	thesechanges <- sample(changes,length(lnormmatrix[1,]),replace=TRUE)
 	for (i in seq_along(lnormmatrix[1,])) {
 		lnormmatrix[,i] <- lnormmatrix[,i] * thesechanges[i]
 	}
 	lnormmatrix <-  as.matrix(floor(lnormmatrix))
-	listing <- list(lnormmatrix,as.numeric(sort(tobechanged)))
-	results <- setNames(listing, c("data", "DiffList"))
+	listing <- list(lnormmatrix,as.numeric(sort(tobechanged)), as.numeric(sort(Group1)), as.numeric(sort( tobechanged[!(tobechanged %in% Group1)])))
+	results <- setNames(listing, c("data", "DiffList", "CorGroup1", "CorGroup2"))
 	return (results)
 }
 
@@ -757,7 +800,7 @@ NBSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=F
 	unchanged <- changes[begin:ending]
 	changing <- c(changes[1:begin],changes[ending:length(changes)])
 
-	
+	Group1 <- c()
 	unchanged <- exp(unchanged)
 	changing <- exp(changing)
 	tobechanged <- sample(1:NumFea,NumDiff)
@@ -776,12 +819,18 @@ NBSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=F
 				if (sample(1:2,1) == 1) {
 					nbmatrix[i,1:NumRep] <- sample(as.vector(rnbinom(NumRep* 2,size=theDis,mu=themean)),NumRep)
 					TBC <- sample(changing,1)
+					if (TBC > 1) {
+						Group1 <- c(Group1, i)
+					}
 					themean <- themean * TBC
 					theDis <- FindDispersion(themean)
 					nbmatrix[i,(NumRep + 1):length(nbmatrix[1,])] <- sample(as.vector(rnbinom(NumRep* 2,size=theDis,mu=themean)),NumRep)
 				} else {
 					nbmatrix[i,(NumRep + 1):length(nbmatrix[1,])] <- sample(as.vector(rnbinom(NumRep* 2,size=theDis,mu=themean)),NumRep)
 					TBC <- sample(changing,1)
+					if (TBC < 1) {
+						Group1 <- c(Group1, i)
+					}
 					themean <- themean * TBC
 					theDis <- FindDispersion(themean)
 					nbmatrix[i,1:NumRep] <- sample(as.vector(rnbinom(NumRep* 2,size=theDis,mu=themean)),NumRep)
@@ -806,6 +855,9 @@ NBSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=F
 	nbmatrix[is.na(nbmatrix)] = 0
 	nbmatrix[is.infinite(nbmatrix)] = 0
 	nbmatrix[nbmatrix < 0] = 0
+
+	
+	#Induce library size differences
 	changes <- 2^(seq(-MaxLibSizelog2FC,0,0.001) )
 	thesechanges <- sample(changes,length(nbmatrix[1,]),replace=TRUE)
 
@@ -814,8 +866,8 @@ NBSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=F
 	}
 
 	nbmatrix <-  as.matrix(floor(nbmatrix))
-	listing <- list(nbmatrix,as.numeric(sort(tobechanged)))
-	results <- setNames(listing, c("data", "DiffList"))
+	listing <- list(nbmatrix,as.numeric(sort(tobechanged)), as.numeric(sort(Group1)), as.numeric(sort( tobechanged[!(tobechanged %in% Group1)])))
+	results <- setNames(listing, c("data", "DiffList", "CorGroup1", "CorGroup2"))
 
 	return (results)
 }
