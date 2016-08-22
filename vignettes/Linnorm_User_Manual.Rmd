@@ -1,7 +1,7 @@
 ---
 toc: false
 author:
-  Shun H. Yip^1,2,3^, Panwen Wang^3^, Pak Chung Sham^1,4,5^, Junwen Wang^3,6^
+  Shun H. Yip^1,2,3^, Panwen Wang^3^, Jean-Pierre Kocher^3^, Pak Chung Sham^1,4,5^, Junwen Wang^3,6^
 output:
  BiocStyle::pdf_document2
 vignette: >
@@ -16,7 +16,7 @@ vignette: >
 \maketitle
 
 \begin{center}
-\date{August 17, 2016}
+\date{August 22, 2016}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,}\protect \\ 
