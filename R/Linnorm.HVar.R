@@ -10,7 +10,7 @@
 #' @param keepAll	Boolean. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to FALSE.
 #' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param log.p	Logical. Output p/q values in log scale. Defaults to FALSE.
-#' @param sig.q	Double >=0, <= 1. Significant level of q value for plotting. Defaults to 0.1.
+#' @param sig.q	Double >=0, <= 1. Significant level of q value for plotting. Defaults to 0.01.
 #' @details  This function discovers highly variable gene in the dataset using Linnorm transformed dataset.
 #' @return This function will output a list with the following objects:
 ##' \itemize{
@@ -33,7 +33,7 @@
 #' data(Islam2011)
 #' results <- Linnorm.HVar(Islam2011)
 
-Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, showinfo = FALSE, perturbation=10, minZeroPortion=0.5, keepAll=FALSE, log.p=FALSE, sig.q=0.1) {
+Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, showinfo = FALSE, perturbation=10, minZeroPortion=0.5, keepAll=FALSE, log.p=FALSE, sig.q=0.01) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
@@ -46,27 +46,28 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 	expdata <- 0
 	XPM <- 0
 	XPMSD <- 0
-	zeroes <- 0
+	filtered <- 0
+	filteredXPM <- 0
+	filteredXPMSD <- 0
+	filtered <- 0
 	if (input == "Raw") {
 		#Linnorm transformation
-		if (keepAll) {
-			zeroes <- datamatrix[rowSums(datamatrix) == 0,]
-			datamatrix <- datamatrix[rowSums(datamatrix) > 0,]
-		}
 		expdata <- Linnorm(datamatrix, showinfo = showinfo, method="internal",perturbation=perturbation, minZeroPortion = minZeroPortion, keepAll = keepAll)
 		X <- expdata[[2]]
 		expdata <- expdata[[1]]
 		XPM <- rowMeans(expdata * 1000000) 
 		XPMSD <- rowSDs(expdata * 1000000)
 		expdata <- log1p(expdata * X)
+		if (keepAll) {
+			filteredXPM <- XPM[rowSums(expdata != 0) < ncol(expdata) * minZeroPortion]
+			filteredXPMSD <- XPMSD[rowSums(expdata != 0) < ncol(expdata) * minZeroPortion]
+			filtered <- expdata[rowSums(expdata != 0) < ncol(expdata) * minZeroPortion,]
+		}
+		XPMSD <- XPMSD[rowSums(expdata != 0) >= ncol(expdata) * minZeroPortion]
+		XPM <- XPM[rowSums(expdata != 0) >= ncol(expdata) * minZeroPortion]
+		expdata <- expdata[rowSums(expdata != 0) >= ncol(expdata) * minZeroPortion,]
 	} 
 	if (input == "Linnorm"){
-		if (keepAll) {
-			zeroes <- rownames(datamatrix[rowSums(datamatrix) == 0,])
-			datamatrix <- datamatrix[rowSums(datamatrix) > 0,]
-		} else {
-			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
-		}
 		XPMdata <- exp(datamatrix)
 		for (i in seq_along(XPMdata[1,])) {
 			XPMdata[,i] <- (XPMdata[,i] * 1000000)/sum(XPMdata[,i])
@@ -74,10 +75,18 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 		XPM <- rowMeans(XPMdata) 
 		XPMSD <- rowSDs(XPMdata)
 		expdata <- datamatrix
+		if (keepAll) {
+			filteredXPM <- XPM[rowSums(datamatrix != 0) < ncol(datamatrix) * minZeroPortion]
+			filteredXPMSD <- XPMSD[rowSums(datamatrix != 0) < ncol(datamatrix) * minZeroPortion]
+			filtered <- expdata[rowSums(datamatrix != 0) < ncol(datamatrix) * minZeroPortion,]
+		}
+		XPM <- XPM[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion]
+		XPMSD <- XPMSD[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion]
+		expdata <- expdata[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
 	}	
-	
+	######First use Linnorm transformed dataset######
 	datamean <- rowMeans(expdata)
-	dataSD <- rowSDs(expdata)
+	dataSD <- sqrt(rowSDs(expdata))
 	
 	#Logistic regression to fit technical noise.
 	logitit <- loess(dataSD~datamean)
@@ -88,14 +97,6 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 	#Obtain Stdev ratios to adjust for technical noise.
 	SDRatio <- log(dataSD/logitit$fitted, 2)
 
-	#Linear regression to map out residual technical noise
-	fit <- lm(SDRatio ~ datamean)
-	slope <- fit$coefficients[[1]]
-	constant <- fit$coefficients[[2]]
-
-	#Adjust for residual technical noise
-	SDRatio <- SDRatio - (slope * datamean + constant)
-	
 	#Calculate p values
 	#if spike in list is provided, we test whether a given standard deviation is larger than the spike in.
 	pvalues <- 0
@@ -113,7 +114,7 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 			pvalues <- pnorm(as.numeric(SDRatio),mean(as.numeric(SDRatio[spikes]),na.rm=TRUE),sd(SDRatio[spikes],na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
 		}
 		if (method == "SE") {
-			pvalues <- pnorm(as.numeric(SDRatio),mean(as.numeric(SDRatio[spikes]),na.rm=TRUE),sd(SDRatio[spikes],na.rm=TRUE)/sqrt(length(SDRatio[spikes])), lower.tail = FALSE, log.p=TRUE )
+			pvalues <- pnorm(as.numeric(SDRatio),mean(as.numeric(SDRatio[spikes]),na.rm=TRUE),sd(SDRatio[spikes],na.rm=TRUE)/sqrt(length(spikes)), lower.tail = FALSE, log.p=TRUE )
 		}
 	}
 	qvalues <- p.adjust(exp(pvalues),"BH")
@@ -121,6 +122,7 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 	results <- matrix(ncol=7, nrow=length(SDRatio))
 	colnames(results) <- c("XPM", "XPM.SD", "Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
 	rownames(results) <- rownames(expdata)
+	dataSD <- dataSD^2
 	results[,1] <- XPM
 	results[,2] <- XPMSD
 	results[,3] <- datamean
@@ -135,9 +137,16 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SE", spikein=NULL, s
 	}
 		
 	if (keepAll) {
-		ZERO <- matrix(0, ncol=7, nrow=length(zeroes))
+		ZERO <- matrix(0, ncol=7, nrow=length(filteredXPM))
 		colnames(ZERO) <- c("XPM", "XPM.SD", "Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
-		rownames(ZERO) <- zeroes
+		rownames(ZERO) <- rownames(filtered)
+		ZERO[,1] <- filteredXPM
+		ZERO[,2] <- filteredXPMSD
+		ZERO[,3] <- rowMeans(filtered)
+		ZERO[,4] <- rowSDs(filtered)
+		ZERO[,5] <- NA
+		ZERO[,6] <- NA
+		ZERO[,7] <- NA
 		results <- rbind(results, ZERO)
 	}
 

@@ -6,7 +6,7 @@
 \usage{
 Linnorm.HVar(datamatrix, input = "Raw", method = "SE", spikein = NULL,
   showinfo = FALSE, perturbation = 10, minZeroPortion = 0.5,
-  keepAll = FALSE, log.p = FALSE, sig.q = 0.1)
+  keepAll = FALSE, log.p = FALSE, sig.q = 0.01)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
@@ -27,7 +27,7 @@ Linnorm.HVar(datamatrix, input = "Raw", method = "SE", spikein = NULL,
 
 \item{log.p}{Logical. Output p/q values in log scale. Defaults to FALSE.}
 
-\item{sig.q}{Double >=0, <= 1. Significant level of q value for plotting. Defaults to 0.1.}
+\item{sig.q}{Double >=0, <= 1. Significant level of q value for plotting. Defaults to 0.01.}
 }
 \value{
 This function will output a list with the following objects:
