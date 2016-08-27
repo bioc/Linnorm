@@ -2,7 +2,7 @@
 % Please edit documentation in R/Linnorm.PCA.R
 \name{Linnorm.PCA}
 \alias{Linnorm.PCA}
-\title{Linnorm-PCA Clustering pipeline for Single Cell Sub-population Analysis}
+\title{Linnorm-PCA Clustering pipeline for subpopulation Analysis}
 \usage{
 Linnorm.PCA(datamatrix, showinfo = FALSE, input = "Raw",
   perturbation = 10, minZeroPortion = 0, keepAll = TRUE, num_PC = 2,
@@ -20,7 +20,7 @@ Linnorm.PCA(datamatrix, showinfo = FALSE, input = "Raw",
 
 \item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 0.}
 
-\item{keepAll}{Boolean. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
+\item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
 
 \item{num_PC}{Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.}
 
@@ -33,12 +33,12 @@ Linnorm.PCA(datamatrix, showinfo = FALSE, input = "Raw",
 \item{kmeans.iter}{Numeric. Number of iterations in k-means clustering. Defaults to 2000.}
 }
 \value{
-It returns a list with the following results:
+It returns a list with the following objects:
 \itemize{
- \item{k_means:}{Output of kmeans(for K-means clustering) from the stat package. Note: It contains a "cluster" object that indicates each sample's cluster assignment.}
- \item{PCA:}{Output of prcomp(for Principal component analysis) from the stat package.}
- \item{plot:}{Plot of PCA clustering.}
- \item{Linnorm:}{Linnorm transformed and filtered data matrix.}
+ \item{k_means:}{ Output of kmeans(for K-means clustering) from the stat package. Note: It contains a "cluster" object that indicates each sample's cluster assignment.}
+ \item{PCA:}{ Output of prcomp(for Principal component analysis) from the stat package.}
+ \item{plot:}{ Plot of PCA clustering.}
+ \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
 }
 }
 \description{
@@ -50,7 +50,7 @@ This function performs PCA clustering using Linnorm transformation.
 \examples{
 #Obtain example matrix:
 data(Islam2011)
-#Example 1
+#Example:
 PCA.results <- Linnorm.PCA(Islam2011)
 }
 \keyword{Analysis}

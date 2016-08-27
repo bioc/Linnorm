@@ -17,17 +17,64 @@ createUpperIndex <- function(colLength,TotalLength) {
 	index <- matrix(0,nrow=TotalLength,ncol=2)
 	TL <- 1
 	for (i in 2:colLength) {
-		for (j in 1:(i-1)) {
-			index[TL,] <- c(j,i)
-			TL <- TL + 1
-		}
+		newmatrix <- matrix(i, ncol=2, nrow=(i-1))
+		newmatrix[,1] <- seq(1,(i-1),1)
+		index[TL:(TL+i-2),] <- newmatrix
+		TL <- TL + i - 1
 	}
 	return (index)
 }
 
+createLowerIndex <- function(rowLength,TotalLength) {
+	index <- matrix(0,nrow=TotalLength,ncol=2)
+	TL <- 1
+	for (i in 2:rowLength) {
+		newmatrix <- matrix(i, ncol=2, nrow=(i-1))
+		newmatrix[,2] <- seq(1,(i-1),1)
+		index[TL:(TL+i-2),] <- newmatrix
+		TL <- TL + i - 1
+	}
+	return (index)
+}
+
+UpperToMatrix <- function(datavalues,UpperIndex) {
+	theMatrix <- matrix(1, ncol=max(UpperIndex[,2]), nrow=max(UpperIndex[,2]))
+	upperrow <- order(UpperIndex[,1])
+	lowerrow <- order(UpperIndex[,2])
+	upperrowi <- 1
+	upperrowj <- 1
+	lowerrowi <- 1
+	lowerrowj <- 1
+	for (i in 1:ncol(theMatrix)) {
+		if (upperrowj < length(upperrow)) {
+			while (UpperIndex[upperrow[upperrowj],1] == i) {
+				upperrowj <- upperrowj + 1
+				if (upperrowj == length(upperrow)) {
+					upperrowj <- upperrowj + 1
+					break
+				}
+			}
+			theMatrix[i,UpperIndex[upperrow[upperrowi:(upperrowj-1)],2]] <- datavalues[upperrow[upperrowi:(upperrowj-1)]]
+		}
+		if (lowerrowj < length(lowerrow)) {
+			while (UpperIndex[lowerrow[lowerrowj],2] == i) {
+				lowerrowj <- lowerrowj + 1
+				if (lowerrowj == length(lowerrow)) {
+					lowerrowj <- lowerrowj + 1
+					break
+				}
+			}
+			theMatrix[i,UpperIndex[lowerrow[lowerrowi:(lowerrowj-1)],1]] <- datavalues[lowerrow[lowerrowi:(lowerrowj-1)]]
+		}
+		upperrowi <- upperrowj
+		lowerrowi <- lowerrowj
+	}
+	return (theMatrix)
+}
+
 r.sig <- function(r,n) {
 	tvalue <- abs(r) * sqrt((n - 2)/(1 - r^2))
-	return(2*pt(tvalue, n, lower=FALSE))
+	return(2*pt(tvalue, n, lower.tail =FALSE))
 }
 
 GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {

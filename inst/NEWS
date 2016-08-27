@@ -1,3 +1,10 @@
+27th, August, 2016
+	o Development 1.1.14:
+		o Updated Linnorm.Cor function to allow more functionalities.
+		o Updated vignettes on Linnorm.Cor.
+		o Updated reference manual.
+	o Release: Fixed building error in 1.0.5, thus becoming 1.0.6.
+
 23th, August, 2016
 	o Critical update for development version 1.1.13:
 		o Added Linnorm.HVar, Linnorm.Cor functions for highly variable gene discovery and gene correlation study.

@@ -1,21 +1,28 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based transformation method (Linnorm)
-Version: 1.1.13
-Date: 2016-08-23
+Version: 1.1.14
+Date: 2016-08-27
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
 	Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
 	Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
-Description: Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. It transforms such datasets for parametric tests. Pipelines for (single cell) subpopluation analysis using PCA clustering, differential expression analysis or differential peak detection using limma, highly variable gene discovery and gene correlation analysis are implemented. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM. Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions.
+Description: Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. It transforms such datasets for parametric tests. 
+	In addition to the transformtion function, the following pipelines are implemented:
+		1. Cell subpopluation analysis and visualization using PCA clustering,
+		2. Differential expression analysis or differential peak detection using limma,
+		3. Highly variable gene discovery and visualization,
+		4. Gene correlation network analysis and visualization.
+	Linnorm can work with raw count, CPM, RPKM, FPKM and TPM. Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions.
 License: MIT + file LICENSE
-Imports: Rcpp (>= 0.12.2), RcppArmadillo, fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, stats, utils, statmod, MASS
+Imports: Rcpp (>= 0.12.2), RcppArmadillo, fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, stats, utils, statmod, MASS, igraph, grDevices, graphics 
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: BiocStyle, knitr, rmarkdown, gplots, RColorBrewer, seqc
 VignetteBuilder: knitr
 biocViews: Sequencing, ChIPSeq, RNASeq, DifferentialExpression,
-        GeneExpression, Genetics, Normalization, Software,
-        Transcription, BatchEffect
+		GeneExpression, Genetics, Normalization, Software,
+		Transcription, BatchEffect, PeakDetection, Clustering,
+		Network
 NeedsCompilation: yes
 LazyData: false
 URL: http://www.jjwanglab.org/Linnorm/

@@ -13,7 +13,7 @@ Linnorm.HVar(datamatrix, input = "Raw", method = "SE", spikein = NULL,
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 
-\item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to determine significant level. By using SE, we test whether the standard deviation of a gene is larger than the average standard deviation (of spike in genes or all genes). Using SD tests whether a gene's standard deviation is significant among other genes' standard deviation. Defaults to SE.}
+\item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SE.}
 
 \item{spikein}{character vector. Row names of the spike-in genes in the datamatrix. If this is provided, test of significance will be performed against the spike in genes. Defaults to NULL.}
 
@@ -23,20 +23,21 @@ Linnorm.HVar(datamatrix, input = "Raw", method = "SE", spikein = NULL,
 
 \item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on variance, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 0.5.}
 
-\item{keepAll}{Boolean. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to FALSE.}
+\item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to FALSE.}
 
 \item{log.p}{Logical. Output p/q values in log scale. Defaults to FALSE.}
 
-\item{sig.q}{Double >=0, <= 1. Significant level of q value for plotting. Defaults to 0.01.}
+\item{sig.q}{Double >0, <= 1. Significant level of q value for plotting. Defaults to 0.01.}
 }
 \value{
 This function will output a list with the following objects:
 \itemize{
- \item{results:}{ A matrix with the results.}
+ \item{Results:}{ A matrix with the results.}
  \item{plot:}{ Mean vs Standard Deviation Plot which highlights significant genes.}
+ \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
 }
 
-The results matrix has the following columns:
+The Results matrix has the following columns:
 \itemize{
  \item{XPM:}{ Average expression level in XPM. If input is raw coutns or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
  \item{XPM.SD:}{ Standard deviation of average expression.}
@@ -51,7 +52,7 @@ The results matrix has the following columns:
 This function first performs Linnorm transformation on the dataset. Then, it will perform highly variable gene discovery.
 }
 \details{
-This function discovers highly variable gene in the dataset using Linnorm transformed dataset.
+This function discovers highly variable gene in the dataset using Linnorm transformation.
 }
 \examples{
 data(Islam2011)

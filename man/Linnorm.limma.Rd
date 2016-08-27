@@ -26,7 +26,7 @@ Linnorm.limma(datamatrix, design = NULL, input = "Raw",
 
 \item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 2/3.}
 
-\item{keepAll}{Boolean. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
+\item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
 
 \item{robust}{Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to TRUE.}
 }
@@ -44,11 +44,11 @@ If output is set to "DEResults", this function will output a matrix with Differn
 If output is set to Both, this function will output a list with the following objects:
 \itemize{
  \item{DEResults:}{ Differntial Expression Analysis Results as described above.}
- \item{TMatrix:}{ A Linnorm Transformed Expression Matrix.}
+ \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
 }
 }
 \description{
-This function first performs Linnorm transformation on the dataset. Then, it will perform limma for DEG analysis. Finally, it will correct fold change outputs from limma results, that will be wrong otherwise. Please cite both Linnorm and limma when you use this function for publications.
+This function first performs Linnorm transformation on the dataset. Then, it will perform limma for DEG analysis. Please cite both Linnorm and limma when you use this function for publications.
 }
 \details{
 This function performs both Linnorm and limma for users who are interested in differential expression analysis. Please note that if you directly use a Linnorm Nomralized dataset with limma, the output fold change and average expression with be wrong. (p values and adj.pvalues will be fine.) This is because the voom-limma pipeline assumes input to be in raw counts. This function is written to fix this problem.

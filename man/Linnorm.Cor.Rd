@@ -2,11 +2,14 @@
 % Please edit documentation in R/Linnorm.Cor.R
 \name{Linnorm.Cor}
 \alias{Linnorm.Cor}
-\title{Linnorm-gene correlation pipeline for gene correlation study.}
+\title{Linnorm-gene correlation network analysis.}
 \usage{
 Linnorm.Cor(datamatrix, input = "Raw", method = "pearson",
   showinfo = FALSE, perturbation = 10, minZeroPortion = 0.5,
-  keepAll = FALSE, sig.q = 0.2)
+  sig.q = 0.05, plotNetwork = TRUE, plotNumPairs = 5000, plotdegree = 0,
+  plotname = "networkplot", plotformat = "png", plotVertexSize = 1,
+  plotFontSize = 1, plot.Pos.cor.col = "red", plot.Neg.cor.col = "green",
+  plotlayout = "kk")
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
@@ -21,32 +24,60 @@ Linnorm.Cor(datamatrix, input = "Raw", method = "pearson",
 
 \item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on variance, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 0.5.}
 
-\item{keepAll}{Boolean. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to FALSE.}
+\item{sig.q}{Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.}
 
-\item{sig.q}{Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the results. Defaults to 0.2.}
+\item{plotNetwork}{Logical. Should the program output the network plot to a file? An "igraph" object will be included in the output regardless. Defaults to TRUE.}
+
+\item{plotNumPairs}{Integer >= 50. Number of gene pairs to be used in the network plot. Defaults to 5000.}
+
+\item{plotdegree}{Integer >= 0. In the network plot, genes (vertices) without at least this number of degree will be removed. Defaults to 0.}
+
+\item{plotname}{Character. Name of the network plot. File extension will be appended to it. Defaults to "networkplot".}
+
+\item{plotformat}{Character. "pdf" or "png". Network plot output format. Defaults to "png".}
+
+\item{plotVertexSize}{Double >0. Controls vertex Size in the network plot. Defaults to 1.}
+
+\item{plotFontSize}{Double >0. Controls font Size in the network plot. Defaults to 1.}
+
+\item{plot.Pos.cor.col}{Character. Color of the edges of positively correlated gene pairs. Defaults to "red".}
+
+\item{plot.Neg.cor.col}{Character. Color of the edges of negatively correlated gene pairs. Defaults to "green".}
+
+\item{plotlayout}{Character. "kk" or "fr". "kk" uses Kamada-Kawai algorithm in igraph to assign vertex and edges. It scales edge length with correlation strength. However, it can cause overlaps between vertices. "fr" uses Fruchterman-Reingold algorithm in igraph to assign vertex and edges. It prevents overlatps between vertices better than "kk", but edge lengths are not scaled to correlation strength. Defaults to "kk".}
 }
 \value{
-This function will output a data frame with the following columns:
+This function will output a list with the following objects:
+\itemize{
+ \item{Results:}{ A data frame containing the results of the analysis, showing only the significant results determined by "sig.q" (see below).}
+ \item{Cor.Matrix:}{ The resulting correlation matrix between each gene. }
+ \item{q.Matrix:}{ A matrix of q values of each of the correlation coefficient from Cor.Matrix. }
+ \item{Num.Connect:}{ A data frame that shows the number of significant correlation of each gene.}
+ \item{igraph:}{ The igraph object for users who want to draw the network plot manually. }
+ \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+}
+
+The "Results" data frame has the following columns:
 \itemize{
  \item{Gene1:}{ Name of gene 1.}
  \item{Gene2:}{ Name of gene 2.}
- \item{XPM1:}{ Gene 1 average expression level in XPM. If input is raw coutns or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
- \item{XPM2:}{ Gene 2 average expression level in XPM. If input is raw coutns or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
+ \item{XPM1:}{ Gene 1 average expression level in XPM. If input is raw counts or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
+ \item{XPM2:}{ Gene 2 average expression level in XPM. If input is raw counts or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
  \item{Cor:}{ Correlation coefficient between the two genes.}
  \item{p.value:}{ p value of the correlation coefficient.}
  \item{q.value:}{ q value of the correlation coefficient.}
 }
 }
 \description{
-This function first performs Linnorm transformation on the dataset. Then, it will calculate correlation coefficient for all pairs of genes.
+This function first performs Linnorm transformation on the dataset. Then, it will perform correlation network analysis on the dataset.
 }
 \details{
 This function performed gene correlated study in the dataset by using Linnorm transformation.
 }
 \examples{
 data(Islam2011)
-#Correlation of randomly chosen 100 genes
-results <- Linnorm.Cor(Islam2011[sample(1:nrow(Islam2011),100),])
+#Analysis on Islam2011 embryonic stem cells
+results <- Linnorm.Cor(Islam2011[,1:48])
 }
 \keyword{CPM}
 \keyword{Count}

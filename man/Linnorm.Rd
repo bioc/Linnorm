@@ -12,13 +12,13 @@ Linnorm(datamatrix, showinfo = FALSE, method = "default",
 
 \item{showinfo}{Logical. Show lambda value calculated. Defaults to FALSE.}
 
-\item{method}{"default" or "lambda" The program will output the transformed matrix if the method is "default". If the method is "lambda", the program will output a lambda value.}
+\item{method}{Character. "default" or "lambda" The program will output the transformed matrix if the method is "default". If the method is "lambda", the program will output a lambda value.}
 
 \item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
 
 \item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 2/3.}
 
-\item{keepAll}{Boolean. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
+\item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
 }
 \value{
 This function returns either a transformed data matrix or a lambda value.
@@ -31,13 +31,10 @@ If method is default, Linnorm outputs a transformed expression matrix. For users
 }
 \examples{
 #Obtain example matrix:
-library(seqc)
-SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
-rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
-#Extract a portion of the matrix for an example
-expMatrix <- SampleA[,1:3]
-transformedExp <- Linnorm(expMatrix)
-transformedExp <- Linnorm(expMatrix, method = "lambda")
+data(LIHC)
+#Transformation:
+transformedExp <- Linnorm(LIHC)
+transformedExp <- Linnorm(LIHC, method = "lambda")
 }
 \keyword{CPM}
 \keyword{Count}
