@@ -5,7 +5,7 @@
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param method	Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson"
 #' @param showinfo	Logical. Show lambda value calculated. Defaults to FALSE.
-#' @param minZeroPortion	Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on variance, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 0.5.
+#' @param minZeroPortion	Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on correlation coefficient, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 2/3.
 #' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param sig.q	Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.
 #' @param plotNetwork	Logical. Should the program output the network plot to a file? An "igraph" object will be included in the output regardless. Defaults to TRUE. 
@@ -17,14 +17,16 @@
 #' @param plotFontSize	Double >0. Controls font Size in the network plot. Defaults to 1.
 #' @param plot.Pos.cor.col	Character. Color of the edges of positively correlated gene pairs. Defaults to "red".
 #' @param plot.Neg.cor.col	Character. Color of the edges of negatively correlated gene pairs. Defaults to "green".
+#' @param vertex.col	Character. "cluster" or a color. This controls the color of the vertices. Defaults to "cluster".
 #' @param plotlayout	Character. "kk" or "fr". "kk" uses Kamada-Kawai algorithm in igraph to assign vertex and edges. It scales edge length with correlation strength. However, it can cause overlaps between vertices. "fr" uses Fruchterman-Reingold algorithm in igraph to assign vertex and edges. It prevents overlatps between vertices better than "kk", but edge lengths are not scaled to correlation strength. Defaults to "kk".
+#' @param clusterMethod	Character. "cluster_edge_betweenness", "cluster_fast_greedy", "cluster_infomap", "cluster_label_prop", "cluster_leading_eigen", "cluster_louvain", "cluster_optimal", "cluster_spinglass" or "cluster_walktrap". These are clustering functions from the igraph package. Defaults to "cluster_edge_betweenness".
 #' @details  This function performed gene correlated study in the dataset by using Linnorm transformation.
 #' @return This function will output a list with the following objects:
 ##' \itemize{
 ##'  \item{Results:}{ A data frame containing the results of the analysis, showing only the significant results determined by "sig.q" (see below).}
 ##'  \item{Cor.Matrix:}{ The resulting correlation matrix between each gene. }
 ##'  \item{q.Matrix:}{ A matrix of q values of each of the correlation coefficient from Cor.Matrix. }
-##'  \item{Num.Connect:}{ A data frame that shows the number of significant correlation of each gene.}
+##'  \item{Cluster:}{ A data frame that shows which gene belongs to which cluster.}
 ##'  \item{igraph:}{ The igraph object for users who want to draw the network plot manually. }
 ##'  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
 ##' }
@@ -45,7 +47,7 @@
 #' #Analysis on Islam2011 embryonic stem cells
 #' results <- Linnorm.Cor(Islam2011[,1:48])
 
-Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = FALSE, perturbation=10, minZeroPortion=0.5, sig.q=0.05, plotNetwork=TRUE, plotNumPairs=5000, plotdegree=0, plotname="networkplot", plotformat = "png", plotVertexSize=1, plotFontSize=1, plot.Pos.cor.col="red", plot.Neg.cor.col="green", plotlayout="kk") {
+Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = FALSE, perturbation=10, minZeroPortion=2/3, sig.q=0.05, plotNetwork=TRUE, plotNumPairs=5000, plotdegree=0, plotname="networkplot", plotformat = "png", plotVertexSize=1, plotFontSize=1, plot.Pos.cor.col="red", plot.Neg.cor.col="green", vertex.col="cluster", plotlayout="kk", clusterMethod = "cluster_edge_betweenness") {
 	keepAll <- FALSE
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
@@ -74,6 +76,14 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 	if (plotlayout != "kk" && plotlayout != "fr") {
 		stop("Invalid plotlayout.")
 	}
+	if (!areColors(vertex.col) && vertex.col != "cluster") {
+		stop("Invalid vertex.col.")
+	}
+	igraphFun <- c("cluster_edge_betweenness", "cluster_fast_greedy", "cluster_infomap", "cluster_label_prop", "cluster_leading_eigen", "cluster_louvain", "cluster_optimal", "cluster_spinglass", "cluster_walktrap")
+	if (!(clusterMethod %in% igraphFun)) {
+		stop("Invalid clusterMethod.")
+	}
+	
 	filtered <- 0
 	expdata <- 0
 	if (input == "Raw") {
@@ -110,31 +120,10 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 	resultmatrix <- data.frame(Gene1=rownames(correlation)[index[wanted,1]],Gene2=rownames(correlation)[index[wanted,2]],XPM1=XPM[index[wanted,1]],XPM2=XPM[index[wanted,2]],Cor=correlations[wanted],p.value=pvalues[wanted],q.value=qvalues[wanted])
 	
 	
-	#Number of connections for each gene.
-	wanted <- 0	
+	#Network for the top "plotNumPairs" significant positively correlated gene pairs.
 	AllGene1 <- as.character(resultmatrix[,1])
 	AllGene2 <- as.character(resultmatrix[,2])
-	AllGenes <- c(AllGene1,AllGene2)
-	uniqueGenes <- unique(AllGenes)
-	AllGenes <- sort(AllGenes)
 	
-	GeneCount <- rep(0, length(uniqueGenes))
-	GeneName <- vector(mode="character", length(uniqueGenes))
-	GeneNumber <- 1
-	GeneName[1] <- AllGenes[1]
-	GeneCount[1] <- 1
-	for (i in 2:length(AllGenes)) {
-		if (AllGenes[i] == GeneName[GeneNumber]) {
-			GeneCount[GeneNumber] <- GeneCount[GeneNumber] + 1
-		} else {
-			GeneNumber <- GeneNumber + 1
-			GeneName[GeneNumber] = AllGenes[i]
-			GeneCount[GeneNumber] <- GeneCount[GeneNumber] + 1
-		}
-	}
-	numConnect <- data.frame(Gene=GeneName,Num.Connection=GeneCount)
-	
-	#Network for the top "plotNumPairs" significant positively correlated gene pairs.
 	if (plotNumPairs > length(resultmatrix[,6])) {
 		plotNumPairs <- length(resultmatrix[,6])
 	}
@@ -148,23 +137,43 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 		nodes[index] <- AllGene2[orderbyCor[i]]
 		index <- index + 1
 	}
+	
 	g1 <- graph(nodes,directed=FALSE)
 	Thislayout <- 0
+	
+	positive <- which(resultmatrix[orderbyCor[1:plotNumPairs],5] > 0)
+	negative <- which(resultmatrix[orderbyCor[1:plotNumPairs],5] < 0)
+	E(g1)[positive]$color <- "red"
+	E(g1)[negative]$color <- "green"
 	if (plotlayout == "kk") {
-		E(g1)$weight <- abs(resultmatrix[orderbyCor[1:plotNumPairs],5] - 2)
+		E(g1)$weight <- (resultmatrix[orderbyCor[1:plotNumPairs],5] - 3)^2
 		Thislayout <- layout_with_kk(g1)
 	}
 	if (plotlayout == "fr") {
 		E(g1)$weight <- resultmatrix[orderbyCor[1:plotNumPairs],5] + 1
 		Thislayout <- layout_with_fr(g1)
 	}
-	positive <- which(resultmatrix[orderbyCor[1:plotNumPairs],5] > 0)
-	negative <- which(resultmatrix[orderbyCor[1:plotNumPairs],5] < 0)
-	E(g1)[positive]$color <- "red"
-	E(g1)[negative]$color <- "green"
 	
-	g1 <- delete.vertices(g1,which(degree(g1) < plotdegree))
-
+	#Clustering
+	clustering <- 0
+	if (clusterMethod == "cluster_edge_betweenness") { clustering <- cluster_edge_betweenness(g1)}
+	if (clusterMethod == "cluster_fast_greedy") { clustering <- cluster_fast_greedy(g1)}
+	if (clusterMethod == "cluster_infomap") { clustering <- cluster_infomap(g1)}
+	if (clusterMethod == "cluster_label_prop") { clustering <- cluster_label_prop(g1)}
+	if (clusterMethod == "cluster_leading_eigen") { clustering <- cluster_leading_eigen(g1)}
+	if (clusterMethod == "cluster_louvain") { clustering <- cluster_louvain(g1)}
+	if (clusterMethod == "cluster_optimal") { clustering <- cluster_optimal(g1)}
+	if (clusterMethod == "cluster_spinglass") { clustering <- cluster_spinglass(g1)}
+	if (clusterMethod == "cluster_walktrap") { clustering <- cluster_walktrap(g1)}	
+	
+	if (vertex.col == "cluster") {
+		vertex.col <- clustering$membership
+	}
+	
+	#Cluster results
+	Clust.res <- data.frame(Gene=clustering$names,Cluster=clustering$membership)
+	
+	
 	if (plotNetwork) {
 		if(plotformat == "pdf") {
 			pdf(paste(plotname,".pdf",sep=""),width = 10, height = 10)
@@ -172,16 +181,14 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 		if (plotformat == "png"){
 			png(paste(plotname,".png",sep=""),res=2000, width = 10, height = 10, units = 'in')
 		}
-		plot1 <- plot(g1, vertex.color="gold", vertex.size=0.8 * plotVertexSize,vertex.frame.color="transparent", vertex.label.color="black",vertex.label.cex=0.03 * plotFontSize, edge.curved=0.1,edge.width=0.05 * plotVertexSize, layout=Thislayout, margin=0)
+		plot1 <- plot(g1, vertex.color=vertex.col, vertex.size=0.8 * plotVertexSize,vertex.frame.color="transparent", vertex.label.color="black",vertex.label.cex=0.03 * plotFontSize, edge.curved=0.1,edge.width=0.05 * plotVertexSize, layout=Thislayout, margin=0)
 		print(plot1)
 		dev.off()
 	}
 	if (keepAll) {
 		expdata <- rbind(expdata, filtered)
 	}
-	listing <- list(resultmatrix,correlation,qvaluematrix,numConnect,g1,expdata)
-	result <- setNames(listing, c("Results", "Cor.Matrix", "q.Matrix", "Num.Connect", "igraph", "Linnorm"))
+	listing <- list(resultmatrix,correlation,qvaluematrix,Clust.res,g1,expdata)
+	result <- setNames(listing, c("Results", "Cor.Matrix", "q.Matrix", "Cluster", "igraph", "Linnorm"))
 	return (result)
 }
-
-

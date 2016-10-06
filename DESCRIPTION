@@ -1,8 +1,8 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based transformation method (Linnorm)
-Version: 1.1.14
-Date: 2016-08-27
+Version: 1.1.16
+Date: 2016-10-06
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
 	Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
 	Junwen Wang <junwen@uw.edu>
@@ -13,9 +13,10 @@ Description: Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChI
 		2. Differential expression analysis or differential peak detection using limma,
 		3. Highly variable gene discovery and visualization,
 		4. Gene correlation network analysis and visualization.
+		5. Hierarchical Clustering and plotting.
 	Linnorm can work with raw count, CPM, RPKM, FPKM and TPM. Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions.
 License: MIT + file LICENSE
-Imports: Rcpp (>= 0.12.2), RcppArmadillo, fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, stats, utils, statmod, MASS, igraph, grDevices, graphics 
+Imports: Rcpp (>= 0.12.2), RcppArmadillo, fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, utils, statmod, MASS, igraph, grDevices, graphics, fastcluster, ggdendro, zoo, stats
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: BiocStyle, knitr, rmarkdown, gplots, RColorBrewer, seqc
 VignetteBuilder: knitr

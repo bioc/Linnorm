@@ -6,8 +6,8 @@
 \usage{
 Linnorm.PCA(datamatrix, showinfo = FALSE, input = "Raw",
   perturbation = 10, minZeroPortion = 0, keepAll = TRUE, num_PC = 2,
-  num_center = c(1:20), Group = NA, pca.scale = FALSE,
-  kmeans.iter = 2000)
+  num_center = c(1:20), Group = NULL, Coloring = "Group",
+  pca.scale = FALSE, kmeans.iter = 2000)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
@@ -18,7 +18,7 @@ Linnorm.PCA(datamatrix, showinfo = FALSE, input = "Raw",
 
 \item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
 
-\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 0.}
+\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Defaults to 0.}
 
 \item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
 
@@ -26,7 +26,9 @@ Linnorm.PCA(datamatrix, showinfo = FALSE, input = "Raw",
 
 \item{num_center}{Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).}
 
-\item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. This is for plotting purposes only. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NA.}
+\item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. This is for plotting purposes only. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NULL.}
+
+\item{Coloring}{Character. "kmeans" or "Group". If Group is not NA, coloring in the PCA plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".}
 
 \item{pca.scale}{Logical. In the prcomp(for Principal component analysis) function, set the "scale." parameter. It signals the function to scale unit variances in the variables before the analysis takes place. Defaults to FALSE.}
 

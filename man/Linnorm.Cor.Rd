@@ -5,11 +5,12 @@
 \title{Linnorm-gene correlation network analysis.}
 \usage{
 Linnorm.Cor(datamatrix, input = "Raw", method = "pearson",
-  showinfo = FALSE, perturbation = 10, minZeroPortion = 0.5,
+  showinfo = FALSE, perturbation = 10, minZeroPortion = 2/3,
   sig.q = 0.05, plotNetwork = TRUE, plotNumPairs = 5000, plotdegree = 0,
   plotname = "networkplot", plotformat = "png", plotVertexSize = 1,
   plotFontSize = 1, plot.Pos.cor.col = "red", plot.Neg.cor.col = "green",
-  plotlayout = "kk")
+  vertex.col = "cluster", plotlayout = "kk",
+  clusterMethod = "cluster_edge_betweenness")
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
@@ -22,7 +23,7 @@ Linnorm.Cor(datamatrix, input = "Raw", method = "pearson",
 
 \item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
 
-\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on variance, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 0.5.}
+\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on correlation coefficient, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 2/3.}
 
 \item{sig.q}{Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.}
 
@@ -44,7 +45,11 @@ Linnorm.Cor(datamatrix, input = "Raw", method = "pearson",
 
 \item{plot.Neg.cor.col}{Character. Color of the edges of negatively correlated gene pairs. Defaults to "green".}
 
+\item{vertex.col}{Character. "cluster" or a color. This controls the color of the vertices. Defaults to "cluster".}
+
 \item{plotlayout}{Character. "kk" or "fr". "kk" uses Kamada-Kawai algorithm in igraph to assign vertex and edges. It scales edge length with correlation strength. However, it can cause overlaps between vertices. "fr" uses Fruchterman-Reingold algorithm in igraph to assign vertex and edges. It prevents overlatps between vertices better than "kk", but edge lengths are not scaled to correlation strength. Defaults to "kk".}
+
+\item{clusterMethod}{Character. "cluster_edge_betweenness", "cluster_fast_greedy", "cluster_infomap", "cluster_label_prop", "cluster_leading_eigen", "cluster_louvain", "cluster_optimal", "cluster_spinglass" or "cluster_walktrap". These are clustering functions from the igraph package. Defaults to "cluster_edge_betweenness".}
 }
 \value{
 This function will output a list with the following objects:
@@ -52,7 +57,7 @@ This function will output a list with the following objects:
  \item{Results:}{ A data frame containing the results of the analysis, showing only the significant results determined by "sig.q" (see below).}
  \item{Cor.Matrix:}{ The resulting correlation matrix between each gene. }
  \item{q.Matrix:}{ A matrix of q values of each of the correlation coefficient from Cor.Matrix. }
- \item{Num.Connect:}{ A data frame that shows the number of significant correlation of each gene.}
+ \item{Cluster:}{ A data frame that shows which gene belongs to which cluster.}
  \item{igraph:}{ The igraph object for users who want to draw the network plot manually. }
  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
 }

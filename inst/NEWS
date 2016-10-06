@@ -1,3 +1,10 @@
+6th, October, 2017
+	o Development 1.1.16:
+		o Removed warnings from loading package.
+		o Fixed and updated vignettes based on Bioc Staff recommendation.
+		o Implemented Linnorm.HClust function.
+		o Updated Linnorm.Cor function for clustering functionalities.
+
 27th, August, 2016
 	o Development 1.1.14:
 		o Updated Linnorm.Cor function to allow more functionalities.

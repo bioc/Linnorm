@@ -5,6 +5,32 @@ rowSDs <- function(x) {
   return ((rowSums((x - rowMeans(x))^2)/(dim(x)[2] - 1) ) ^ 0.5 )
 }
 
+NZrowSDs <- function(x) {
+	Ans <- rep(0,nrow(x))
+	for (i in 1:nrow(x)) {
+		zvals <- x[i,]==0
+		if (all(zvals)) {
+			Ans[i] <- 0
+		}else{
+			Ans[i] <- sd(x[i,!zvals])
+		}
+	}
+	return (Ans)
+}
+
+NZrowMeans <- function(x) {
+    Ans <- rep(0,nrow(x))
+	for (i in 1:nrow(x)) {
+		zvals <- x[i,]==0
+		if (all(zvals)) {
+			Ans[i] <- 0
+		}else{
+			Ans[i] <- mean(x[i,!zvals])
+		}
+	}
+	return (Ans)
+}
+
 gammaShape <- function(x) {
     .Call(gammaShapeCpp, x)
 }
@@ -75,6 +101,13 @@ UpperToMatrix <- function(datavalues,UpperIndex) {
 r.sig <- function(r,n) {
 	tvalue <- abs(r) * sqrt((n - 2)/(1 - r^2))
 	return(2*pt(tvalue, n, lower.tail =FALSE))
+}
+
+areColors <- function(x) {
+	sapply(x, function(X) {
+		tryCatch(is.matrix(col2rgb(X)), 
+		error = function(e) FALSE)
+	})
 }
 
 GammaSim <- function(thisdata, NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {

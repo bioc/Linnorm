@@ -4,16 +4,16 @@
 \alias{Linnorm.HVar}
 \title{Linnorm-Hvar pipeline for highly variable gene discovery.}
 \usage{
-Linnorm.HVar(datamatrix, input = "Raw", method = "SE", spikein = NULL,
-  showinfo = FALSE, perturbation = 10, minZeroPortion = 0.5,
-  keepAll = FALSE, log.p = FALSE, sig.q = 0.01)
+Linnorm.HVar(datamatrix, input = "Raw", method = "SD", spikein = NULL,
+  showinfo = FALSE, perturbation = 10, minZeroPortion = 2/3,
+  keepAll = FALSE, log.p = FALSE, sig.value = "p", sig = 0.05)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 
-\item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SE.}
+\item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.}
 
 \item{spikein}{character vector. Row names of the spike-in genes in the datamatrix. If this is provided, test of significance will be performed against the spike in genes. Defaults to NULL.}
 
@@ -21,13 +21,15 @@ Linnorm.HVar(datamatrix, input = "Raw", method = "SE", spikein = NULL,
 
 \item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
 
-\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on variance, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 0.5.}
+\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on variance, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 2/3.}
 
 \item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to FALSE.}
 
 \item{log.p}{Logical. Output p/q values in log scale. Defaults to FALSE.}
 
-\item{sig.q}{Double >0, <= 1. Significant level of q value for plotting. Defaults to 0.01.}
+\item{sig.value}{Character. "p" or "q". Use p or q value for highlighting significant genes. Defaults to "p".}
+
+\item{sig}{Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.}
 }
 \value{
 This function will output a list with the following objects:
@@ -39,10 +41,10 @@ This function will output a list with the following objects:
 
 The Results matrix has the following columns:
 \itemize{
- \item{XPM:}{ Average expression level in XPM. If input is raw coutns or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
- \item{XPM.SD:}{ Standard deviation of average expression.}
- \item{Transformed.Avg.Exp:}{ Average expression of Linnorm transformed data.}
- \item{Transformed.SD:}{ Standard deviation of Linnorm transformed data.}
+ \item{XPM:}{ Average non-zero expression level in XPM. If input is raw coutns or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
+ \item{XPM.SD:}{ Standard deviation of average non-zero expression.}
+ \item{Transformed.Avg.Exp:}{ Average expression of non-zero Linnorm transformed data.}
+ \item{Transformed.SD:}{ Standard deviation of non-zero Linnorm transformed data.}
  \item{Normalized.Log2.SD.Fold.Change:}{ Normalized log2 fold change of the gene's standard deviation.}
  \item{p.value:}{ p value of the statistical test.}
  \item{q.value:}{ q value/false discovery rate/adjusted p value of the statistical test.}

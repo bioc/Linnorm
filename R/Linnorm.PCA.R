@@ -4,12 +4,13 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param showinfo	Logical. Show information about the computing process. Defaults to FALSE.
-#' @param minZeroPortion	Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 0.
+#' @param minZeroPortion	Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Defaults to 0.
 #' @param keepAll	Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.
 #' @param num_PC	Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
 #' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param  num_center	Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).
-#' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. This is for plotting purposes only. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NA.
+#' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. This is for plotting purposes only. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NULL.
+#' @param Coloring	Character. "kmeans" or "Group". If Group is not NA, coloring in the PCA plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".
 #' @param  pca.scale	Logical. In the prcomp(for Principal component analysis) function, set the "scale." parameter. It signals the function to scale unit variances in the variables before the analysis takes place. Defaults to FALSE.
 #' @param  kmeans.iter	Numeric. Number of iterations in k-means clustering. Defaults to 2000.
 #' @details  This function performs PCA clustering using Linnorm transformation.
@@ -27,9 +28,12 @@
 #' data(Islam2011)
 #' #Example:
 #' PCA.results <- Linnorm.PCA(Islam2011)
-Linnorm.PCA <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=10, minZeroPortion=0, keepAll=TRUE, num_PC=2, num_center=c(1:20), Group=NA, pca.scale=FALSE, kmeans.iter=2000) {
+Linnorm.PCA <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=10, minZeroPortion=0, keepAll=TRUE, num_PC=2, num_center=c(1:20), Group=NULL, Coloring="Group", pca.scale=FALSE, kmeans.iter=2000) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
+	}
+	if (Coloring != "Group" && Coloring != "kmeans") {
+		stop("Coloring argument is not recognized.")
 	}
 	if (num_PC < 2) {
 		stop("num_PC is too small.")
@@ -37,7 +41,7 @@ Linnorm.PCA <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=
 	if (!is.numeric(num_center)) {
 		stop("num_center must be a vector of integers.")
 	}
-	if (!is.na(Group)) {
+	if (length(Group) > 0) {
 		if (length(Group) != length(datamatrix[1,])) {
 			stop("Group must be a vector with the same length as sample size.")
 		}
@@ -123,7 +127,10 @@ Linnorm.PCA <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=
 		PC2 <- c(PC2, data[i,2])
 		Cluster <- c(Cluster, paste("Cluster",results[[1]][i] ))
 	}
-	if (is.na(Group)) {
+	
+	
+	
+	if (length(Group) == 0) {
 		plotdata <- data.frame(PC1=PC1,PC2=PC2,Cluster=Cluster)
 		#Find cluster elipse
 		df_ell <- data.frame()
@@ -133,14 +140,37 @@ Linnorm.PCA <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=
 
 		render_plot <- ggplot_build(ggplot(plotdata, aes(x=PC1, y=PC2, color=Cluster)) + geom_point(aes(shape=Cluster), size = 2) + geom_path(data=df_ell, aes(x=x, y=y,colour=Cluster), size=0.5, linetype=2) + scale_x_continuous("PC1") + scale_y_continuous("PC2") + ggtitle("PCA K-means Clustering") + theme(aspect.ratio=1))
 	} else {
-		plotdata <- data.frame(PC1=PC1,PC2=PC2,Cluster=Cluster,Group=Group)
-		#Find cluster elipse
-		df_ell <- data.frame()
-		for(g in plotdata$Cluster){
-			df_ell <- rbind(df_ell, cbind(as.data.frame(with(plotdata[plotdata$Cluster==g,], ellipse(cor(PC1, PC2),scale=c(sd(PC1),sd(PC2)),centre=c(mean(PC1),mean(PC2))))),Cluster=g))
+		shaping <- c()
+		numShape <- length(unique(Group))
+		shapeindex <- 1
+		for (i in 1:numShape) {
+			if (shapeindex <= 25) {
+				shaping <- c(shaping, shapeindex)
+				shapeindex <- shapeindex + 1
+			} else {
+				shapeindex <- 1
+				shaping <- c(shaping, shapeindex)
+			}
 		}
+		if (Coloring == "kmeans") {
+			plotdata <- data.frame(PC1=PC1,PC2=PC2,Cluster=Cluster,Group=Group)
+			#Find cluster elipse
+			df_ell <- data.frame()
+			for(g in plotdata$Cluster){
+				df_ell <- rbind(df_ell, cbind(as.data.frame(with(plotdata[plotdata$Cluster==g,], ellipse(cor(PC1, PC2),scale=c(sd(PC1),sd(PC2)),centre=c(mean(PC1),mean(PC2))))),Cluster=g))
+			}
 
-		render_plot <- ggplot_build(ggplot(plotdata, aes(x=PC1, y=PC2, color=Cluster)) + geom_point(aes(shape=Group), size = 2) + geom_path(data=df_ell, aes(x=x, y=y,colour=Cluster), size=0.5, linetype=2) + scale_x_continuous("PC1") + scale_y_continuous("PC2") + ggtitle("PCA K-means Clustering") + theme(aspect.ratio=1))
+			render_plot <- ggplot_build(ggplot(plotdata, aes(x=PC1, y=PC2, color=Cluster)) + geom_point(aes(shape=Group), size = 2) + scale_shape_manual(values=shaping) + geom_path(data=df_ell, aes(x=x, y=y,colour=Cluster), size=0.5, linetype=2) + scale_x_continuous("PC1") + scale_y_continuous("PC2") + ggtitle("PCA K-means Clustering") + theme(aspect.ratio=1))
+		} else if (Coloring == "Group") {
+			plotdata <- data.frame(PC1=PC1,PC2=PC2,Cluster=Group,Group=Group)
+			#Find cluster elipse
+			df_ell <- data.frame()
+			for(g in plotdata$Group){
+				df_ell <- rbind(df_ell, cbind(as.data.frame(with(plotdata[plotdata$Group==g,], ellipse(cor(PC1, PC2),scale=c(sd(PC1),sd(PC2)),centre=c(mean(PC1),mean(PC2))))),Group=g))
+			}
+
+			render_plot <- ggplot_build(ggplot(plotdata, aes(x=PC1, y=PC2, color=Group)) + geom_point(aes(shape=Group), size = 2) + scale_shape_manual(values=shaping) + geom_path(data=df_ell, aes(x=x, y=y,colour=Group), size=0.5, linetype=2) + scale_x_continuous("PC1") + scale_y_continuous("PC2") + ggtitle("PCA Analysis") + theme(aspect.ratio=1))
+		}
 	}
 	listing <- list(results, res.pca, render_plot, expdata)
 	results <- setNames(listing, c("k_means", "PCA", "plot", "Linnorm"))

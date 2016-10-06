@@ -1,22 +1,20 @@
 ---
 toc: false
+title: Linnorm User Manual
 author:
   Shun H. Yip^1,2,3^, Panwen Wang^3^, Jean-Pierre Kocher^3^, Pak Chung Sham^1,4,5^, Junwen Wang^3,6^
 output:
- BiocStyle::pdf_document2
+ BiocStyle::pdf_document
 vignette: >
- %\VignetteIndexEntry{Linnorm User Manual}
  %\VignetteEngine{knitr::rmarkdown}
  %\VignetteEncoding{UTF-8}
 ---
 
 
-\bioctitle{Linnorm User Manual}
 
-\maketitle
 
 \begin{center}
-\date{August 23, 2016}
+\date{October 06, 2016}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,}\protect \\ 
@@ -41,7 +39,7 @@ vignette: >
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, calculating correlation coefficient for gene correlation study\footnote{Implemented as the Linnorm.Cor function.}, subpopulation analysis pipeline with PCA and k-means clustering\footnote{Implemented as the Linnorm.PCA function.} and highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
+ Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, calculating correlation coefficient for gene correlation study\footnote{Implemented as the Linnorm.Cor function.}, subpopulation analysis pipeline with PCA and k-means clustering\footnote{Implemented as the Linnorm.PCA function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
  
  Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distribution.
 \end{abstract}
@@ -68,6 +66,7 @@ The Linnorm R package contains a variety of functions for RNA-seq data analysis.
 	* Single cell RNA-seq subpopulation analysis
 * Highly variable gene discovery \( Linnorm.HVar \)
 * Gene correlation analysis \( Linnorm.Cor \)
+* Hierarchical clustering analysis \( Linnorm.HClust \)
 * RNA-seq Raw Count Simulation \( RnaXSim \)
 
 ##Linnorm
@@ -209,16 +208,20 @@ kable(Genes10, digits=4)
 
 
 #### Volcano Plot
-```{r, echo=TRUE, fig.height=6, fig.width=6}
-#Remove Genes which fold changes are INF. You can skip this if
-#there are no INF values in the fold change column.
+1. Remove Genes which fold changes are INF. You can skip this if
+there are no INF values in the fold change column.
+```{r, echo=TRUE}
 NoINF <- DEG_Results[which(!is.infinite(DEG_Results[,1])),]
+```
 
-#Record significant genes for coloring
+2. Record significant genes for coloring
+```{r, echo=TRUE}
 SignificantGenes <- NoINF[NoINF[,5] <= 0.05,1]
+```
 
-#Draw volcano plot with Log q values. 
-#Green dots are non-significant, red dots are significant.
+3. Draw volcano plot with Log q values. 
+Green dots are non-significant, red dots are significant.
+```{r, echo=TRUE, fig.height=6, fig.width=6}
 plot(x=NoINF[,1], y=NoINF[,5], col=ifelse(NoINF[,1] %in%
 SignificantGenes, "red", "green"),log="y", ylim = 
 rev(range(NoINF[,5])), main="Volcano Plot", 
@@ -316,7 +319,7 @@ minZeroPortion=0, Group=Groups, num_center=3, num_PC=2)
 
 3. Draw PCA k-means clustering plot.
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
-#Here, we can see three clusters.
+#Here, we can see two clusters.
 print(PCA.results$plot$plot)
 ```
 
@@ -340,8 +343,6 @@ datamatrix <- Islam2011[,1:48]
 #manually later.
 #For this vignette, we will plot it manually instead in step 4.
 results <- Linnorm.Cor(datamatrix, plotNetwork=FALSE,
-#Using Fruchterman-Reingold algorithm for the plot.
-plotlayout="fr",
 #Edge color when correlation is positive
 plot.Pos.cor.col="red",
 #Edge color when correlation is negative
@@ -359,16 +360,17 @@ library(knitr)
 kable(Genes10, digits=4, row.names=FALSE)
 ```
 
-#### Plot co-expression network.
-```{r, echo=TRUE, fig.height=10, fig.width=10}
-#We plot the network figure here. Please see step 2 for other settings.
+#### Plot a co-expression network.
+We will demonstrate how to plot the figure "networkplot.png" here.
+
+```{r, echo=TRUE, fig.height=6, fig.width=6}
 library(igraph)
-Thislayout <- layout_with_fr(results$igraph)
+Thislayout <- layout_with_kk(results$igraph)
 plot(results$igraph,
 #Vertex size
 vertex.size=1.5,
-#Vertex color
-vertex.color="gold",
+#Vertex color, based on clustering results
+vertex.color=results$Cluster$Cluster,
 #Vertex frame color
 vertex.frame.color="transparent",
 #Vertex label color (the gene names)
@@ -385,15 +387,16 @@ layout=Thislayout
 ```
 
 #### Draw a correlation heatmap.
-```{r, echo=TRUE, fig.height=10, fig.width=10}
-#The top 100 genes with the most connections in the 
-#significant gene list(results$Results). 
-top100 <- results$Num.Connect[1:100,1]
-
-#Extract these 100 genes from the correlation matrix.
+1. Randomly choose 100 genes from clustering results
+```{r, echo=TRUE}
+top100 <- results$Cluster[sample(1:nrow(results$Cluster), 100),1]
+```
+2. Extract these 100 genes from the correlation matrix.
+```{r, echo=TRUE}
 Top100.Cor.Matrix <- results$Cor.Matrix[top100,top100]
-
-#Draw a correlation heatmap.
+```
+3. Draw a correlation heatmap.
+```{r, echo=TRUE, fig.height=6, fig.width=6}
 library(RColorBrewer)
 library(gplots)
 heatmap.2(as.matrix(Top100.Cor.Matrix),
@@ -425,14 +428,9 @@ In this section, we will perform highly variable gene discovery on the embryonic
 ```{r, echo=TRUE}
 data(Islam2011)
 
-#Authors find that RNA_SPIKE_5 has an abnormally high variance.
-#Because there are too few spike in genes, this has a huge
-#effect in the results. So, we are removing it.
-Islam2011 <- Islam2011[-which(rownames(Islam2011) == "RNA_SPIKE_5"),]
-
-#Identify spike in and control genes:
-SPIKEIN <- rownames(Islam2011)[c(grep("SPIKE",rownames(Islam2011)),
-	grep("Ercc",rownames(Islam2011)))]
+#Identify spike in genes:
+SPIKEIN <- rownames(Islam2011)[c(grep("Ppia",rownames(Islam2011)),
+grep("H2afz",rownames(Islam2011)),grep("Hprt1",rownames(Islam2011)))]
 ```
 
 2. Analysis
@@ -454,10 +452,36 @@ kable(Genes10, digits=4)
 ```
 
 #### Mean vs SD plot highlighting significant genes.
-```{r, echo=TRUE, fig.height=8, fig.width=8}
+1. Simply print the plot from results.
+```{r, echo=TRUE, fig.height=6, fig.width=6}
 print(results$plot$plot)
 ```
 
+### Hierarchical Clustering
+In this section, we will perform hierarchical clustering on Islam2011 data.
+1. Obtain data.
+```{r, echo=TRUE}
+data(Islam2011)
+```
+
+2. Assign group to samples.
+```{r, echo=TRUE}
+#48 ESC, 44 EF, and 4 NegCtrl
+Group <- c(rep("ESC",48),rep("EF",44),rep("NegCtrl",4))
+colnames(Islam2011) <- paste(colnames(Islam2011),Group,sep="_")
+```
+
+3. Perform Analysis.
+```{r, echo=TRUE}
+#Note that there are 3 known clusters.
+HClust.Results <- Linnorm.HClust(Islam2011,Group=Group, num_Clust=3, fontsize=1.8)
+```
+
+#### Hierarchical Clustering plot
+We can simply print the plot out.
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+print(HClust.Results$plot$plot)
+```
 
 ###Basic Linnorm Transformation
 
