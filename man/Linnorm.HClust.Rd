@@ -6,7 +6,7 @@
 \usage{
 Linnorm.HClust(datamatrix, showinfo = FALSE, input = "Raw",
   perturbation = 10, minZeroPortion = 0, keepAll = TRUE,
-  method_hclust = "ward.D2", method_dist = "pearson", Group = NULL,
+  method_hclust = "ward.D2", method_dist = "maximum", Group = NULL,
   num_Clust = 4, ClustRect = TRUE, RectColor = "red", fontsize = 0.5,
   linethickness = 0.5)
 }
@@ -25,7 +25,7 @@ Linnorm.HClust(datamatrix, showinfo = FALSE, input = "Raw",
 
 \item{method_hclust}{Charcter. Method to be used in hierarchical clustering. (From hclust {fastcluster}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid".) Defaults to "ward.D2".}
 
-\item{method_dist}{Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "pearson".}
+\item{method_dist}{Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "maximum".}
 
 \item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. If this is provided, sample names will be colored according to their group. Defaults to NULL.}
 

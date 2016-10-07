@@ -8,7 +8,7 @@
 #' @param keepAll	Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.
 #' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param method_hclust	Charcter. Method to be used in hierarchical clustering. (From hclust {fastcluster}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid".) Defaults to "ward.D2".
-#' @param method_dist	Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "pearson".
+#' @param method_dist	Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "maximum".
 #' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. If this is provided, sample names will be colored according to their group. Defaults to NULL.
 #' @param num_Clust	Integer >= 0. Number of clusters in hierarchical clustering. No cluster will be highlighted if this is set to 0. Defaults to 4.
 #' @param ClustRect	Logical. If num_Clust > 0, should a rectangle be used to highlight the clusters? Defaults to TRUE.
@@ -30,7 +30,7 @@
 #' #Example:
 #' HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)), num_Clust=3, fontsize=2)
 
-Linnorm.HClust <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=10, minZeroPortion=0, keepAll=TRUE, method_hclust="ward.D2", method_dist="pearson", Group=NULL, num_Clust=4, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5) {
+Linnorm.HClust <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=10, minZeroPortion=0, keepAll=TRUE, method_hclust="ward.D2", method_dist="maximum", Group=NULL, num_Clust=4, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
