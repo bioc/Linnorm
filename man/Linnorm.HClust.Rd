@@ -6,8 +6,9 @@
 \usage{
 Linnorm.HClust(datamatrix, showinfo = FALSE, input = "Raw",
   perturbation = 10, minZeroPortion = 0, keepAll = TRUE,
-  method = "ward.D2", Group = NULL, num_Clust = 4, ClustRect = TRUE,
-  RectColor = "red", fontsize = 0.5, linethickness = 0.5)
+  method_hclust = "ward.D2", method_dist = "maximum", Group = NULL,
+  num_Clust = 4, ClustRect = TRUE, RectColor = "red", fontsize = 0.5,
+  linethickness = 0.5)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
@@ -22,7 +23,9 @@ Linnorm.HClust(datamatrix, showinfo = FALSE, input = "Raw",
 
 \item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
 
-\item{method}{Charcter. Method to be used in hierarchical clustering. (From hclust{stats}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average" (= UPGMA), "mcquitty" (= WPGMA), "median" (= WPGMC) or "centroid" (= UPGMC).) Defaults to "ward.D2".}
+\item{method_hclust}{Charcter. Method to be used in hierarchical clustering. (From hclust{stats}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average" (= UPGMA), "mcquitty" (= WPGMA), "median" (= WPGMC) or "centroid" (= UPGMC).) Defaults to "ward.D2".}
+
+\item{method_dist}{Charcter. Method to be used in hierarchical clustering. (From dist{stats}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski". Any unambiguous substring can be given.) Defaults to "maximum".}
 
 \item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. If this is provided, sample names will be colored according to their group. Defaults to NULL.}
 
