@@ -1,14 +1,23 @@
 #' Linnorm Transformation Function
 #'
-#' This function performs the Linear model and normality based transformation method (Linnorm) for RNA-seq expression data or large scale count data.
+#' This function performs the Linear model and normality based transformation method (Linnorm) for (sc)RNA-seq expression data or large scale count data.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
-#' @param showinfo Logical. Show lambda value calculated. Defaults to FALSE.
-#' @param method	Character. "default" or "lambda" The program will output the transformed matrix if the method is "default". If the method is "lambda", the program will output a lambda value.
-#' @param minZeroPortion Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. It is strongly suggested to change this to 0 for single cell RNA-seq data. Defaults to 2/3.
-#' @param keepAll	Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.
-#' @param perturbation Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
-#' @details  If method is default, Linnorm outputs a transformed expression matrix. For users who wish to work with lambda instead, the output is a single lambda value. Please note that users with the lambda value can obtain a transformed Linnorm dataset by: log1p(lambda * datamatrix). There is no need to rerun the program if a lambda is already calculated.
-#' @return This function returns either a transformed data matrix or a lambda value.
+#' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
+#' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
+#' @param Filter	Logical. Should Linnorm filter the dataset using the minZeroPortion argument? Defaults to FALSE.
+#' @param minZeroPortion Double >= 0.01, <= 0.95. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
+#' @param L_F_p	Double >= 0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm algorithm. Defaults to 0.2.
+#' @param L_F_LC_Genes	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes before applying Linnorm algorithm. It can be determined automatically by setting to "Auto". Defaults to "Auto".
+#' @param L_F_HC_Genes	Double >= 0.01, <= 0.95. Filter this portion of the highest expressing genes before applying Linnorm algorithm. Defaults to 0.01.
+#' @param BE_F_p	Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm's batch effect normalization algorithm. Defaults to 0.5.
+#' @param BE_F_LC_Genes	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes before applying Linnorm's batch effect normalization algorithm. It can be determined automatically by setting to "Auto". Defaults to "Auto".
+#' @param BE_F_HC_Genes	Double >= 0.01, <= 0.95. Filter this portion of the highest expressing genes before applying Linnorm's batch effect normalization algorithm. Defaults to 0.5.
+#' @param BE_strength	Double >=0, <= 1. Before Linnorm transformation, how strongly should Linnorm normalize batch effects? Defaults to 0.5.
+#' @param max_F_LC	Double >=0, <= 0.95. When L_F_LC or B_F_LC is set to auto, this is the maximum threshold that Linnorm would assign. Defaults to 2/3.
+#' @param DataImputation	Logical. Perform data imputation on the dataset after transformation. Defaults to FALSE.
+#' @param ... place holder for any new arguments.
+#' @details  This function transforms the input dataset using the Linnorm algorithm.
+#' @return This function returns a transformed data matrix.
 #' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric
 #' @export
 #' @examples
@@ -16,76 +25,162 @@
 #' data(LIHC)
 #' #Transformation:
 #' transformedExp <- Linnorm(LIHC)
-#' transformedExp <- Linnorm(LIHC, method = "lambda")
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=10, minZeroPortion=2/3, keepAll = TRUE) {
+Linnorm <- function(datamatrix, showinfo = FALSE, perturbation=100, Filter=FALSE, minZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
 	#data checking
-	expdata <- as.matrix(datamatrix)
-	if (length(expdata[1,]) < 2) {
-		stop("Number of samples is less than 2.")
+	RN <- rownames(datamatrix)
+	CN <- colnames(datamatrix)
+	datamatrix <- as.matrix(datamatrix)
+	if (length(datamatrix[1,]) < 3) {
+		stop("Number of samples is less than 3.")
 	}
-	if (length(expdata[,1]) < 10) {
+	if (length(datamatrix[,1]) < 500) {
 		stop("Number of features is too small.")
 	}
 	if (perturbation < 2) {
 		stop("perturbation is too small.")
 	}
-	if (method != "default" && method != "lambda" && method != "internal") {
-		stop("Invalid algorithm value.")
-	}
-	if (minZeroPortion >1 || minZeroPortion < 0) {
+	if (minZeroPortion > 1 || minZeroPortion < 0) {
 		stop("Invalid minZeroPortion.")
 	}
-	if (anyNA(expdata)) {
+	if (L_F_p >1 || L_F_p < 0) {
+		stop("Invalid L_F_p.")
+	}
+	if (L_F_LC_Genes > 0.95 || L_F_LC_Genes < 0.01) {
+		if (L_F_LC_Genes != "Auto") {
+			stop("Invalid L_F_LC_Genes.")
+		}
+	}
+	if (L_F_HC_Genes > 0.95 || L_F_HC_Genes < 0.01) {
+		stop("Invalid L_F_HC_Genes.")
+	}
+	if (BE_F_p > 1 || BE_F_p < 0) {
+		stop("Invalid BE_F_p.")
+	}
+	if (BE_F_LC_Genes > 0.95 || BE_F_LC_Genes < 0.01) {
+		if (BE_F_LC_Genes != "Auto") {
+			stop("Invalid BE_F_LC_Genes.")
+		}
+	}
+	if (BE_F_HC_Genes > 0.95 || BE_F_HC_Genes < 0.01) {
+		stop("Invalid BE_F_HC_Genes.")
+	}
+	if (BE_strength > 1 | BE_strength < 0) {
+		stop("Invalid BE_strength.")
+	}
+	if (anyNA(datamatrix)) {
 		stop("Dataset contains NA.")
 	}
-	if (sum(which(expdata < 0)) != 0) {
+	if (sum(which(datamatrix < 0)) != 0) {
 		stop("Dataset contains negative number.")
+	}
+	if (max_F_LC > 0.95 || max_F_LC < 0) {
+		stop("Invalid max_F_LC.")
 	}
 	#Step 1: Relative Expression
 	#Turn it into relative expression
-	for (i in seq_along(expdata[1,])) {
-		expdata[,i] <- expdata[,i]/sum(expdata[,i])
-	}
-	#Save the original dataset before trimming.
-	datamatrix <- expdata
-	expdata <- expdata[order(rowMeans(expdata)),]
-	#trim outliers
+	#Note that expdata does not have colnames and rownames now
+	datamatrix <- XPM(datamatrix)
+	
+	#Find maxBound
+	TheMean <- NZrowMeans(datamatrix)
+	MeanOrder <- order(TheMean, decreasing = FALSE)
+	numZero <- sum(TheMean == 0)
+	fivepercent <- floor(0.05 * nrow(datamatrix)) + 1
+	nonZero <- datamatrix[MeanOrder[numZero:(numZero +fivepercent)],][which(datamatrix[MeanOrder[numZero:(numZero +fivepercent)],] != 0)]
+	maxBound <- length(nonZero)/sum(nonZero)
+	
+	#Get filter low count genes threhsold
+	Keep <- 0
 	if (minZeroPortion == 0) {
-		expdata <- expdata[rowSums(expdata != 0) > 0,]
+		Keep <- which(rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion)
 	} else {
-		expdata <- expdata[rowSums(expdata != 0) >= (length(expdata[1,]) * minZeroPortion),]
+		Keep <- which(rowSums(datamatrix != 0) > ncol(datamatrix) * minZeroPortion)
 	}
-	if (method == "default") {
-		
-		X <- LocateLambda(expdata,perturbation)
+	if (length(Keep) < 200) {
+		stop("Given the current minZeroPortion threshold, the number of remaining feature (less than 200) is too small.")
+	}
+	LC_Threshold <- 0
+	if (BE_F_LC_Genes == "Auto" || L_F_LC_Genes == "Auto") {
+		LC_Threshold <- FindLCT(datamatrix[Keep,], maxBound)
+		if (LC_Threshold > max_F_LC) {
+			if (showinfo) {
+				message(paste("Filter low count gene threshold is ", LC_Threshold, ". It is larger than max_F_LC, ", max_F_LC, ", which is now used.", sep=""))
+				LC_Threshold <- max_F_LC
+			}
+		}
+		if (BE_F_LC_Genes == "Auto") {
+			BE_F_LC_Genes <- LC_Threshold
+		}
+		if (L_F_LC_Genes == "Auto") {
+			L_F_LC_Genes <- LC_Threshold
+		}
 		if (showinfo) {
-			message("Lambda is ", X,".",appendLF=TRUE)
-			flush.console()
-		}
-		if (keepAll) {
-			return( log1p(datamatrix * X) )
-		} else {
-			return( log1p(expdata * X) )
+			message(paste("Filter low count genes threshold is set to ", LC_Threshold, sep=""),appendLF=TRUE)
 		}
 	}
-	if (method == "lambda") {
-		X <- LocateLambda(expdata,perturbation)
-		return( X )
-	}
-	if (method == "internal") {
-		X <- LocateLambda(expdata,perturbation)
+	if (L_F_LC_Genes + L_F_HC_Genes > 0.95){
+		L_F_HC_Genes <- 0.01
 		if (showinfo) {
-			message("Lambda is ", X,".",appendLF=TRUE)
-			flush.console()
+			message(paste("L_F_HC_Genes Reset to ", L_F_HC_Genes, sep=""),appendLF=TRUE)
 		}
-		if (keepAll) {
-			expdata <- datamatrix
-		}
-		listing <- list(expdata,X)
-		return (listing)
 	}
+	if (BE_F_LC_Genes + BE_F_HC_Genes > 0.95){
+		BE_F_HC_Genes <- 0.01
+		if (showinfo) {
+			message(paste("BE_F_HC_Genes Reset to ", BE_F_HC_Genes, sep=""),appendLF=TRUE)
+		}
+	}
+	
+	#Filter dataset and calculate lambda
+	FilteredData <- FirstFilter(datamatrix, minZeroPortion, L_F_p = L_F_p, L_F_LC_Genes = L_F_LC_Genes, L_F_HC_Genes = L_F_HC_Genes)
+	lambda <- LocateLambda(FilteredData, perturbation, maxBound)
+	
+	#Normalization
+	if (BE_strength > 0) {
+		datamatrix <- BatchEffectLinnorm1(datamatrix * lambda, minZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength)
+		colnames(datamatrix) <- CN
+		rownames(datamatrix) <- RN
+		datamatrix <- log1p(datamatrix)
+	} else {
+		colnames(datamatrix) <- CN
+		rownames(datamatrix) <- RN
+		datamatrix <- log1p(datamatrix * lambda)
+	}
+	
+	x <- list(...)
+	if (!is.null(x[['Internal']])) {
+		Filter = TRUE
+		LC_Threshold <- round(LC_Threshold * (1 - x$FG_Recov),2)
+		minZeroPortion <- x$MZP
+	}
+	if (Filter || DataImputation) {
+		if (Filter) {
+			datamatrix <- datamatrix[order(NZrowMeans(datamatrix),decreasing=FALSE),]
+			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
+			Start <- floor(nrow(datamatrix) * LC_Threshold + 1)
+			End <- nrow(datamatrix)
+			Keep <- Start:End
+			datamatrix <- datamatrix[Keep,]
+		}
+		if (DataImputation) {
+			arguments <- list(...)
+			DIMZP <- 0.5
+			method <- "euclidean"
+			if (!is.null(arguments$DIMZP)) {
+				DIMZP <- arguments$DIMZP
+			}
+			if (!is.null(arguments$method)) {
+				method <- arguments$method
+			}
+			datamatrix <- Linnorm.DataImput(datamatrix,DIMZP = DIMZP ,method = method)
+		}
+	}
+	if (showinfo) {
+		message("Lambda is ", lambda,".",appendLF=TRUE)
+		flush.console()
+	}
+	return (datamatrix)
 }
-

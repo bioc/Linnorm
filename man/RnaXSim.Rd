@@ -4,7 +4,7 @@
 \alias{RnaXSim}
 \title{This function simulates a RNA-seq dataset based on a given distribution.}
 \usage{
-RnaXSim(datamatrix, distribution = "Poisson", NumRep = 3, NumDiff = 2000,
+RnaXSim(datamatrix, distribution = "NB", NumRep = 5, NumDiff = 2000,
   NumFea = 20000, showinfo = FALSE, DEGlog2FC = "Auto",
   MaxLibSizelog2FC = 0.5)
 }
@@ -33,19 +33,17 @@ This function simulates a RNA-seq dataset based on a given distribution.
 }
 \examples{
 #Obtain example matrix:
-library(seqc)
-SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
-rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
-#Extract a portion of the matrix for an example
-expMatrix <- SampleA[,1:10]
+library(Linnorm)
+data(SEQC)
+expMatrix <- SEQC
 #Example for Negative Binomial distribution
-simulateddata <- RnaXSim(expMatrix, distribution="NB", NumRep=3, NumDiff = 200, NumFea = 2000)
+simulateddata <- RnaXSim(expMatrix, distribution="NB", NumRep=5, NumDiff = 200, NumFea = 2000)
 #Example for Poisson distribution
-simulateddata <- RnaXSim(expMatrix, distribution="Poisson", NumRep=3, NumDiff = 200, NumFea = 2000)
+simulateddata <- RnaXSim(expMatrix, distribution="Poisson", NumRep=5, NumDiff = 200, NumFea = 2000)
 #Example for Log Normal distribution
-simulateddata <- RnaXSim(expMatrix, distribution="LogNorm", NumRep=3, NumDiff = 200, NumFea = 2000)
+simulateddata <- RnaXSim(expMatrix, distribution="LogNorm", NumRep=5, NumDiff = 200, NumFea = 2000)
 #Example for Gamma distribution
-simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=3, NumDiff = 200, NumFea = 2000)
+simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=5, NumDiff = 200, NumFea = 2000)
 }
 \keyword{"Log}
 \keyword{"Negative}

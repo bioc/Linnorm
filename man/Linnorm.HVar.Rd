@@ -4,32 +4,32 @@
 \alias{Linnorm.HVar}
 \title{Linnorm-Hvar pipeline for highly variable gene discovery.}
 \usage{
-Linnorm.HVar(datamatrix, input = "Raw", method = "SD", spikein = NULL,
-  showinfo = FALSE, perturbation = 10, minZeroPortion = 2/3,
-  keepAll = FALSE, log.p = FALSE, sig.value = "p", sig = 0.05)
+Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, Group = NULL,
+  log.p = FALSE, sig.value = "p", sig = 0.05, MZP = 0.5,
+  FG_Recov = 1/3, plot.title = "Mean vs SD plot", ...)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
-
-\item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
 \item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.}
 
 \item{spikein}{character vector. Row names of the spike-in genes in the datamatrix. If this is provided, test of significance will be performed against the spike in genes. Defaults to NULL.}
 
-\item{showinfo}{Logical. Show lambda value calculated. Defaults to FALSE.}
-
-\item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
-
-\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on variance, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 2/3.}
-
-\item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to FALSE.}
+\item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. Defaults to NULL.}
 
 \item{log.p}{Logical. Output p/q values in log scale. Defaults to FALSE.}
 
 \item{sig.value}{Character. "p" or "q". Use p or q value for highlighting significant genes. Defaults to "p".}
 
 \item{sig}{Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.}
+
+\item{MZP}{Double >=0, <= 1. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
+
+\item{FG_Recov}{Double >=0, <= 1. In the low count gene filtering algorithm, recover this portion of genes that are filtered. Defaults to 1/3.}
+
+\item{plot.title}{Character. The plot's title. Defaults to "Mean vs SD plot".}
+
+\item{...}{arguments that will be passed into Linnorm's transformation function.}
 }
 \value{
 This function will output a list with the following objects:
@@ -41,8 +41,6 @@ This function will output a list with the following objects:
 
 The Results matrix has the following columns:
 \itemize{
- \item{XPM:}{ Average non-zero expression level in XPM. If input is raw coutns or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
- \item{XPM.SD:}{ Standard deviation of average non-zero expression.}
  \item{Transformed.Avg.Exp:}{ Average expression of non-zero Linnorm transformed data.}
  \item{Transformed.SD:}{ Standard deviation of non-zero Linnorm transformed data.}
  \item{Normalized.Log2.SD.Fold.Change:}{ Normalized log2 fold change of the gene's standard deviation.}

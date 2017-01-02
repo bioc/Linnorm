@@ -1,32 +1,31 @@
-#' Linnorm-PCA Clustering pipeline for subpopulation Analysis
+#' Linnorm t-SNE Clustering pipeline for subpopulation Analysis
 #'
-#' This function first performs Linnorm transformation on the dataset. Then, it will perform Principal component analysis on the dataset and use k-means clustering to identify subpopulations of cells.
+#' This function first performs Linnorm transformation on the dataset. Then, it will perform t-distributed stochastic neighbor embedding (t-SNE) dimensionality reduction on the dataset and use k-means clustering to identify subpopulations of cells.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param num_PC	Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
 #' @param  num_center	Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).
 #' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NULL.
-#' @param Coloring	Character. "kmeans" or "Group". If Group is not NA, coloring in the PCA plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".
-#' @param  pca.scale	Logical. In the prcomp(for Principal component analysis) function, set the "scale." parameter. It signals the function to scale unit variances in the variables before the analysis takes place. Defaults to FALSE.
+#' @param Coloring	Character. "kmeans" or "Group". If Group is not NA, coloring in the plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".
 #' @param  kmeans.iter	Numeric. Number of iterations in k-means clustering. Defaults to 2000.
-#' @param plot.title	Character. Set the title of the plot. Defaults to "PCA K-means clustering".
+#' @param plot.title	Character. Set the title of the plot. Defaults to "t-SNE K-means clustering".
 #' @param ... arguments that will be passed into Linnorm's transformation function.
-#' @details  This function performs PCA clustering using Linnorm transformation.
+#' @details  This function performs t-SNE K-means clustering using Linnorm transformation.
 #' @return It returns a list with the following objects:
 ##' \itemize{
 ##'  \item{k_means:}{ Output of kmeans(for K-means clustering) from the stat package. Note: It contains a "cluster" object that indicates each sample's cluster assignment.}
-##'  \item{PCA:}{ Output of prcomp(for Principal component analysis) from the stat package.}
-##'  \item{plot:}{ Plot of PCA clustering.}
+##'  \item{tSNE:}{ Output from Rtsne.}
+##'  \item{plot:}{ Plot of t-SNE K-means clustering.}
 ##'  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
 ##' }
-#' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric PCA Principal Component Analysis k-means K-means kmeans Clustering
+#' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric PCA Principal Component Analysis k-means K-means kmeans Clustering t-distributed stochastic neighbor embedding t-SNE
 #' @export
 #' @examples
 #' #Obtain example matrix:
 #' data(Islam2011)
 #' #Example:
-#' PCA.results <- Linnorm.PCA(Islam2011)
-Linnorm.PCA <- function(datamatrix, input = "Raw", num_PC=2, num_center=c(1:20), Group=NULL, Coloring="kmeans", pca.scale=FALSE, kmeans.iter=2000, plot.title="PCA K-means clustering",...) {
+#' tSNE.results <- Linnorm.tSNE(Islam2011)
+Linnorm.tSNE <- function(datamatrix, input = "Raw", num_PC=2, num_center=c(1:20), Group=NULL, Coloring="kmeans", kmeans.iter=2000, plot.title="t-SNE K-means clustering",...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
@@ -66,10 +65,10 @@ Linnorm.PCA <- function(datamatrix, input = "Raw", num_PC=2, num_center=c(1:20),
 	
 	
 	#Principal Component Analysis
-	res.pca <- prcomp(expdata, scale = pca.scale)
+	res.pca <- Rtsne(t(expdata),dims=num_PC)
 	
 	#Extract Principal Components for k means clustering.
-	data <- res.pca[[2]][,1:floor(num_PC)]
+	data <- res.pca$Y
 	
 	num_clust <- c()
 	if (length(num_center) == 1) {
@@ -176,7 +175,6 @@ Linnorm.PCA <- function(datamatrix, input = "Raw", num_PC=2, num_center=c(1:20),
 		}
 	}
 	listing <- list(results, res.pca, render_plot, expdata)
-	results <- setNames(listing, c("k_means", "PCA", "plot", "Linnorm"))
+	results <- setNames(listing, c("k_means", "tSNE", "plot", "Linnorm"))
 	return (results)
 }
-

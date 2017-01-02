@@ -4,26 +4,24 @@
 \alias{Linnorm.Cor}
 \title{Linnorm-gene correlation network analysis.}
 \usage{
-Linnorm.Cor(datamatrix, input = "Raw", method = "pearson",
-  showinfo = FALSE, perturbation = 10, minZeroPortion = 2/3,
-  sig.q = 0.05, plotNetwork = TRUE, plotNumPairs = 5000, plotdegree = 0,
-  plotname = "networkplot", plotformat = "png", plotVertexSize = 1,
-  plotFontSize = 1, plot.Pos.cor.col = "red", plot.Neg.cor.col = "green",
+Linnorm.Cor(datamatrix, input = "Raw", method = "pearson", Group = NULL,
+  ZeroFilter = 0.5, sig.q = 0.05, plotNetwork = TRUE,
+  plotNumPairs = 5000, plotdegree = 0, plotname = "networkplot",
+  plotformat = "png", plotVertexSize = 1, plotFontSize = 1,
+  plot.Pos.cor.col = "red", plot.Neg.cor.col = "green",
   vertex.col = "cluster", plotlayout = "kk",
-  clusterMethod = "cluster_edge_betweenness")
+  clusterMethod = "cluster_edge_betweenness", ...)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
-\item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
+\item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 
-\item{method}{Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson"}
+\item{method}{Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson".}
 
-\item{showinfo}{Logical. Show lambda value calculated. Defaults to FALSE.}
+\item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. Defaults to NULL.}
 
-\item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
-
-\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Since this test is based on correlation coefficient, which requires more non-zero values, it is suggested to set it to a larger value. Defaults to 2/3.}
+\item{ZeroFilter}{Double >=0, <= 1. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.}
 
 \item{sig.q}{Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.}
 
@@ -50,6 +48,8 @@ Linnorm.Cor(datamatrix, input = "Raw", method = "pearson",
 \item{plotlayout}{Character. "kk" or "fr". "kk" uses Kamada-Kawai algorithm in igraph to assign vertex and edges. It scales edge length with correlation strength. However, it can cause overlaps between vertices. "fr" uses Fruchterman-Reingold algorithm in igraph to assign vertex and edges. It prevents overlatps between vertices better than "kk", but edge lengths are not scaled to correlation strength. Defaults to "kk".}
 
 \item{clusterMethod}{Character. "cluster_edge_betweenness", "cluster_fast_greedy", "cluster_infomap", "cluster_label_prop", "cluster_leading_eigen", "cluster_louvain", "cluster_optimal", "cluster_spinglass" or "cluster_walktrap". These are clustering functions from the igraph package. Defaults to "cluster_edge_betweenness".}
+
+\item{...}{arguments that will be passed into Linnorm's transformation function.}
 }
 \value{
 This function will output a list with the following objects:
@@ -66,8 +66,6 @@ The "Results" data frame has the following columns:
 \itemize{
  \item{Gene1:}{ Name of gene 1.}
  \item{Gene2:}{ Name of gene 2.}
- \item{XPM1:}{ Gene 1 average expression level in XPM. If input is raw counts or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
- \item{XPM2:}{ Gene 2 average expression level in XPM. If input is raw counts or CPM, this column is in CPM unit. If input is RPKM, FPKM or TPM, this column is in the TPM unit.}
  \item{Cor:}{ Correlation coefficient between the two genes.}
  \item{p.value:}{ p value of the correlation coefficient.}
  \item{q.value:}{ q value of the correlation coefficient.}
@@ -77,7 +75,7 @@ The "Results" data frame has the following columns:
 This function first performs Linnorm transformation on the dataset. Then, it will perform correlation network analysis on the dataset.
 }
 \details{
-This function performed gene correlated study in the dataset by using Linnorm transformation.
+This function performed gene correlated study in the dataset by using Linnorm transformation
 }
 \examples{
 data(Islam2011)

@@ -1,20 +1,19 @@
 #' Linnorm-hierarchical clustering analysis.
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform hierarchical clustering analysis.
-#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".
+#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param DataImputation	Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
-#' @param showinfo	Logical. Show information about the computing process. Defaults to FALSE.
-#' @param minZeroPortion	Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Defaults to 0.
-#' @param keepAll	Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.
-#' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
-#' @param method_hclust	Charcter. Method to be used in hierarchical clustering. (From hclust {fastcluster}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid".) Defaults to "ward.D2".
-#' @param method_dist	Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "maximum".
+#' @param method_hclust	Charcter. Method to be used in hierarchical clustering. (From hclust {fastcluster}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid".) Defaults to "ward.D".
+#' @param method_dist	Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "pearson".
 #' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. If this is provided, sample names will be colored according to their group. Defaults to NULL.
 #' @param num_Clust	Integer >= 0. Number of clusters in hierarchical clustering. No cluster will be highlighted if this is set to 0. Defaults to 4.
 #' @param ClustRect	Logical. If num_Clust > 0, should a rectangle be used to highlight the clusters? Defaults to TRUE.
 #' @param RectColor	Character. If ClustRect is TRUE, this controls the color of the rectangle. Defaults to "red".
 #' @param fontsize	Numeric. Font size of the texts in the figure. Defualts to 0.5.
 #' @param linethickness	Numeric. Controls the thickness of the lines in the figure. Defaults to 0.5.
+#' @param plot.title	Character. Set the title of the plot. Defaults to "Hierarchical clustering".
+#' @param ... arguments that will be passed into Linnorm's transformation function.
 #' @details  This function performs PCA clustering using Linnorm transformation.
 #' @return It returns a list with the following objects:
 ##' \itemize{
@@ -30,7 +29,7 @@
 #' #Example:
 #' HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)), num_Clust=3, fontsize=2)
 
-Linnorm.HClust <- function(datamatrix, showinfo = FALSE, input="Raw", perturbation=10, minZeroPortion=0, keepAll=TRUE, method_hclust="ward.D2", method_dist="maximum", Group=NULL, num_Clust=4, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5) {
+Linnorm.HClust <- function(datamatrix, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=4, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
@@ -46,11 +45,15 @@ Linnorm.HClust <- function(datamatrix, showinfo = FALSE, input="Raw", perturbati
 	expdata <- 0
 	if (input == "Raw") {
 		#Linnorm transformation
-		expdata <- Linnorm(datamatrix, showinfo = showinfo, method="default",perturbation=perturbation, minZeroPortion = minZeroPortion, keepAll = keepAll)
-	} 
+		expdata <- Linnorm(datamatrix, DataImputation=DataImputation, ...)
+	}
+	x <- list(...)
 	if (input == "Linnorm"){
-		if (!keepAll) {
-			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
+		if (sum(x$Filter == TRUE) == 1  && is.numeric(x$minZeroPortion)) {
+			if (x$minZeroPortion > 1 || x$minZeroPortion < 0) {
+				stop("Invalid minZeroPortion.")
+			}
+			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * x$minZeroPortion,]
 		}
 		expdata <- datamatrix
 	}
@@ -99,6 +102,7 @@ Linnorm.HClust <- function(datamatrix, showinfo = FALSE, input="Raw", perturbati
 		scale_y_reverse(expand = c(0.2, 0)) + 
 		labs(x = NULL, y = NULL) +
 		coord_flip() +
+		ggtitle(plot.title) +
 		theme(axis.line.y = element_blank(),
 			axis.ticks.y = element_blank(),
 			axis.text.y = element_blank(),

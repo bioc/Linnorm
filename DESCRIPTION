@@ -1,22 +1,24 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based transformation method (Linnorm)
-Version: 1.3.0
-Date: 2016-10-07
+Version: 1.99.0
+Date: 2017-1-2
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
 	Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
 	Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
 Description: Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. It transforms such datasets for parametric tests. 
-	In addition to the transformtion function, the following pipelines are implemented:
-		1. Cell subpopluation analysis and visualization using PCA clustering,
-		2. Differential expression analysis or differential peak detection using limma,
-		3. Highly variable gene discovery and visualization,
-		4. Gene correlation network analysis and visualization.
-		5. Hierarchical clustering and plotting.
-	Linnorm can work with raw count, CPM, RPKM, FPKM and TPM. Additionally, Linnorm provides the RnaXSim function for the simulation of RNA-seq raw counts for the evaluation of differential expression analysis methods. RnaXSim can simulate RNA-seq dataset in Gamma, Log Normal, Negative Binomial or Poisson distributions.
+	In addition to the transformtion function (Linnorm), the following pipelines are implemented:
+		1. Library size/Batch effect normalization (Linnorm.Norm),
+		2. Cell subpopluation analysis and visualization using t-SNE or PCA K-means clustering (Linnorm.tSNE, Linnorm.PCA),
+		3. Differential expression analysis or differential peak detection using limma (Linnorm.limma),
+		4. Highly variable gene discovery and visualization (Linnorm.HVar),
+		5. Gene correlation network analysis and visualization (Linnorm.Cor),
+		6. Hierarchical clustering and plotting (Linnorm.HClust).
+	Linnorm can work with raw count, CPM, RPKM, FPKM and TPM.
+	Additionally, the RnaXSim function is included for simulating RNA-seq data for the evaluation of DEG analysis methods.
 License: MIT + file LICENSE
-Imports: Rcpp (>= 0.12.2), RcppArmadillo, fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, utils, statmod, MASS, igraph, grDevices, graphics, fastcluster, ggdendro, zoo, stats, amap
+Imports: Rcpp (>= 0.12.2), RcppArmadillo, fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, utils, statmod, MASS, igraph, grDevices, graphics, fastcluster, ggdendro, zoo, stats, amap, Rtsne
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: BiocStyle, knitr, rmarkdown, gplots, RColorBrewer, seqc
 VignetteBuilder: knitr

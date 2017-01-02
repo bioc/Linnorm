@@ -4,28 +4,21 @@
 \alias{Linnorm.HClust}
 \title{Linnorm-hierarchical clustering analysis.}
 \usage{
-Linnorm.HClust(datamatrix, showinfo = FALSE, input = "Raw",
-  perturbation = 10, minZeroPortion = 0, keepAll = TRUE,
-  method_hclust = "ward.D2", method_dist = "maximum", Group = NULL,
+Linnorm.HClust(datamatrix, DataImputation = TRUE, input = "Raw",
+  method_hclust = "ward.D", method_dist = "pearson", Group = NULL,
   num_Clust = 4, ClustRect = TRUE, RectColor = "red", fontsize = 0.5,
-  linethickness = 0.5)
+  linethickness = 0.5, plot.title = "Hierarchical clustering", ...)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets. If a Linnorm transfored dataset is being used, please set the "input" argument into "Linnorm".}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
-\item{showinfo}{Logical. Show information about the computing process. Defaults to FALSE.}
+\item{DataImputation}{Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.}
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 
-\item{perturbation}{Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).}
+\item{method_hclust}{Charcter. Method to be used in hierarchical clustering. (From hclust {fastcluster}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid".) Defaults to "ward.D".}
 
-\item{minZeroPortion}{Double >=0, <= 1. For example, setting minZeroPortion as 0.5 will remove genes with more than half data values being zero in the calculation of normalizing parameter. Defaults to 0.}
-
-\item{keepAll}{Logical. After applying minZeroPortion filtering, should Linnorm keep all genes in the results? Defualts to TRUE.}
-
-\item{method_hclust}{Charcter. Method to be used in hierarchical clustering. (From hclust {fastcluster}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid".) Defaults to "ward.D2".}
-
-\item{method_dist}{Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "maximum".}
+\item{method_dist}{Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "pearson".}
 
 \item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. If this is provided, sample names will be colored according to their group. Defaults to NULL.}
 
@@ -38,6 +31,10 @@ Linnorm.HClust(datamatrix, showinfo = FALSE, input = "Raw",
 \item{fontsize}{Numeric. Font size of the texts in the figure. Defualts to 0.5.}
 
 \item{linethickness}{Numeric. Controls the thickness of the lines in the figure. Defaults to 0.5.}
+
+\item{plot.title}{Character. Set the title of the plot. Defaults to "Hierarchical clustering".}
+
+\item{...}{arguments that will be passed into Linnorm's transformation function.}
 }
 \value{
 It returns a list with the following objects:

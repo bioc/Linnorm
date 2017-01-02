@@ -1,4 +1,13 @@
-6th, October, 2017
+2nd, January, 2017
+	o Development 1.99.0
+		o Improved Linnorm's algorithm
+			o Added data filtering step
+			o Added normalization step
+		o Added new functions for normalization, t-SNE clustering.
+		o Almost all functions are updated.
+	o Release 1.2.1
+		o It now matches 1.99.0 as much as possible.
+6th, October, 2016
 	o Development 1.1.16:
 		o Removed warnings from loading package.
 		o Fixed and updated vignettes based on Bioc Staff recommendation.
