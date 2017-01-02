@@ -5,7 +5,7 @@
 #' @param design	A design matrix required for limma. Please see limma's documentation or our vignettes for more detail.
 #' @param output	Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.
 #' @param noINF	Logical. Prevent generating INF in the fold change column by using CPM+1 or TPM+1. If it is set to FALSE, INF will be generated if one of the conditions has zero expression. Defaults to TRUE.
-#' @param robust Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to TRUE.
+#' @param robust Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to FALSE.
 #' @param ... arguments that will be passed into Linnorm's transformation function.
 #' @details  This function performs both Linnorm and limma for users who are interested in differential expression analysis.
 #' @return If output is set to "DEResults", this function will output a matrix with Differntial Expression Analysis Results with the following columns:
@@ -35,7 +35,7 @@
 #' #DEG analysis
 #' DEGResults <- Linnorm.limma(LIHC, designmatrix)
 
-Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, robust=TRUE, ...) {
+Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, robust=FALSE, ...) {
 	datamatrix <- as.matrix(datamatrix)
 	if (is.null(design)) {
 		stop("design is null.")

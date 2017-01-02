@@ -4,11 +4,10 @@
 \alias{Linnorm.Cor}
 \title{Linnorm-gene correlation network analysis.}
 \usage{
-Linnorm.Cor(datamatrix, input = "Raw", method = "pearson", Group = NULL,
-  ZeroFilter = 0.5, sig.q = 0.05, plotNetwork = TRUE,
-  plotNumPairs = 5000, plotdegree = 0, plotname = "networkplot",
-  plotformat = "png", plotVertexSize = 1, plotFontSize = 1,
-  plot.Pos.cor.col = "red", plot.Neg.cor.col = "green",
+Linnorm.Cor(datamatrix, input = "Raw", method = "pearson", MZP = 0.5,
+  sig.q = 0.05, plotNetwork = TRUE, plotNumPairs = 5000, plotdegree = 0,
+  plotname = "networkplot", plotformat = "png", plotVertexSize = 1,
+  plotFontSize = 1, plot.Pos.cor.col = "red", plot.Neg.cor.col = "green",
   vertex.col = "cluster", plotlayout = "kk",
   clusterMethod = "cluster_edge_betweenness", ...)
 }
@@ -19,9 +18,7 @@ Linnorm.Cor(datamatrix, input = "Raw", method = "pearson", Group = NULL,
 
 \item{method}{Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson".}
 
-\item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. Defaults to NULL.}
-
-\item{ZeroFilter}{Double >=0, <= 1. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.}
+\item{MZP}{Double >=0, <= 1. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.}
 
 \item{sig.q}{Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.}
 

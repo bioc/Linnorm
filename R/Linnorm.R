@@ -167,15 +167,15 @@ Linnorm <- function(datamatrix, showinfo = FALSE, perturbation=100, Filter=FALSE
 		}
 		if (DataImputation) {
 			arguments <- list(...)
-			DIMZP <- 0.5
+			MZP <- 0.5
 			method <- "euclidean"
-			if (!is.null(arguments$DIMZP)) {
-				DIMZP <- arguments$DIMZP
+			if (!is.null(arguments$MZP)) {
+				MZP <- arguments$MZP
 			}
 			if (!is.null(arguments$method)) {
 				method <- arguments$method
 			}
-			datamatrix <- Linnorm.DataImput(datamatrix,DIMZP = DIMZP ,method = method)
+			datamatrix <- Linnorm.DataImput(datamatrix,MZP = MZP ,method = method)
 		}
 	}
 	if (showinfo) {

@@ -5,7 +5,7 @@
 \title{Linnorm-limma pipeline for Differentially Expression Analysis}
 \usage{
 Linnorm.limma(datamatrix, design = NULL, output = "DEResults",
-  noINF = TRUE, robust = TRUE, ...)
+  noINF = TRUE, robust = FALSE, ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
@@ -16,7 +16,7 @@ Linnorm.limma(datamatrix, design = NULL, output = "DEResults",
 
 \item{noINF}{Logical. Prevent generating INF in the fold change column by using CPM+1 or TPM+1. If it is set to FALSE, INF will be generated if one of the conditions has zero expression. Defaults to TRUE.}
 
-\item{robust}{Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to TRUE.}
+\item{robust}{Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to FALSE.}
 
 \item{...}{arguments that will be passed into Linnorm's transformation function.}
 }

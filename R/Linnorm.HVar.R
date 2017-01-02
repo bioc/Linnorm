@@ -4,7 +4,6 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param spikein	character vector. Row names of the spike-in genes in the datamatrix. If this is provided, test of significance will be performed against the spike in genes. Defaults to NULL.
 #' @param method	Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.
-#' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. Defaults to NULL.
 #' @param log.p	Logical. Output p/q values in log scale. Defaults to FALSE.
 #' @param sig.value	Character. "p" or "q". Use p or q value for highlighting significant genes. Defaults to "p".
 #' @param sig	Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.
@@ -33,18 +32,13 @@
 #' data(Islam2011)
 #' results <- Linnorm.HVar(Islam2011)
 
-Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, Group=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.5, FG_Recov=1/3, plot.title="Mean vs SD plot", ...) {
+Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.5, FG_Recov=1/3, plot.title="Mean vs SD plot", ...) {
 	datamatrix <- as.matrix(datamatrix)
 	if (method != "SE" && method != "SD") {
 		stop("method is not recognized.")
 	}
 	if (sig <= 0 || sig > 1) {
 		stop("Invalid sig value.")
-	}
-	if (length(Group) != 0) {
-		if (length(Group) != length(datamatrix[1,])) {
-			stop("Group must be a vector with the same length as sample size.")
-		}
 	}
 	if ( sig.value != "p" &&  sig.value != "q") {
 		stop("Invalid sig.value.")

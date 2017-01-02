@@ -4,8 +4,7 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param method	Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson".
-#' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. Defaults to NULL.
-#' @param ZeroFilter	Double >=0, <= 1. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.
+#' @param MZP	Double >=0, <= 1. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.
 #' @param sig.q	Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.
 #' @param plotNetwork	Logical. Should the program output the network plot to a file? An "igraph" object will be included in the output regardless. Defaults to TRUE. 
 #' @param plotNumPairs	Integer >= 50. Number of gene pairs to be used in the network plot. Defaults to 5000.
@@ -44,18 +43,12 @@
 #' data(Islam2011)
 #' #Analysis on Islam2011 embryonic stem cells
 #' results <- Linnorm.Cor(Islam2011[,1:48])
-Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", Group=NULL, ZeroFilter=0.5, sig.q=0.05, plotNetwork=TRUE, plotNumPairs=5000, plotdegree=0, plotname="networkplot", plotformat = "png", plotVertexSize=1, plotFontSize=1, plot.Pos.cor.col="red", plot.Neg.cor.col="green", vertex.col="cluster", plotlayout="kk", clusterMethod = "cluster_edge_betweenness", ...) {
-	keepAll <- FALSE
+Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", MZP=0.5, sig.q=0.05, plotNetwork=TRUE, plotNumPairs=5000, plotdegree=0, plotname="networkplot", plotformat = "png", plotVertexSize=1, plotFontSize=1, plot.Pos.cor.col="red", plot.Neg.cor.col="green", vertex.col="cluster", plotlayout="kk", clusterMethod = "cluster_edge_betweenness", ...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
 	if (method != "pearson" && method != "spearman"&& method != "kendall") {
 		stop("method is not recognized.")
-	}
-	if (length(Group) != 0) {
-		if (length(Group) != length(datamatrix[1,])) {
-			stop("Group must be a vector with the same length as sample size.")
-		}
 	}
 	if (sig.q < 0 || sig.q > 1) {
 		stop("Invalid sig.q value.")
@@ -102,7 +95,7 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", Group=NULL,
 		expdata <- datamatrix
 	}
 	datamatrix <- expdata
-	expdata <- expdata[rowSums(expdata != 0) >= ncol(expdata) * ZeroFilter,]
+	expdata <- expdata[rowSums(expdata != 0) >= ncol(expdata) * MZP,]
 	correlation <- cor(t(expdata), method=method)
 	datamatrix <- datamatrix[rownames(correlation),]
 	correlations <- correlation[upper.tri(correlation,diag=FALSE)]

@@ -4,9 +4,9 @@
 \alias{Linnorm.HVar}
 \title{Linnorm-Hvar pipeline for highly variable gene discovery.}
 \usage{
-Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, Group = NULL,
-  log.p = FALSE, sig.value = "p", sig = 0.05, MZP = 0.5,
-  FG_Recov = 1/3, plot.title = "Mean vs SD plot", ...)
+Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, log.p = FALSE,
+  sig.value = "p", sig = 0.05, MZP = 0.5, FG_Recov = 1/3,
+  plot.title = "Mean vs SD plot", ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
@@ -14,8 +14,6 @@ Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, Group = NULL,
 \item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.}
 
 \item{spikein}{character vector. Row names of the spike-in genes in the datamatrix. If this is provided, test of significance will be performed against the spike in genes. Defaults to NULL.}
-
-\item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. Defaults to NULL.}
 
 \item{log.p}{Logical. Output p/q values in log scale. Defaults to FALSE.}
 

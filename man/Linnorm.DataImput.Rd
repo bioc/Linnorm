@@ -4,12 +4,12 @@
 \alias{Linnorm.DataImput}
 \title{Linnorm Data Imputation Function.}
 \usage{
-Linnorm.DataImput(datamatrix, DIMZP = 0.5, method = "euclidean")
+Linnorm.DataImput(datamatrix, MZP = 0.5, method = "euclidean")
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. It is only compatible with log transformed datasets.}
 
-\item{DIMZP}{Double >=0, <= 1. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
+\item{MZP}{Double >=0, <= 1. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
 
 \item{method}{Character. Method for calculating the distance matrix. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given. Defaults to "euclidean".}
 }
