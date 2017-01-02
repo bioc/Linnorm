@@ -47,12 +47,13 @@ Linnorm.HClust <- function(datamatrix, showinfo = FALSE, input="Raw", perturbati
 	if (input == "Raw") {
 		#Linnorm transformation
 		expdata <- Linnorm(datamatrix, showinfo = showinfo, method="default",perturbation=perturbation, minZeroPortion = minZeroPortion, keepAll = keepAll)
-	} 
+		expdata <- Linnorm.DataImput(expdata)
+	}
 	if (input == "Linnorm"){
 		if (!keepAll) {
 			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
 		}
-		expdata <- datamatrix
+		expdata <- Linnorm.DataImput(expdata)
 	}
 	expdata <- t(expdata)
 	

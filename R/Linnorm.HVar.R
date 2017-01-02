@@ -36,9 +36,8 @@
 #' results <- Linnorm.HVar(Islam2011)
 
 Linnorm.HVar <- function(datamatrix, input="Raw", method = "SD", spikein=NULL, showinfo = FALSE, perturbation=10, minZeroPortion=2/3, keepAll=FALSE, log.p=FALSE, sig.value="p", sig=0.05) {
-	if (input != "Raw" && input != "Linnorm") {
-		stop("input argument is not recognized.")
-	}
+	plot.title="Mean vs SD plot"
+	datamatrix <- as.matrix(datamatrix)
 	if (method != "SE" && method != "SD") {
 		stop("method is not recognized.")
 	}
@@ -48,124 +47,90 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SD", spikein=NULL, s
 	if ( sig.value != "p" &&  sig.value != "q") {
 		stop("Invalid sig.value.")
 	}
-	expdata <- 0
-	XPM <- 0
-	XPMSD <- 0
-	filtered <- 0
-	filteredXPM <- 0
-	filteredXPMSD <- 0
-	filtered <- 0
+	#Linnorm transformation
 	if (input == "Raw") {
-		#Linnorm transformation
-		expdata <- Linnorm(datamatrix, showinfo = showinfo, method="internal",perturbation=perturbation, minZeroPortion = minZeroPortion, keepAll = keepAll)
-		X <- expdata[[2]]
-		expdata <- expdata[[1]]
-		XPM <- NZrowMeans(expdata * 1000000) 
-		XPMSD <- NZrowSDs(expdata * 1000000)
-		expdata <- log1p(expdata * X)
-		if (keepAll) {
-			filteredXPM <- XPM[rowSums(expdata != 0) < ncol(expdata) * minZeroPortion]
-			filteredXPMSD <- XPMSD[rowSums(expdata != 0) < ncol(expdata) * minZeroPortion]
-			filtered <- expdata[rowSums(expdata != 0) < ncol(expdata) * minZeroPortion,]
-		}
-		XPMSD <- XPMSD[rowSums(expdata != 0) >= ncol(expdata) * minZeroPortion]
-		XPM <- XPM[rowSums(expdata != 0) >= ncol(expdata) * minZeroPortion]
-		expdata <- expdata[rowSums(expdata != 0) >= ncol(expdata) * minZeroPortion,]
+		expdata <- Linnorm(datamatrix, method="internal", minZeroPortion=minZeroPortion)
 	}
-	if (input == "Linnorm"){
-		XPMdata <- exp(datamatrix) - 1
-		for (i in seq_along(XPMdata[1,])) {
-			XPMdata[,i] <- (XPMdata[,i] * 1000000)/sum(XPMdata[,i])
-		}
-		XPM <- NZrowMeans(XPMdata) 
-		XPMSD <- NZrowSDs(XPMdata)
-		expdata <- datamatrix
-		if (keepAll) {
-			filteredXPM <- XPM[rowSums(datamatrix != 0) < ncol(datamatrix) * minZeroPortion]
-			filteredXPMSD <- XPMSD[rowSums(datamatrix != 0) < ncol(datamatrix) * minZeroPortion]
-			filtered <- expdata[rowSums(datamatrix != 0) < ncol(datamatrix) * minZeroPortion,]
-		}
-		XPM <- XPM[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion]
-		XPMSD <- XPMSD[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion]
-		expdata <- expdata[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
+	expdata <- expdata[rowSums(expdata != 0) >= 3,]
+	#Check available number of spike in genes.
+	if (length(spikein) != 0 && length(which(spikein %in% rownames(expdata))) < 3) {
+		warning("Not enough sufficiently expressed spike in genes from input, they will be ignored.")
+		spikein = NULL
 	}
 	######First use Linnorm transformed dataset######
-	datamean <- NZrowMeans(expdata)
-	dataSD <- sqrt(NZrowSDs(expdata))
+	MeanSD <- NZrowMeanSD(expdata)
+	datamean <- MeanSD[1,]
+	#dataRR <- apply(expdata,1,RangeRatio)
+	dataSD <- MeanSD[2,]
 	
+	#MeanSD2 <- NZrowMeanSD(exp(expdata))
+	#datamean2 <- MeanSD[1,]
+	#dataSD2 <- MeanSD[2,]
+	#logitit <- loessFit(dataSD,datamean,weights=dataSD2/datamean2) 
 	#Logistic regression to fit technical noise.
-	logitit <- loess(dataSD~datamean, weights=datamean)
+	logitit <- loessFit(dataSD,datamean, weights=exp(datamean))
 	
 	#In case of negative fit, where negative stdev is impossible in our case, change them into the smallest stdev in the dataset
-	logitit$fitted[which(logitit$fitted <= 0)] <- min(dataSD[which(dataSD != 0)])
+	logitit$fitted[which(logitit$fitted <= 0)] <- min(logitit$fitted[which(logitit$fitted > 0)])
 	
 	#Obtain Stdev ratios to adjust for technical noise.
-	SDRatio <- dataSD/logitit$fitted
+	SDRatio <- as.numeric(log(dataSD/logitit$fitted,2))
 
+	#normalize SDRatio
+	LR <- LinearRegression(datamean,SDRatio)
+	Residual <- (SDRatio - (LR$coefficients[[2]] * datamean + LR$coefficients[[1]]))
+	LR2 <- LinearRegression(datamean,abs(Residual))
+	SDRatio <- SDRatio * (LR2$coefficients[[2]] * datamean[1] + LR2$coefficients[[1]])/(LR2$coefficients[[2]] * datamean + LR2$coefficients[[1]])
+	
+	LR <- LinearRegression(datamean,SDRatio)
+	Residual <- (SDRatio - (LR$coefficients[[2]] * datamean + LR$coefficients[[1]]))
+	
 	#Calculate p values
 	#if spike in list is provided, we test whether a given standard deviation is larger than the spike in.
 	pvalues <- 0
 	spikes <- 0
 	
-	
 	if (length(spikein) < 2) {
-		if (showinfo) {
+		if (showinfo == TRUE) {
 			message("Length of spikein <= 2. Not used.",appendLF=TRUE)
 			flush.console()
 		}
 		#Remove outlier
 		SDRatio2 <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
 		if (method == "SD") {
-			pvalues <- pnorm(as.numeric(SDRatio),mean(as.numeric(SDRatio2),na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
+			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
 		}
 		if (method == "SE") {
-			pvalues <- pnorm(as.numeric(SDRatio),mean(as.numeric(SDRatio2),na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(SDRatio2)), lower.tail = FALSE, log.p=TRUE )
+			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(SDRatio2)), lower.tail = FALSE, log.p=TRUE )
 		}
 	} else {
 		spikes <- which(rownames(expdata) %in% spikein)
 		SDRatio2 <- SDRatio[spikes]
 		SDRatio2 <- SDRatio2[!SDRatio2 %in% boxplot.stats(SDRatio2)$out]
 		if (method == "SD") {
-			pvalues <- pnorm(as.numeric(SDRatio),mean(as.numeric(SDRatio2),na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
+			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
 		}
 		if (method == "SE") {
-			pvalues <- pnorm(as.numeric(SDRatio),mean(as.numeric(SDRatio2),na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(spikes)), lower.tail = FALSE, log.p=TRUE )
+			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(spikes)), lower.tail = FALSE, log.p=TRUE )
 		}
 	}
 	epvalues <- exp(pvalues)
 	qvalues <- p.adjust(epvalues,"BH")
-
-	results <- matrix(ncol=7, nrow=length(SDRatio))
-	colnames(results) <- c("XPM", "XPM.SD", "Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
+	dataSD <- dataSD
+	results <- matrix(ncol=5, nrow=length(SDRatio))
+	colnames(results) <- c("Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
 	rownames(results) <- rownames(expdata)
-	dataSD <- dataSD^2
-	results[,1] <- XPM
-	results[,2] <- XPMSD
-	results[,3] <- datamean
-	results[,4] <- dataSD
-	results[,5] <- log(SDRatio,2)
+	results[,1] <- datamean
+	results[,2] <- dataSD
+	results[,3] <- SDRatio
 	if (log.p) {
-		results[,6] <- pvalues
-		results[,7] <- log(qvalues)
+		results[,4] <- pvalues
+		results[,5] <- log(qvalues)
 	} else {
-		results[,6] <- epvalues
-		results[,7] <- qvalues
+		results[,4] <- epvalues
+		results[,5] <- qvalues
 	}
-		
-	if (keepAll) {
-		ZERO <- matrix(0, ncol=7, nrow=length(filteredXPM))
-		colnames(ZERO) <- c("XPM", "XPM.SD", "Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
-		rownames(ZERO) <- rownames(filtered)
-		ZERO[,1] <- filteredXPM
-		ZERO[,2] <- filteredXPMSD
-		ZERO[,3] <- NZrowMeans(filtered)
-		ZERO[,4] <- NZrowSDs(filtered)
-		ZERO[,5] <- NA
-		ZERO[,6] <- NA
-		ZERO[,7] <- NA
-		results <- rbind(results, ZERO)
-		expdata <- rbind(expdata, filtered)
-	}
+	
 
 	groups <- rep("non-sig", length(SDRatio))
 	if (sig.value == "p") {
@@ -173,10 +138,13 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SD", spikein=NULL, s
 	}
 	if (sig.value == "q") {
 		groups[which(qvalues <= sig)] <- "Significant"
-	}	
+	}
+	myColors <- c("blue","red")
+	names(myColors) <- levels(groups)
+
 	groups[spikes] <- "Spike in"
 	plotdata <- data.frame(mean=datamean,SD=dataSD,group=groups)
-	render_plot <- ggplot_build(ggplot(plotdata, aes(x=mean, y=SD, color=group)) + geom_point(aes(shape=group), size = 1) + scale_x_continuous("Transformed Mean") + scale_y_continuous("Transformed Standard Deviation") + ggtitle("Mean vs SD plot of highly variable genes") + theme(aspect.ratio=3/4))
+	render_plot <- ggplot_build(ggplot(plotdata, aes(x=mean, y=SD, color=group)) + geom_point(size = 1) + scale_x_continuous("Transformed Mean") + scale_y_continuous("Transformed Standard Deviation") + scale_colour_manual(name = "Sig",values = myColors) + ggtitle(plot.title) + theme(aspect.ratio=3/4))
 	listing <- list(results, render_plot, expdata)
 	result <- setNames(listing, c("Results", "plot", "Linnorm"))
 	return (result)

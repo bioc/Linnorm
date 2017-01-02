@@ -9,7 +9,7 @@ import(igraph)
 import(ggdendro)
 
 importFrom("amap", "Dist")
-importFrom("stats", "cor", "lm", "kmeans", "loess", "rgamma", "rlnorm", "rnorm", "rpois", "rnbinom", "sd", "median", "pnorm", "aov", "p.adjust", "setNames", "cutree", "pt", "aggregate", "prcomp", "na.omit", "line")
+importFrom("stats", "cor", "lm", "kmeans", "loess", "rgamma", "rlnorm", "rnorm", "rpois", "rnbinom", "sd", "median", "pnorm", "aov", "p.adjust", "setNames", "cutree", "pt", "aggregate", "prcomp", "na.omit", "line", "cov", "pchisq", "ecdf","var")
 importFrom(Rcpp, evalCpp)
 importFrom(fpc,pamk)
 importFrom(vegan, cascadeKM)

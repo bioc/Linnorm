@@ -48,6 +48,7 @@
 #' results <- Linnorm.Cor(Islam2011[,1:48])
 
 Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = FALSE, perturbation=10, minZeroPortion=2/3, sig.q=0.05, plotNetwork=TRUE, plotNumPairs=5000, plotdegree=0, plotname="networkplot", plotformat = "png", plotVertexSize=1, plotFontSize=1, plot.Pos.cor.col="red", plot.Neg.cor.col="green", vertex.col="cluster", plotlayout="kk", clusterMethod = "cluster_edge_betweenness") {
+	ZeroFilter <- minZeroPortion
 	keepAll <- FALSE
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
@@ -84,26 +85,19 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 		stop("Invalid clusterMethod.")
 	}
 	
-	filtered <- 0
 	expdata <- 0
 	if (input == "Raw") {
 		#Linnorm transformation
-		expdata <- Linnorm(datamatrix, showinfo = showinfo, method="internal",perturbation=perturbation, minZeroPortion = minZeroPortion, keepAll = keepAll)
-		datamatrix <- expdata[[1]]
-		expdata <- log1p(datamatrix * expdata[[2]])
-	} 
+		expdata <- Linnorm(datamatrix)
+	}
 	if (input == "Linnorm"){
-		filtered <- expdata[rowSums(expdata != 0) < ncol(expdata) * minZeroPortion,]
 		datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
 		expdata <- datamatrix
-		datamatrix <- exp(datamatrix) - 1
-		for (i in seq_along(datamatrix[1,])) {
-			datamatrix[,i] <- (datamatrix[,i])/sum(datamatrix[,i])
-		}
 	}
+	datamatrix <- expdata
+	expdata <- expdata[rowSums(expdata != 0) >= ncol(expdata) * ZeroFilter,]
 	correlation <- cor(t(expdata), method=method)
 	datamatrix <- datamatrix[rownames(correlation),]
-	XPM <- rowMeans(datamatrix * 1000000)
 	correlations <- correlation[upper.tri(correlation,diag=FALSE)]
 	
 	#Index for locating genes with index in "correlations"
@@ -117,18 +111,18 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 	
 	#Result matrix
 	wanted <- which(qvalues <= sig.q)
-	resultmatrix <- data.frame(Gene1=rownames(correlation)[index[wanted,1]],Gene2=rownames(correlation)[index[wanted,2]],XPM1=XPM[index[wanted,1]],XPM2=XPM[index[wanted,2]],Cor=correlations[wanted],p.value=pvalues[wanted],q.value=qvalues[wanted])
+	resultmatrix <- data.frame(Gene1=rownames(correlation)[index[wanted,1]],Gene2=rownames(correlation)[index[wanted,2]],Cor=correlations[wanted],p.value=pvalues[wanted],q.value=qvalues[wanted])
 	
 	
 	#Network for the top "plotNumPairs" significant positively correlated gene pairs.
 	AllGene1 <- as.character(resultmatrix[,1])
 	AllGene2 <- as.character(resultmatrix[,2])
 	
-	if (plotNumPairs > length(resultmatrix[,6])) {
-		plotNumPairs <- length(resultmatrix[,6])
+	if (plotNumPairs > length(resultmatrix[,5])) {
+		plotNumPairs <- length(resultmatrix[,5])
 	}
 	
-	orderbyCor <- order(resultmatrix[,6],decreasing=FALSE)
+	orderbyCor <- order(resultmatrix[,4],decreasing=FALSE)
 	nodes <- vector(mode="character",length(plotNumPairs) * 2)
 	index <- 1
 	for (i in 1:plotNumPairs) {
@@ -141,16 +135,16 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 	g1 <- graph(nodes,directed=FALSE)
 	Thislayout <- 0
 	
-	positive <- which(resultmatrix[orderbyCor[1:plotNumPairs],5] > 0)
-	negative <- which(resultmatrix[orderbyCor[1:plotNumPairs],5] < 0)
+	positive <- which(resultmatrix[orderbyCor[1:plotNumPairs],3] > 0)
+	negative <- which(resultmatrix[orderbyCor[1:plotNumPairs],3] < 0)
 	E(g1)[positive]$color <- "red"
 	E(g1)[negative]$color <- "green"
 	if (plotlayout == "kk") {
-		E(g1)$weight <- (resultmatrix[orderbyCor[1:plotNumPairs],5] - 3)^2
+		E(g1)$weight <- (resultmatrix[orderbyCor[1:plotNumPairs],3] - 3)^2
 		Thislayout <- layout_with_kk(g1)
 	}
 	if (plotlayout == "fr") {
-		E(g1)$weight <- resultmatrix[orderbyCor[1:plotNumPairs],5] + 1
+		E(g1)$weight <- resultmatrix[orderbyCor[1:plotNumPairs],3] + 1
 		Thislayout <- layout_with_fr(g1)
 	}
 	
@@ -164,7 +158,7 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 	if (clusterMethod == "cluster_louvain") { clustering <- cluster_louvain(g1)}
 	if (clusterMethod == "cluster_optimal") { clustering <- cluster_optimal(g1)}
 	if (clusterMethod == "cluster_spinglass") { clustering <- cluster_spinglass(g1)}
-	if (clusterMethod == "cluster_walktrap") { clustering <- cluster_walktrap(g1)}	
+	if (clusterMethod == "cluster_walktrap") { clustering <- cluster_walktrap(g1)}
 	
 	if (vertex.col == "cluster") {
 		vertex.col <- clustering$membership
@@ -185,10 +179,7 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", showinfo = 
 		print(plot1)
 		dev.off()
 	}
-	if (keepAll) {
-		expdata <- rbind(expdata, filtered)
-	}
-	listing <- list(resultmatrix,correlation,qvaluematrix,Clust.res,g1,expdata)
+	listing <- list(resultmatrix,correlation,qvaluematrix,Clust.res,g1,datamatrix)
 	result <- setNames(listing, c("Results", "Cor.Matrix", "q.Matrix", "Cluster", "igraph", "Linnorm"))
 	return (result)
 }

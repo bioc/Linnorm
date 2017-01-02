@@ -257,12 +257,12 @@ rownames(design) <- colnames(IslamData)
 ```
 2. DEG Analysis
 ```{r, echo=TRUE}
-#Example 1: Filter genes with more than 50% of the expressions being zero
-scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0.5)
+#Example 1: Filter low count genes
+scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0.5, keepAll=FALSE)
 
 
 #Example 2: Do not filter gene list.
-scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0)
+scRNAseqResults <- Linnorm.limma(IslamData,design,keepAll=TRUE)
 ```
 
 
@@ -303,9 +303,6 @@ Groups <- c(Groups, rep("EF_Cells",44))
 2. Perform PCA analysis.
 ```{r, echo=TRUE}
 #Useful arguments:
-#minZeroPortion:
-#it tells Linnorm how much zero in each gene is acceptable.
-#Suggested: 2/3 for RNA-seq, 0 for scRNA-seq.
 #Group:
 #allows user to provide each sample's information.
 #num_center:
@@ -315,7 +312,7 @@ Groups <- c(Groups, rep("EF_Cells",44))
 #clustering.
 
 PCA.results <- Linnorm.PCA(Islam2011[,1:92],
-minZeroPortion=0, Group=Groups, num_center=3, num_PC=2)
+minZeroPortion=0.5, Group=Groups, num_center=3, num_PC=2)
 ```
 
 3. Draw PCA k-means clustering plot.
@@ -352,7 +349,7 @@ plot.Neg.cor.col="green")
 
 3. Print out the most significant 10 pairs of genes.
 ```{r, echo=TRUE}
-Genes10 <- results$Results[order(results$Results[,7]),][1:10,]
+Genes10 <- results$Results[order(results$Results[,4]),][1:10,]
 #Users can print the gene list by the following command:
 #print(Genes10)
 ```
@@ -462,7 +459,7 @@ results <- Linnorm.HVar(Islam2011[,1:48], spikein=SPIKEIN)
 3. Print out the most significant 10 genes.
 ```{r, echo=TRUE}
 resultsdata <- results$Results
-Genes10 <- resultsdata[order(resultsdata[,"q.value"]),][1:10,5:7]
+Genes10 <- resultsdata[order(resultsdata[,"q.value"]),][1:10,1:5]
 #Users can print the gene list by the following command:
 #print(Genes10)
 ```
@@ -511,8 +508,8 @@ Here, we will demonstrate how to generate and ouput Linnorm Transformed dataset 
 1. Linnorm Transformation
 ```{r, echo=TRUE}
 library(Linnorm)
-Transformed <- Linnorm(Islam2011, minZeroPortion=0)
-#minZeroPortion is suggested to be 0 for scRNA-seq.
+Transformed <- Linnorm(Islam2011, minZeroPortion=0.5)
+#minZeroPortion is suggested to be 0.5 for scRNA-seq.
 ```
 
 
