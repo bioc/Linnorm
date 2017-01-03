@@ -20,3 +20,14 @@ NULL
 #' @format A matrix with 25914 rows (genes) and 20 columns (samples). The first 10 columns are Tumor samples, the remaining 10 columns are adjacent Normal samples. They are paired samples from 10 individuals. Data is in TPM format.
 #' @references https://tcga-data.nci.nih.gov/
 NULL
+
+#' Partial RNA-seq data from SEQC/MAQC-III Sample A
+#' 
+#' Raw Count data
+#' 
+#' @docType data
+#' @name SEQC
+#' @usage data(SEQC)
+#' @format A matrix with 50227 rows (genes) and 10 columns (samples).
+#' @references SEQC/MAQC-III Consortium. "A comprehensive assessment of RNA-seq accuracy, reproducibility and information content by the Sequencing Quality Control Consortium." Nature biotechnology 32.9 (2014): 903-914.
+NULL

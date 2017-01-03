@@ -597,17 +597,13 @@ round(mean(foldchanges),2),
 
 In this section, we will run RnaXSim with default settings as a demonstration.
 
-1. Get RNA-seq data from SEQC Sample A.
+1. Get partial RNA-seq data from SEQC Sample A.
 
 ```{r, echo=TRUE}
-library(seqc)
-
-SampleA <- ILM_aceview_gene_BGI[,grepl("A_",
-colnames(ILM_aceview_gene_BGI))]
-rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
+data(SEQC)
+SampleA <- SEQC
 #We are only using part of the matrix for an example.
 #However, users are encouraged to use the whole matrix.
-SampleA <- SampleA[sample(1:nrow(SampleA),10000),1:10]
 ```
 
 
@@ -624,110 +620,4 @@ SimulatedData <- RnaXSim(SampleA)
 3. Separate data into matrices and vectors as an example.
 ```{r, echo=TRUE}
 #Index of differentially expressed genes.
-DE_Index <- SimulatedData[[2]]
-
-#Expression Matrix
-ExpMatrix <- SimulatedData[[1]]
-
-#Sample Set 1
-Sample1 <- ExpMatrix[,1:3]
-
-#Sample Set 2
-Sample2 <- ExpMatrix[,4:6]
-```
-
-
-####Advanced
-
-
-In this section, we will show an example where RnaXSim is run with customized settings.
-
-1. Get RNA-seq data from SEQC Sample A.
-
-```{r, echo=TRUE}
-library(seqc)
-
-SampleA <- ILM_aceview_gene_BGI[,grepl("A_",
-colnames(ILM_aceview_gene_BGI))]
-rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
-
-#We are only using part of the matrix for an example.
-#However, users are encouraged to use the whole matrix.
-SampleA <- SampleA[sample(1:nrow(SampleA),10000),1:10]
-```
-
-2. Simulate an RNA-seq dataset using the above parameters.
-```{r, echo=TRUE}
-library(Linnorm)
-SimulatedData <- RnaXSim(SampleA,
-distribution="Gamma", #Distribution in the simulated dataset.
-#Put "NB" for Negative Binomial, "Gamma" for Gamma,
-#"Poisson" for Poisson and "LogNorm" for Log Normal distribution.
-NumRep=5, #Number of replicates in each sample set. 
-#5 will generate 10 samples in total.
-NumDiff = 1000, #Number of differentially expressed genes.
-NumFea = 5000 #Total number of genes in the dataset
-)
-```
-
-
-3. Separate data into matrices and vectors for further usage.
-```{r, echo=TRUE}
-#Index of differentially expressed genes.
-DE_Index <- SimulatedData[[2]]
-
-#Expression Matrix
-ExpMatrix <- SimulatedData[[1]]
-
-#Simulated Sample Set 1
-Sample1 <- ExpMatrix[,1:3]
-
-#Simulated Sample Set 2
-Sample2 <- ExpMatrix[,4:6]
-```
-
-\newpage
-#Frequently Asked Questions
-##How do I convert Linnorm Transformed dataset back to CPM/TPM?
-Answer: Here is an example:
-```{r, echo=TRUE}
-#Obtain a transformed dataset for an example.
-data(LIHC)
-library(Linnorm)
-#LNormData is a matrix of Linnorm Transformed dataset.
-LNormData <- Linnorm(LIHC)
-
-#To convert Linnorm Transformed dataset into CPM or TPM:
-XPMdata <- exp(LNormData) - 1
-for (i in seq_along(XPMdata[1,])) {
-	XPMdata[,i] <- (XPMdata[,i]/sum(XPMdata[,i])) * 1000000
-}
-#Now, XPMdata contains a CPM dataset if the
-#original data is raw count or CPM.
-
-#It contains a TPM dataset if the original
-#data is RPKM, FPKM or TPM.
-
-```
-
-##Can I use Linnorm Transformed dataset to calculate Fold Change?
-Answer: Linnorm Transformed dataset is a log transformed dataset. You should not use it to calculate fold change directly. To do it correctly, please refer to the calculate fold change section.
-
-
-##I only have 1 replicate for each sample set. Can I perform Linnorm Transformation?
-Answer: Yes, you can. However, replicates are needed for a more accurate transformation.
-
-
-##I only have 1 replicate for each sample set. Can I perform Differential Expression Analysis with Linnorm and limma?
-Answer: No, linear model based methods must have replicates. So, limma wouldn't work.
-
-
-##There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?
-Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE.
-
-##During installation, an error says that Linnorm is not available. What is the problem?
-Answer: Linnorm requires Bioconductor 3\.3\. You can upgrade Bioconductor by removing it with, "remove.packages("BiocInstaller")", then restart R session and install it again with, "source("http://bioconductor.org/biocLite.R")". Please also update R accordingly for Bioconductor 3\.3 if needed.
-
-
-#Bug Reports, Questions and Suggestions
-We welcome any Bug Reports, Questions and Suggestions. They can be sent to Ken Yip at <shunyip@bu.edu>. Please add the keyword Linnorm in the email's subject line or title. We appreciate your help in making Linnorm better. Thanks!
+DE_Index <-
