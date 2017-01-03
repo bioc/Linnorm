@@ -13,7 +13,7 @@ Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, log.p = FALSE,
 
 \item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.}
 
-\item{spikein}{character vector. Row names of the spike-in genes in the datamatrix. If this is provided, test of significance will be performed against the spike in genes. Defaults to NULL.}
+\item{spikein}{character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.}
 
 \item{log.p}{Logical. Output p/q values in log scale. Defaults to FALSE.}
 

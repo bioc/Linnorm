@@ -2,7 +2,7 @@
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform highly variable gene discovery.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
-#' @param spikein	character vector. Row names of the spike-in genes in the datamatrix. If this is provided, test of significance will be performed against the spike in genes. Defaults to NULL.
+#' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
 #' @param method	Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.
 #' @param log.p	Logical. Output p/q values in log scale. Defaults to FALSE.
 #' @param sig.value	Character. "p" or "q". Use p or q value for highlighting significant genes. Defaults to "p".
@@ -44,11 +44,12 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 		stop("Invalid sig.value.")
 	}
 	#Linnorm transformation
-	expdata <- Linnorm(datamatrix, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, ...)
+	expdata <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, ...)
 	expdata <- expdata[rowSums(expdata != 0) >= 3,]
 	#Check available number of spike in genes.
-	if (length(spikein) != 0 && length(which(spikein %in% rownames(expdata))) < 3) {
-		warning("Not enough sufficiently expressed spike in genes from input, they will be ignored.")
+	spikein <- spikein[which(spikein %in% rownames(expdata))]
+	if (length(spikein) != 0 && length(spikein) < 10) {
+		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 		spikein = NULL
 	}
 	######First use Linnorm transformed dataset######
@@ -84,12 +85,7 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 	pvalues <- 0
 	spikes <- 0
 	
-	x <- list(...)
-	if (length(spikein) < 2) {
-		if (sum(x$showinfo == TRUE) == 1) {
-			message("Length of spikein <= 2. Not used.",appendLF=TRUE)
-			flush.console()
-		}
+	if (length(spikein) < 10) {
 		#Remove outlier
 		SDRatio2 <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
 		if (method == "SD") {

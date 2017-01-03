@@ -2,6 +2,7 @@
 #'
 #' This function performs the Linear model and normality based transformation method (Linnorm) for (sc)RNA-seq expression data or large scale count data.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index).
 #' @param Filter	Logical. Should Linnorm filter the dataset using the minZeroPortion argument? Defaults to FALSE.
@@ -28,7 +29,7 @@
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm <- function(datamatrix, showinfo = FALSE, perturbation=100, Filter=FALSE, minZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
+Linnorm <- function(datamatrix, spikein = NULL, showinfo = FALSE, perturbation=100, Filter=FALSE, minZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
 	#data checking
 	RN <- rownames(datamatrix)
 	CN <- colnames(datamatrix)
@@ -79,11 +80,13 @@ Linnorm <- function(datamatrix, showinfo = FALSE, perturbation=100, Filter=FALSE
 	if (max_F_LC > 0.95 || max_F_LC < 0) {
 		stop("Invalid max_F_LC.")
 	}
+
+	
 	#Step 1: Relative Expression
 	#Turn it into relative expression
 	#Note that expdata does not have colnames and rownames now
 	datamatrix <- XPM(datamatrix)
-	
+	rownames(datamatrix) <- RN
 	#Find maxBound
 	TheMean <- NZrowMeans(datamatrix)
 	MeanOrder <- order(TheMean, decreasing = FALSE)
@@ -135,12 +138,12 @@ Linnorm <- function(datamatrix, showinfo = FALSE, perturbation=100, Filter=FALSE
 	}
 	
 	#Filter dataset and calculate lambda
-	FilteredData <- FirstFilter(datamatrix, minZeroPortion, L_F_p = L_F_p, L_F_LC_Genes = L_F_LC_Genes, L_F_HC_Genes = L_F_HC_Genes)
+	FilteredData <- FirstFilter(datamatrix, minZeroPortion, L_F_p = L_F_p, L_F_LC_Genes = L_F_LC_Genes, L_F_HC_Genes = L_F_HC_Genes, spikein = spikein)
 	lambda <- LocateLambda(FilteredData, perturbation, maxBound)
 	
 	#Normalization
 	if (BE_strength > 0) {
-		datamatrix <- BatchEffectLinnorm1(datamatrix * lambda, minZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength)
+		datamatrix <- BatchEffectLinnorm1(datamatrix * lambda, minZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength, spikein=spikein)
 		colnames(datamatrix) <- CN
 		rownames(datamatrix) <- RN
 		datamatrix <- log1p(datamatrix)

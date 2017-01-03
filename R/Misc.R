@@ -20,7 +20,7 @@ FindLCT <- function(datamatrix, Multy,showinfo) {
 }
 
 #Filter dataset
-FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_F_HC_Genes = 0.01) {
+FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_F_HC_Genes = 0.01, spikein = NULL) {
 	MeanSDSkew <- NZrowLogMeanSDSkew(x)
 	a <- which(!is.nan(MeanSDSkew[3,]))
 	MeanSDSkew <- MeanSDSkew[,a]
@@ -41,14 +41,12 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 	x <- x[MeanOrder,]
 	MeanSDSkew <- MeanSDSkew[,MeanOrder]
 	
-	
 	Start <- floor(nrow(x) * L_F_LC_Genes + 1)
 	End <- nrow(x) - floor(nrow(x) * L_F_HC_Genes)
 	Keep <- Start:End
 	x <- x[Keep,]
 	MeanSDSkew <- MeanSDSkew[,Keep]
-	
-	
+	spikein <- spikein[which(spikein %in% rownames(x))]
 	
 	
 	allStableGenes <- 0
@@ -69,32 +67,58 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
 	#Column 1, SD p values. Column 2, Skew p values
-	SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-	Themean <- mean(SDnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-	Bigger <- which(SDRatio >= Themean)
-	smaller <- which(SDRatio < Themean)
-	pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
-	#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+	if (length(spikein) < 10) {
+		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 	
-	SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-	SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
-	SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
-	
-	Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-	Bigger <- which(SkewResidual >= Themean)
-	smaller <- which(SkewResidual < Themean)
-	pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
+		Themean <- mean(SDnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
+		Bigger <- which(SDRatio >= Themean)
+		smaller <- which(SDRatio < Themean)
+		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
+		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		
+		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
+		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
+		
+		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
+		Bigger <- which(SkewResidual >= Themean)
+		smaller <- which(SkewResidual < Themean)
+		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+	} else {
+		spikes <- which(rownames(x) %in% spikein)
+		SDnoOutlier <- SDRatio[spikes]
+		Themean <- mean(SDnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
+		Bigger <- which(SDRatio >= Themean)
+		smaller <- which(SDRatio < Themean)
+		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
+		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		
+		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
+		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewnoOutlier <- SkewResidual[spikes]
+		
+		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
+		Bigger <- which(SkewResidual >= Themean)
+		smaller <- which(SkewResidual < Themean)
+		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+	}
 	
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
 	combinedPvalues <- empiricalBrownsMethod(MeanSDSkew[2:3,],pvalueMatrix)
 	allStableGenes <- which(combinedPvalues > L_F_p)
-	
 	
 	#allStableGenes <- which(pvalueMatrix[,1] < L_F_p)
 	#allStableGenes <- which(allStableGenes %in% which(pvalueMatrix[,2] < L_F_p))
@@ -110,7 +134,7 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 }
 
 #Normalization for batch effect.
-BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_Genes = 0.05, BE_F_p = 0.5, BE_strength = 0.25) {
+BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_Genes = 0.05, BE_F_p = 0.5, BE_strength = 0.25, spikein = NULL) {
 	x2 <- x
 	MeanSDSkew2 <- NZrowLogMeanSDSkew(x)
 	MeanSDSkew <- MeanSDSkew2
@@ -163,28 +187,52 @@ BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_
 	
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
-	#Column 1, SD p values. Column 2, Skew p values
-	SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-	Themean <- mean(SDnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-	Bigger <- which(SDRatio >= Themean)
-	smaller <- which(SDRatio < Themean)
-	pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,1] <- 2 * (1- pvalues[smaller])
-	
-	#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE)
-	
-	SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-	SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
-	SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
-	Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-	Bigger <- which(SkewResidual >= Themean)
-	smaller <- which(SkewResidual < Themean)
-	pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+	if (length(spikein) < 10) {
+		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
+		Themean <- mean(SDnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
+		Bigger <- which(SDRatio >= Themean)
+		smaller <- which(SDRatio < Themean)
+		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
+		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		
+		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
+		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
+		
+		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
+		Bigger <- which(SkewResidual >= Themean)
+		smaller <- which(SkewResidual < Themean)
+		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+	} else {
+		spikes <- which(rownames(x) %in% spikein)
+		SDnoOutlier <- SDRatio[spikes]
+		Themean <- mean(SDnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
+		Bigger <- which(SDRatio >= Themean)
+		smaller <- which(SDRatio < Themean)
+		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
+		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		
+		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
+		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewnoOutlier <- SkewResidual[spikes]
+		
+		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
+		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
+		Bigger <- which(SkewResidual >= Themean)
+		smaller <- which(SkewResidual < Themean)
+		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
+		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
+		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+	}
 	
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
 	combinedPvalues <- empiricalBrownsMethod(MeanSDSkew[2:3,],pvalueMatrix)
@@ -214,11 +262,11 @@ BatchEffect2 <- function(x,y,z,z2) {
 LocateLambda <- function(x,y,z) {
     .Call(LocateLambdaCpp, x,y,z)
 }
-SkewVarKurt <- function(x,y) {
-    .Call(SkewVarKurtCpp, x,y)
+SkewVar <- function(x,y) {
+    .Call(SkewVarCpp, x,y)
 }
-SkewAVarAKurt <- function(x,y) {
-    .Call(SkewAVarAKurtCpp, x,y)
+SkewAVar <- function(x,y) {
+    .Call(SkewAVarCpp, x,y)
 }
 
 #Get Slope from x and y vectors

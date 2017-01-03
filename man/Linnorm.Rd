@@ -4,14 +4,16 @@
 \alias{Linnorm}
 \title{Linnorm Transformation Function}
 \usage{
-Linnorm(datamatrix, showinfo = FALSE, perturbation = 100, Filter = FALSE,
-  minZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto",
-  L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto",
-  BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75,
-  DataImputation = FALSE, ...)
+Linnorm(datamatrix, spikein = NULL, showinfo = FALSE, perturbation = 100,
+  Filter = FALSE, minZeroPortion = 0.5, L_F_p = 0.3173,
+  L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173,
+  BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5,
+  max_F_LC = 0.75, DataImputation = FALSE, ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+
+\item{spikein}{character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.}
 
 \item{showinfo}{Logical. Show algorithm running information. Defaults to FALSE.}
 
