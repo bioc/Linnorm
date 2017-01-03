@@ -33,7 +33,6 @@ This function simulates a RNA-seq dataset based on a given distribution.
 }
 \examples{
 #Obtain example matrix:
-library(Linnorm)
 data(SEQC)
 expMatrix <- SEQC
 #Example for Negative Binomial distribution

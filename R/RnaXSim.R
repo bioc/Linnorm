@@ -12,7 +12,6 @@
 #' @export
 #' @examples
 #' #Obtain example matrix:
-#' library(Linnorm)
 #' data(SEQC)
 #' expMatrix <- SEQC
 #' #Example for Negative Binomial distribution

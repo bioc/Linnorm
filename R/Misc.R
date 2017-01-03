@@ -46,8 +46,11 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 	Keep <- Start:End
 	x <- x[Keep,]
 	MeanSDSkew <- MeanSDSkew[,Keep]
+	spikeino <- spikein
 	spikein <- spikein[which(spikein %in% rownames(x))]
-	
+	if (length(spikein) < 10 && length(spikeino) != 0) {
+		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
+	}
 	
 	allStableGenes <- 0
 	logitit <- loessFit(MeanSDSkew[2,],MeanSDSkew[1,], weights=1/MeanSDSkew[2,]^2)
@@ -68,8 +71,6 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 	
 	#Column 1, SD p values. Column 2, Skew p values
 	if (length(spikein) < 10) {
-		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
-	
 		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
 		Themean <- mean(SDnoOutlier,na.rm=TRUE)
 		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
