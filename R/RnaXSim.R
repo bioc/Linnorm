@@ -1,4 +1,4 @@
-#' This function simulates a RNA-seq dataset based on a given distribution.
+#' This function simulates an RNA-seq dataset based on a given distribution.
 #' @param datamatrix	Matrix. The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.This program assumes that all columns are replicates of the same sample.
 #' @param distribution	Character: Defaults to "Poisson". This parameter controls the output distribution of the simulated RNA-seq dataset. It can be one of "Gamma" (Gamma distribution), "Poisson" (Poisson distribution), "LogNorm" (Log Normal distribution) or "NB" (Negative Binomial distribution).
 #' @param NumRep	Integer: The number of replicates. This is half of the number of output samples. Defaults to 3.
@@ -46,7 +46,7 @@ RnaXSim <- function(datamatrix, distribution="NB", NumRep=5, NumDiff = 2000, Num
 	#Turn it into relative expression
 	LibSize <- colSums(datamatrix)
 	for (i in seq_along(datamatrix[1,])) {
-		datamatrix[,i] <- (datamatrix[,i] * min(LibSize))/sum(datamatrix[,i])
+		datamatrix[,i] <- (datamatrix[,i] * max(LibSize))/sum(datamatrix[,i])
 	}
 	#sort and remove features with zeros and less than one.
 	#datamatrix <- datamatrix[rowMeans(datamatrix) >= 1,]

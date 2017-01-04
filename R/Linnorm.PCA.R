@@ -26,7 +26,7 @@
 #' data(Islam2011)
 #' #Example:
 #' PCA.results <- Linnorm.PCA(Islam2011)
-Linnorm.PCA <- function(datamatrix, input = "Raw", num_PC=2, num_center=c(1:20), Group=NULL, Coloring="kmeans", pca.scale=FALSE, kmeans.iter=2000, plot.title="PCA K-means clustering",...) {
+Linnorm.PCA <- function(datamatrix, input = "Raw", num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", pca.scale=FALSE, kmeans.iter=2000, plot.title="PCA K-means clustering",...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}

@@ -25,7 +25,7 @@
 #' data(Islam2011)
 #' #Example:
 #' tSNE.results <- Linnorm.tSNE(Islam2011)
-Linnorm.tSNE <- function(datamatrix, input = "Raw", num_PC=2, num_center=c(1:20), Group=NULL, Coloring="kmeans", kmeans.iter=2000, plot.title="t-SNE K-means clustering",...) {
+Linnorm.tSNE <- function(datamatrix, input = "Raw", num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", kmeans.iter=2000, plot.title="t-SNE K-means clustering",...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}

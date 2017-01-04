@@ -2,7 +2,7 @@
 % Please edit documentation in R/RnaXSim.R
 \name{RnaXSim}
 \alias{RnaXSim}
-\title{This function simulates a RNA-seq dataset based on a given distribution.}
+\title{This function simulates an RNA-seq dataset based on a given distribution.}
 \usage{
 RnaXSim(datamatrix, distribution = "NB", NumRep = 5, NumDiff = 2000,
   NumFea = 20000, showinfo = FALSE, DEGlog2FC = "Auto",
@@ -29,7 +29,7 @@ RnaXSim(datamatrix, distribution = "NB", NumRep = 5, NumDiff = 2000,
 This function returns a list that contains a matrix of count data in integer raw count and a vector that shows which genes are differentially expressed. In the matrix, each row is a gene and each column is a replicate. The first NumRep (see parameter) of the columns belong to sample 1, and the last NumRep (see parameter) of the columns belong to sample 2. There will be NumFea (see parameter) number of rows. The top NumCorr of genes will be positively or negatively correlated with each other (randomly); and they are evenly separated into groups. Each group is not intended to be correlated to each other, but, by chance, it can happen.
 }
 \description{
-This function simulates a RNA-seq dataset based on a given distribution.
+This function simulates an RNA-seq dataset based on a given distribution.
 }
 \examples{
 #Obtain example matrix:

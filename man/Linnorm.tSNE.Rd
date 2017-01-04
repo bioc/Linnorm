@@ -4,7 +4,7 @@
 \alias{Linnorm.tSNE}
 \title{Linnorm t-SNE Clustering pipeline for subpopulation Analysis}
 \usage{
-Linnorm.tSNE(datamatrix, input = "Raw", num_PC = 2, num_center = c(1:20),
+Linnorm.tSNE(datamatrix, input = "Raw", num_PC = 3, num_center = c(1:20),
   Group = NULL, Coloring = "kmeans", kmeans.iter = 2000,
   plot.title = "t-SNE K-means clustering", ...)
 }
