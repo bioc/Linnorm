@@ -710,7 +710,7 @@ NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showin
 	if (nrow(thisdata_ori) > 10000) {
 		Keep <- sample(Keep,10000)
 	}
-	
+	options(warn=-1)
 	for (i in seq_along(thisdata_ori[Keep,1])){
 		x <- thisdata_ori[i,]
 		MeanList[i] <- mean(x)
