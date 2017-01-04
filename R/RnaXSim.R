@@ -701,13 +701,13 @@ NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showin
 	#Capture distribution from the dataset for simulation
 	MeanList <- vector(mode="numeric",length(thisdata_ori[,1]))
 	d <- vector(mode="numeric",length(thisdata_ori[,1]))
-	
+	options(warn=-1)
 	#This step makes NBSim run slow, compared to the other 3 distributions, so, we will only model at most 10000 of the genes.
 	Keep <- 1:nrow(thisdata_ori)
 	if (nrow(thisdata_ori) > 10000) {
 		Keep <- sample(Keep,10000)
 	}
-	options(warn=-1)
+	
 	for (i in seq_along(thisdata_ori[Keep,1])){
 		x <- thisdata_ori[i,]
 		MeanList[i] <- mean(x)

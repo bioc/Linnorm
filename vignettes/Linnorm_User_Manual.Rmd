@@ -15,22 +15,21 @@ vignette: >
 
 
 \begin{center}
-\date{January, 02, 2017}
+\date{January, 04, 2017}
 
 
-\small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine,}\protect \\ 
-\small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
-\small{$^{2}$ School of Biomedical Sciences, LKS Faculty of Medicine,}\protect \\
-\small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
-\small{$^{3}$ Department of Health Sciences Research and Center for}\protect \\
-\small{Individualized Medicine, Mayo Clinic, Scottsdale,}\protect \\
-\small{AZ, 85259, USA;}\protect \\
-\small{$^{4}$ Department of Psychiatry, LKS Faculty of Medicine,}\protect  \\
-\small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
-\small{$^{5}$ State Key Laboratory in Cognitive and Brain Sciences,}\protect  \\
-\small{The University of Hong Kong, Hong Kong SAR, China;}\protect \\
-\small{$^{6}$ Department of Biomedical Informatics, Arizona State}\protect  \\
-\small{University, Scottsdale, AZ, 85259, USA.}\protect \\
+\small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
+\small{University of Hong Kong, Hong Kong SAR, China;}\protect \\
+\small{$^{2}$ School of Biomedical Sciences, LKS Faculty of Medicine, The}\protect \\
+\small{University of Hong Kong, Hong Kong SAR, China;}\protect \\
+\small{$^{3}$ Department of Health Sciences Research and Center for Individualized}\protect \\
+\small{Medicine, Mayo Clinic, Scottsdale, AZ, 85259, USA;}\protect \\
+\small{$^{4}$ Department of Psychiatry, LKS Faculty of Medicine,  The}\protect  \\
+\small{University of Hong Kong, Hong Kong SAR, China;}\protect \\
+\small{$^{5}$ State Key Laboratory in Cognitive and Brain Sciences,  The}\protect  \\
+\small{University of Hong Kong, Hong Kong SAR, China;}\protect \\
+\small{$^{6}$ Department of Biomedical Informatics, Arizona State University,}\protect  \\
+\small{Scottsdale, AZ, 85259, USA.}\protect \\
 
 
 \end{center}
@@ -40,7 +39,7 @@ vignette: >
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of scRNA-seq, RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, subpopulation analysis pipeline with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA and k-means clustering\footnote{Implemented as the Linnorm.PCA function.}, hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.} and data imputation\footnote{Implemented as the Linnorm.DataImput function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
+ Linnorm is an R package for the analysis of scRNA-seq, RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, subpopulation analysis pipeline with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA K-means clustering\footnote{Implemented as the Linnorm.PCA function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.} and data imputation\footnote{Implemented as the Linnorm.DataImput function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
  Additionally, the RnaXSim function is included for simulating RNA-seq data for the evaluation of DEG analysis methods.
  
 \end{abstract}
@@ -71,11 +70,11 @@ The Linnorm R package contains a variety of functions for single cell RNA-seq da
 * Highly variable gene discovery \( Linnorm.HVar \)
 * Coexpression network analysis \( Linnorm.Cor \)
 * Data Imputation \( Linnorm.DataImput \)
-* RNA-seq data simulation for negative binomial, Poisson, log normal or gamma distributions. \( RnaXSim \)
+* RNA-seq data simulation for negative binomial, Poisson, log normal or gamma distribution. \( RnaXSim \)
 
 ##Linnorm
 
-###Datatypes and Input Format
+###Datatypes and Input Format  
 
 Linnorm accepts any RNA-seq Expression data, including but not limited to
 
@@ -109,12 +108,12 @@ By using the argument, "input = "Linnorm"", several functions provided by the Li
 
 ##Linnorm
 
-###Basic Linnorm Transformation
+###Basic Linnorm Transformation  
 
 Here, we will demonstrate how to generate and ouput Linnorm Transformed dataset into a tab delimited file.
 
 
-1. Linnorm Transformation
+1. Linnorm's normalizing transformation
 ```{r, echo=TRUE}
 library(Linnorm)
 data(Islam2011)
@@ -138,7 +137,7 @@ write.table(FTransformed, "Transformed.txt",
 quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 ```
 
-###Basic Linnorm Normalization
+###Basic Linnorm Normalization  
 
 Here, we will demonstrate how to generate and ouput Linnorm normalized dataset into a tab delimited file.
 
@@ -162,10 +161,10 @@ write.table(Normalized, "Normalized.txt",
 quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 ```
 
-###Linnorm Data Imputation
+###Linnorm Data Imputation  
 
 By default, Linnorm's data imputation function replaces zerores in the dataset by inverse euclidean distance weighted mean.
-However, we discourage performing data imputation in most situations.
+However, we discourage performing data imputation unless it is shown to improve results.
 
 1. Linnorm Data Imputation
 ```{r, echo=TRUE}
@@ -189,12 +188,12 @@ quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 ```
 
 
-###Linnorm-limma Differential Expression Analysis
+###Linnorm-limma Differential Expression Analysis  
 
 * limma package
 	- \Biocpkg{limma} is imported with Linnorm. Please cite both Linnorm and limma if you use the Linnorm.limma function for differential expression analysis for publication.
 
-####Obtain example data
+####Obtain example data  
 
 
 1. Get 20 samples of RNA-seq data. These 20 samples are paired tumor and adjacent normal tissue samples from 10 individuals from TCGA LIHC dataset.
@@ -205,7 +204,7 @@ data(LIHC)
 datamatrix <- LIHC
 ```
 
-####Analysis procedure
+####Analysis procedure  
 
 
 The Linnorm-limma pipeline only consists of two steps.
@@ -215,6 +214,7 @@ The Linnorm-limma pipeline only consists of two steps.
 #10 samples for condition 1 and 10 samples for condition 2.
 #You might need to edit this line
 design <- c(rep(1,10),rep(2,10))
+#There lines can be copied directly.
 design <- model.matrix(~ 0+factor(design))
 colnames(design) <- c("group1", "group2")
 rownames(design) <- colnames(datamatrix)
@@ -248,7 +248,7 @@ TransformedMatrix <- BothResults$Linnorm
 
 
 
-####Print out the most significant genes
+####Print out the most significant genes  
 
 1. Write out the results to a tab delimited file.
 ```{r}
@@ -276,7 +276,7 @@ kable(Genes10, digits=4)
 ```
 
 
-#### Volcano Plot
+#### Volcano Plot  
 1. Remove Genes which fold changes are INF. You can skip this if
 there are no INF values in the fold change column.
 ```{r, echo=TRUE}
@@ -299,7 +299,7 @@ xlab="log2 Fold Change", ylab="q values", cex = 0.5)
 
 
 
-### Single cell RNA-seq DEG Analysis
+###Single cell RNA-seq DEG Analysis  
 
 In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform DEG analysis. In this analysis, we are using 48 mouse embryonic stem cells and 44 mouse embryonic fibroblasts.
 
@@ -315,7 +315,7 @@ IslamData <- Islam2011[,1:92]
 #48 samples for condition 1 and 44 samples for condition 2.
 #You might need to edit this line
 design <- c(rep(1,48),rep(2,44))
-#Just copy these lines to R
+#There lines can be copied directly.
 design <- model.matrix(~ 0+factor(design))
 colnames(design) <- c("group1", "group2")
 rownames(design) <- colnames(IslamData)
@@ -323,9 +323,9 @@ rownames(design) <- colnames(IslamData)
 ```
 2. DEG Analysis
 ```{r, echo=TRUE}
-#Example 1: Filter genes with more than 50% of the expressions being zero
+#Example 1: Filter low count genes.
 #and genes with high technical noise.
-scRNAseqResults <- Linnorm.limma(IslamData,design,minZeroPortion=0.5,Filter=TRUE)
+scRNAseqResults <- Linnorm.limma(IslamData,design,Filter=TRUE)
 
 
 #Example 2: Do not filter gene list.
@@ -334,7 +334,7 @@ scRNAseqResults <- Linnorm.limma(IslamData,design)
 
 
 
-###t-SNE K-means Clustering. Cell subpopulation analysis.
+###t-SNE K-means Clustering. Cell subpopulation analysis  
 
 In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform subpopluation analysis. The 96 samples are consisted of 48 mouse embryonic stem cells, 44 mouse embryonic fibroblasts and 4 negative controls. We do not use the negative controls here.
 
@@ -344,7 +344,7 @@ library(Linnorm)
 data(Islam2011)
 ```
 
-####Simple subpopulation analysis
+####Simple subpopulation analysis  
 1. Perform t-SNE analysis using default configurations. This also automiatically determines the number of cell subpopulations.
 ```{r, echo=TRUE}
 tSNE.results <- Linnorm.tSNE(Islam2011[,1:92])
@@ -357,7 +357,7 @@ print(tSNE.results$plot$plot)
 ```
 
 
-####Analysis with known subpopulations
+####Analysis with known subpopulations  
 1. Assign known groups to samples.
 ```{r, echo=TRUE}
 #The first 48 samples belong to mouse embryonic stem cells.
@@ -378,7 +378,7 @@ Groups <- c(Groups, rep("EF_Cells",44))
 #clustering.
 
 tSNE.results <- Linnorm.tSNE(Islam2011[,1:92],
- Group=Groups, num_center=2, num_PC=2)
+ Group=Groups, num_center=2)
 ```
 
 3. Draw t-SNE k-means clustering plot.
@@ -389,7 +389,7 @@ print(tSNE.results$plot$plot)
 
 
 \newpage
-###PCA K-means Clustering. Cell subpopulation analysis.
+###PCA K-means Clustering. Cell subpopulation analysis  
 
 In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform subpopluation analysis. The 96 samples are consisted of 48 mouse embryonic stem cells, 44 mouse embryonic fibroblasts and 4 negative controls. We do not use the negative controls here. This section is basically identical to the t-SNE K-means Clustering section above.
 
@@ -399,7 +399,7 @@ library(Linnorm)
 data(Islam2011)
 ```
 
-####Simple subpopulation analysis
+####Simple subpopulation analysis  
 
 1. Perform PCA analysis using default configurations. Only keep genes with less than half of the samples being zero.
 ```{r, echo=TRUE}
@@ -408,12 +408,12 @@ PCA.results <- Linnorm.PCA(Islam2011[,1:92])
 
 2. Draw PCA k-means clustering plot.
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
-#Here, we can see three clusters.
+#Here, we can see multiple clusters.
 print(PCA.results$plot$plot)
 ```
 
 
-####Analysis with known subpopulations
+####Analysis with known subpopulations  
 
 1. Assign known groups to samples.
 ```{r, echo=TRUE}
@@ -435,7 +435,7 @@ Groups <- c(Groups, rep("EF_Cells",44))
 #clustering.
 
 PCA.results <- Linnorm.PCA(Islam2011[,1:92],
-Group=Groups, num_center=2, num_PC=2)
+Group=Groups, num_center=2, num_PC=3)
 ```
 
 3. Draw PCA k-means clustering plot.
@@ -446,7 +446,7 @@ print(PCA.results$plot$plot)
 
 
 \newpage
-###Gene Co-expression Network Analysis
+###Gene Co-expression Network Analysis  
 
 In this section, we are going to use Islam2011 single cell RNA-seq embryonic stem cell data and perform Gene Correlation Analysis.
 
@@ -461,9 +461,9 @@ datamatrix <- Islam2011[,1:48]
 2. Perform analysis.
 ```{r, echo=TRUE}
 #Setting plotNetwork to TRUE will create a figure file in your current directory.
-#Setting it to FALSE will still create an igraph object, so that users can plot it
-#manually later.
-#For this vignette, we will plot it manually instead in step 4.
+#Setting it to FALSE will stop it from creating a figure file, but users can plot it
+#manually later using the igraph object in the output.
+#For this vignette, we will plot it manually in step 4.
 results <- Linnorm.Cor(datamatrix, plotNetwork=FALSE,
 #Edge color when correlation is positive
 plot.Pos.cor.col="red",
@@ -483,7 +483,7 @@ kable(Genes10, digits=4, row.names=FALSE)
 ```
 
 
-#### Plot a co-expression network.
+####Plot a co-expression network  
 
 We will demonstrate how to plot the figure "networkplot.png" here.
 
@@ -510,7 +510,7 @@ layout=Thislayout
 )
 ```
 
-#### Identify genes that belong to a cluster.
+####Identify genes that belong to a cluster  
 
 For example, what are the genes that belong to the same cluster as the Mmp2 gene?
 
@@ -530,7 +530,7 @@ GeneNames <- results$Cluster[ListOfGenes,1]
 #Users can write these genes into a file for further analysis.
 ```
 
-#### Draw a correlation heatmap.
+####Draw a correlation heatmap  
 
 1. Choose 100 most significant genes from clustering results
 ```{r, echo=TRUE}
@@ -567,8 +567,10 @@ margins = c(8, 8)
 )
 ```
 
-###Highly variable gene analysis
+###Highly variable gene analysis  
+
 In this section, we will perform highly variable gene discovery on the embryonic stem cells from Islam(2011).
+
 1. Obtain data.
 ```{r, echo=TRUE}
 data(Islam2011)
@@ -596,14 +598,16 @@ library(knitr)
 kable(Genes10, digits=4)
 ```
 
-#### Mean vs SD plot highlighting significant genes.
+####Mean vs SD plot highlighting significant genes  
 1. Simply print the plot from results.
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
 print(results$plot$plot)
 ```
 
-### Hierarchical Clustering
+###Hierarchical Clustering  
+
 In this section, we will perform hierarchical clustering on Islam2011 data.
+
 1. Obtain data.
 ```{r, echo=TRUE}
 data(Islam2011)
@@ -623,15 +627,14 @@ colnames(Islam) <- paste(colnames(Islam),Group,sep="_")
 HClust.Results <- Linnorm.HClust(Islam,Group=Group, num_Clust=2, fontsize=1.5)
 ```
 
-#### Hierarchical Clustering plot
+####Hierarchical Clustering plot  
 We can simply print the plot out.
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
 print(HClust.Results$plot$plot)
 ```
 
 
-####Calculate Fold Change
-
+###Calculate Fold Change  
 
 Fold change can be calculated by the Linnorm.limma function. It is included in differential expression analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
 
@@ -654,7 +657,7 @@ LNormData <- Linnorm(datamatrix)
 3. Undo Logarithm from LNormData.
 ```{r, echo=TRUE}
 #Let LNormData be a matrix of Linnorm Transformed dataset. 
-Newdata <- exp(LNormData)
+Newdata <- exp(LNormData) - 1
 ```
 
 4. Calculate Fold Change.
@@ -674,11 +677,15 @@ return(log(mean(x[set1])/mean(x[set2]),2))
 #Calculate log 2 fold change of each gene in the dataset:
 foldchanges <- unlist(apply(Newdata,1,log2fc))
 
+
 #Put resulting data into a matrix
 FCMatrix <- matrix(nrow=length(foldchanges),ncol=1)
 rownames(FCMatrix) <- rownames(LNormData)
 colnames(FCMatrix) <- c("Log 2 Fold Change")
 FCMatrix[,1] <- foldchanges
+
+#Remove Infinite values.
+FCMatrix <- FCMatrix[!is.infinite(foldchanges),]
 
 #Now FCMatrix contains fold change results.
 ```
@@ -699,9 +706,8 @@ round(mean(foldchanges),2),
 
 ##RnaXSim
 
-###RNA-seq Raw Count Simulation
-####Default
-
+###RNA-seq Expression Data Simulation
+####Default  
 
 In this section, we will run RnaXSim with default settings as a demonstration.
 
@@ -739,8 +745,7 @@ Sample2 <- ExpMatrix[,4:6]
 ```
 
 
-####Advanced
-
+####Advanced  
 
 In this section, we will show an example where RnaXSim is run with customized settings.
 
@@ -783,25 +788,26 @@ Sample2 <- ExpMatrix[,4:6]
 
 #Frequently Asked Questions.
 
-1. Can I use Linnorm Transformed dataset to calculate Fold Change?
-Answer: Linnorm Transformed dataset is a log transformed dataset. You should not use it to calculate fold change directly. To do it correctly, please refer to the calculate fold change section.
+1. Can I use Linnorm Transformed dataset to calculate Fold Change?  
+Answer: Linnorm Transformed dataset is a log transformed dataset. You should not use it to calculate fold change directly. To do it correctly, please refer to the calculate fold change section.    
+  
+2. I only have two samples in total. Can I perform Linnorm Transformation?  
+Answer: No, you cannot. Linnorm requires a minimum of 3 samples.    
+  
+3. I only have 1 replicate for each sample set. Can I perform Differential Expression Analysis with Linnorm and limma?  
+Answer: No, linear model based methods must have replicates. So, limma wouldn't work.    
+  
+4. There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?  
+Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE, which is the default.    
+  
+5. During installation, an error says that Linnorm is not available. What is the problem?  
+Answer: You need to upgrade Bioconductor. You can upgrade Bioconductor by removing it with, "remove.packages("BiocInstaller")", then restart R session and install it again with, "source("http://bioconductor.org/biocLite.R")". Please also update R accordingly if needed.    
+  
+6. Do I need to run Linnorm.Norm() in addition to transforming the datset with Linnorm()?  
+Answer: Linnorm()'s transformation also performs Linnorm.Norm()'s normalization step. Therefore, please **DO NOT** rerun Linnorm.Norm() before or after Linnorm().    
 
 
-2. I only have two samples in total. Can I perform Linnorm Transformation?
-Answer: No, you cannot. Linnorm requires a minimum of 3 samples.
 
 
-3. I only have 1 replicate for each sample set. Can I perform Differential Expression Analysis with Linnorm and limma?
-Answer: No, linear model based methods must have replicates. So, limma wouldn't work.
-
-
-4. There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?
-Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE, which is the default.
-
-
-5. During installation, an error says that Linnorm is not available. What is the problem?
-Answer: You need to upgrade Bioconductor. You can upgrade Bioconductor by removing it with, "remove.packages("BiocInstaller")", then restart R session and install it again with, "source("http://bioconductor.org/biocLite.R")". Please also update R accordingly if needed.
-
-
-#Bug Reports, Questions and Suggestions
+#Bug Reports, Questions and Suggestions  
 We welcome any Bug Reports, Questions and Suggestions. They can be sent to Ken Yip at <shunyip@bu.edu>. Please add the keyword Linnorm in the email's subject line or title. We appreciate your help in making Linnorm better. Thanks!
