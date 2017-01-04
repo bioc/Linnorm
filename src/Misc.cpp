@@ -63,7 +63,7 @@ double VarOnly (const arma::mat& GeneExp, const double& lambda2) {
 	for (int i = 0; i < int(GeneExp.n_rows); i ++) {
 		double mean = 0;
 		double M2 = 0;
-		double M3 = 0;
+		//double M3 = 0;
 		//double M4 = 0;
 		//double delta_n2;
 		double delta, delta_n, term1;
@@ -136,17 +136,17 @@ double VarOnly (const arma::mat& GeneExp, const double& lambda2) {
 double SkewOnly (const arma::mat& GeneExp, const double& lambda2) {
 	//vectors to store skewness, standard deviation, kurtosis and mean of each gene/feature.
 	arma::vec skewvec(GeneExp.n_rows);
-	arma::vec SDevvec(GeneExp.n_rows);
+	//arma::vec SDevvec(GeneExp.n_rows);
 	//arma::vec kurtvec(GeneExp.n_rows);
 	arma::vec meanvec(GeneExp.n_rows);
 	//Objects to store the sums of variables that will be needed to perform linear regression.
 	//double SumKurt = 0;
 	double SumSkew = 0;
-	double SumSD = 0;
+	//double SumSD = 0;
 	double SumMean = 0;
 	//double SumKurtMean = 0;
 	double SumSkewMean = 0;
-	double SumSDMean = 0;
+	//double SumSDMean = 0;
 	double SumMeanSq = 0;
 	
 	
@@ -179,7 +179,7 @@ double SkewOnly (const arma::mat& GeneExp, const double& lambda2) {
 		//Here, calculate kurtosis, skewness and SD using 4th, 3rd and 2nd moments.
 		//kurtvec.at(i) =  (GeneExp.n_cols * M4)/pow(M2,2) - 3;
 		skewvec.at(i) =  (sqrt(GeneExp.n_cols) * M3) / pow(M2,1.5);
-		SDevvec.at(i) =  sqrt(M2/(GeneExp.n_cols - 1));
+		//SDevvec.at(i) =  sqrt(M2/(GeneExp.n_cols - 1));
 		
 		//Linear regression
 		//meanvec.at(i) = 1 + (mean - minMean)/range;
@@ -187,11 +187,11 @@ double SkewOnly (const arma::mat& GeneExp, const double& lambda2) {
 		meanvec.at(i) = mean;
 		//SumKurt += kurtvec.at(i);
 		SumSkew += skewvec.at(i);
-		SumSD += SDevvec.at(i);
+		//SumSD += SDevvec.at(i);
 		SumMean += meanvec.at(i);
 		//SumKurtMean += kurtvec.at(i) * meanvec.at(i);
 		SumSkewMean += skewvec.at(i) * meanvec.at(i);
-		SumSDMean += SDevvec.at(i) * meanvec.at(i);
+		//SumSDMean += SDevvec.at(i) * meanvec.at(i);
 		SumMeanSq += pow(meanvec.at(i),2);
 	}
 	//y = Mx + C, here are the M and C results of the linear regression
@@ -199,7 +199,7 @@ double SkewOnly (const arma::mat& GeneExp, const double& lambda2) {
 	//double kurtC = (SumKurt - kurtM * SumMean)/GeneExp.n_rows;
 	double skewM = (GeneExp.n_rows * SumSkewMean - SumSkew * SumMean)/(GeneExp.n_rows * SumMeanSq - pow(SumMean,2) ) ;
 	double skewC = (SumSkew - skewM * SumMean)/GeneExp.n_rows;
-	double SDevM = (GeneExp.n_rows * SumSDMean - SumSD * SumMean)/(GeneExp.n_rows * SumMeanSq - pow(SumMean,2) );
+	//double SDevM = (GeneExp.n_rows * SumSDMean - SumSD * SumMean)/(GeneExp.n_rows * SumMeanSq - pow(SumMean,2) );
 	
 	//integral of the linear equation of skewness
 	double Skewzerointercept = -skewC/skewM;
