@@ -49,7 +49,7 @@ RnaXSim <- function(datamatrix, distribution="Poisson", NumRep=3, NumDiff = 2000
 	#Turn it into relative expression
 	LibSize <- colSums(datamatrix)
 	for (i in seq_along(datamatrix[1,])) {
-		datamatrix[,i] <- (datamatrix[,i] * min(LibSize))/sum(datamatrix[,i])
+		datamatrix[,i] <- (datamatrix[,i] * max(LibSize))/sum(datamatrix[,i])
 	}
 	#sort and remove features with zeros and less than one.
 	#datamatrix <- datamatrix[rowMeans(datamatrix) >= 1,]
