@@ -800,10 +800,7 @@ Answer: No, linear model based methods must have replicates. So, limma wouldn't 
 4. There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?  
 Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE, which is the default.    
   
-5. During installation, an error says that Linnorm is not available. What is the problem?  
-Answer: You need to upgrade Bioconductor. You can upgrade Bioconductor by removing it with, "remove.packages("BiocInstaller")", then restart R session and install it again with, "source("http://bioconductor.org/biocLite.R")". Please also update R accordingly if needed.    
-  
-6. Do I need to run Linnorm.Norm() in addition to transforming the datset with Linnorm()?  
+5. Do I need to run Linnorm.Norm() in addition to transforming the datset with Linnorm()?  
 Answer: Linnorm()'s transformation also performs Linnorm.Norm()'s normalization step. Therefore, please **DO NOT** rerun Linnorm.Norm() before or after Linnorm().    
 
 

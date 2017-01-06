@@ -650,7 +650,7 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 		}
 	}
 	if (numMaxBoundIncrease == 6 && (maxBound - 10 <= localmin || minBound + 10 >= localmin)) {
-		//Safety: This should never happen on count datasets, but we will never know what the user is trying to input.
+		//Safety: This should never happen on count datasets, but we will never know.
 		//Failed to find global minimum. If both skew and SD got minimum, use their mean. Otherwise, use only one of their minimum. If none have minimum, use the original maxBound.
 		double tryVar = LocalSearchVarOnly(GeneExp, 1, OriginalmaxBound, localminIntegral, search_exponent);
 		double trySkew = LocalSearchSkewOnly(GeneExp, 1, OriginalmaxBound, localminIntegral, search_exponent);
@@ -1369,7 +1369,7 @@ SEXP NZrowMeansCpp(SEXP xSEXP) {
 	//One pass linear regression with one pass variance, skewness and kurtosis
 	for (int i = 0; i < int(GeneExp.n_rows); i ++) {
 		double mean = 0;
-		double M2 = 0;
+		//double M2 = 0;
 		double delta, delta_n;
 		int numData = 0;
 		for (int n = 0; n < int(GeneExp.n_cols); n++) {
