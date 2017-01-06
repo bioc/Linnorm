@@ -214,12 +214,6 @@ BatchEffect2 <- function(x,y,z,z2) {
 LocateLambda <- function(x,y,z) {
     .Call(LocateLambdaCpp, x,y,z)
 }
-SkewVarKurt <- function(x,y) {
-    .Call(SkewVarKurtCpp, x,y)
-}
-SkewAVarAKurt <- function(x,y) {
-    .Call(SkewAVarAKurtCpp, x,y)
-}
 
 #Get Slope from x and y vectors
 getSlope <- function(x,y) {

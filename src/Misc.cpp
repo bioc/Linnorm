@@ -292,75 +292,6 @@ SEXP SkewVarCpp(SEXP xSEXP,SEXP ySEXP) {
 	double lambda2 = Rcpp::as<double>(ySEXP);
 	return Rcpp::wrap(SkewVar(GeneExp, lambda2));
 }
-arma::vec SkewAVar (const arma::mat& GeneExp, const double& lambda2) {
-	//vectors to store skewness, standard deviation and mean of each gene/feature.
-	arma::vec skewvec(GeneExp.n_rows);
-	arma::vec SDevvec(GeneExp.n_rows);
-	arma::vec meanvec(GeneExp.n_rows);
-	//Objects to store the sums of variables that will be needed to perform linear regression.
-	double SumSkew = 0;
-	double SumSD = 0;
-	double SumMean = 0;
-	double SumSkewMean = 0;
-	double SumSDMean = 0;
-	double SumMeanSq = 0;
-	
-	//One pass linear regression with one pass variance, skewness
-	for (int i = 0; i < int(GeneExp.n_rows); i ++) {
-		double mean = 0;
-		double M2 = 0;
-		double M3 = 0;
-		double delta, delta_n, term1;
-		int numData = 0;
-		for (int n = 0; n < int(GeneExp.n_cols); n++) {
-			delta = log1p(GeneExp.at(i,n) * lambda2) - mean;
-			delta_n = delta / (numData + 1);
-			term1 = delta * delta_n * numData;
-			mean = mean + delta_n;
-			M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
-			M2 = M2 + term1;
-			numData++;
-		}
-		if (numData < 3) {
-			continue;
-		}
-		//Here, calculate skewness and SD using 3rd and 2nd moments.
-		skewvec.at(i) =  (sqrt(GeneExp.n_cols) * M3) / pow(M2,1.5);
-		SDevvec.at(i) =  sqrt(M2/(GeneExp.n_cols - 1));
-		
-		//Linear regression
-		meanvec.at(i) = mean;
-		SumSkew += skewvec.at(i);
-		SumSD += SDevvec.at(i);
-		SumMean += meanvec.at(i);
-		SumSkewMean += skewvec.at(i) * meanvec.at(i);
-		SumSDMean += SDevvec.at(i) * meanvec.at(i);
-		SumMeanSq += pow(meanvec.at(i),2);
-	}
-	//y = Mx + C, here are the M and C results of the linear regression
-	double skewM = (GeneExp.n_rows * SumSkewMean - SumSkew * SumMean)/(GeneExp.n_rows * SumMeanSq - pow(SumMean,2) ) ;
-	double skewC = (SumSkew - skewM * SumMean)/GeneExp.n_rows;
-	double SDevM = (GeneExp.n_rows * SumSDMean - SumSD * SumMean)/(GeneExp.n_rows * SumMeanSq - pow(SumMean,2) );
-	
-	//integral of the linear equation of skewness
-	double Skewzerointercept = -skewC/skewM;
-	double Skewintegral = 0;
-	skewM = skewM/2;
-	if (Skewzerointercept > meanvec.at(0) && Skewzerointercept < meanvec.at(skewvec.n_elem-1)) {
-		Skewintegral = (abs(skewM * (meanvec.at(skewvec.n_elem-1) + Skewzerointercept) + skewC) * (meanvec.at(skewvec.n_elem-1) - Skewzerointercept) + abs(skewM * (meanvec.at(0) + Skewzerointercept) + skewC)* (Skewzerointercept - meanvec.at(0)))/(meanvec.at(skewvec.n_elem-1) - meanvec.at(0));
-	} else {
-		Skewintegral = abs(skewM * (meanvec.at(skewvec.n_elem-1) + meanvec.at(0)) + skewC);
-	}
-	arma::vec Answer(2);
-	Answer.at(0) = SDevM;
-	Answer.at(1) = Skewintegral;
-	return Answer;
-}
-SEXP SkewAVarCpp(SEXP xSEXP,SEXP ySEXP) {
-	arma::mat GeneExp = Rcpp::as<arma::mat>(xSEXP);
-	double lambda2 = Rcpp::as<double>(ySEXP);
-	return Rcpp::wrap(SkewAVar(GeneExp, lambda2));
-}
 
 
 //Given a range of lambda, this function finds lambda that minimizes F(lambda) (see article) based on the expression matrix by using binary search.
@@ -1369,7 +1300,7 @@ SEXP NZrowMeansCpp(SEXP xSEXP) {
 	//One pass linear regression with one pass variance, skewness and kurtosis
 	for (int i = 0; i < int(GeneExp.n_rows); i ++) {
 		double mean = 0;
-		double M2 = 0;
+		//double M2 = 0;
 		double delta, delta_n;
 		int numData = 0;
 		for (int n = 0; n < int(GeneExp.n_cols); n++) {
@@ -1436,8 +1367,6 @@ SEXP WrowMeansCpp(SEXP xSEXP, SEXP ySEXP) {
 
 static const R_CallMethodDef callMethods[] = {
 	{"LocateLambdaCpp", (DL_FUNC) &LocateLambdaCpp, 3},
-	{"SkewVarCpp", (DL_FUNC) &SkewVarCpp, 2},
-	{"SkewAVarCpp", (DL_FUNC) &SkewAVarCpp, 2},
 	{"NZrowLogMeanSDSkewCpp", (DL_FUNC) &NZrowLogMeanSDSkewCpp, 1},
 	{"rowLogMeanSDSkewCpp", (DL_FUNC) &rowLogMeanSDSkewCpp, 1},
 	{"NZrowLog1pMeanSDCpp", (DL_FUNC) &NZrowLog1pMeanSDCpp, 2},

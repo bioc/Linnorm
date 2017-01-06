@@ -29,5 +29,5 @@ NULL
 #' @name SEQC
 #' @usage data(SEQC)
 #' @format A matrix with 50227 rows (genes) and 10 columns (samples).
-#' @references SEQC/MAQC-III Consortium. "A comprehensive assessment of RNA-seq accuracy, reproducibility and information content by the Sequencing Quality Control Consortium." Nature biotechnology 32.9 (2014): 903-914.
+#' @references SEQC/MAQC-III Consortium. A comprehensive assessment of RNA-seq accuracy, reproducibility and information content by the Sequencing Quality Control Consortium. Nature biotechnology 32.9 (2014): 903-914.
 NULL
