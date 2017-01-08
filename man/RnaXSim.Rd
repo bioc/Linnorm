@@ -33,9 +33,8 @@ This function simulates a RNA-seq dataset based on a given distribution.
 }
 \examples{
 #Obtain example matrix:
-library(seqc)
-SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
-rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
+data(SEQC)
+SampleA <- SEQC
 #Extract a portion of the matrix for an example
 expMatrix <- SampleA[,1:10]
 #Example for Negative Binomial distribution

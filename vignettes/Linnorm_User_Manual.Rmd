@@ -15,7 +15,7 @@ vignette: >
 
 
 \begin{center}
-\date{January, 04, 2017}
+\date{January, 08, 2017}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
@@ -614,7 +614,7 @@ SampleA <- SEQC
 ```
 
 
-2. Simulate a scRNA-seq dataset.
+2. Simulate an RNA-seq dataset.
 ```{r, echo=TRUE}
 library(Linnorm)
 #This will generate two sets of RNA-seq data with 5 replicates each. 
@@ -651,7 +651,7 @@ data(SEQC)
 SampleA <- SEQC
 ```
 
-2. Simulate a scRNA-seq dataset using the above parameters.
+2. Simulate an RNA-seq dataset using the above parameters.
 ```{r, echo=TRUE}
 library(Linnorm)
 SimulatedData <- RnaXSim(SampleA,

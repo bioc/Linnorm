@@ -12,9 +12,8 @@
 #' @export
 #' @examples
 #' #Obtain example matrix:
-#' library(seqc)
-#' SampleA <- ILM_aceview_gene_BGI[,grepl("A_",colnames(ILM_aceview_gene_BGI))]
-#' rownames(SampleA) <- ILM_aceview_gene_BGI[,2]
+#' data(SEQC)
+#' SampleA <- SEQC
 #' #Extract a portion of the matrix for an example
 #' expMatrix <- SampleA[,1:10]
 #' #Example for Negative Binomial distribution
@@ -712,7 +711,7 @@ NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showin
 	}
 	options(warn=-1)
 	for (i in seq_along(thisdata_ori[Keep,1])){
-		x <- thisdata_ori[i,]
+		x <- as.numeric(thisdata_ori[i,])
 		MeanList[i] <- mean(x)
 		d[i] <- as.numeric(unlist((glm.nb(x~1))[[24]]))
 	}
