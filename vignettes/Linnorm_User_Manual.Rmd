@@ -15,7 +15,7 @@ vignette: >
 
 
 \begin{center}
-\date{January, 04, 2017}
+\date{January, 08, 2017}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
@@ -714,16 +714,16 @@ In this section, we will run RnaXSim with default settings as a demonstration.
 1. Get RNA-seq data from SEQC. RnaXSim assume that all samples are replicate of each other.
 
 ```{r, echo=TRUE}
+library(Linnorm)
 data(SEQC)
 SampleA <- SEQC
 ```
 
 
-2. Simulate a scRNA-seq dataset.
+2. Simulate an RNA-seq dataset.
 ```{r, echo=TRUE}
-library(Linnorm)
 #This will generate two sets of RNA-seq data with 5 replicates each. 
-#It will have 20000 genes totally with 5000 genes being differentially 
+#It will have 20000 genes totally with 2000 genes being differentially 
 #expressed. It has the Negative Binomial distribution.
 SimulatedData <- RnaXSim(SampleA)
 ```
@@ -756,7 +756,7 @@ data(SEQC)
 SampleA <- SEQC
 ```
 
-2. Simulate a scRNA-seq dataset using the above parameters.
+2. Simulate an RNA-seq dataset using the above parameters.
 ```{r, echo=TRUE}
 library(Linnorm)
 SimulatedData <- RnaXSim(SampleA,
@@ -797,14 +797,4 @@ Answer: No, you cannot. Linnorm requires a minimum of 3 samples.
 3. I only have 1 replicate for each sample set. Can I perform Differential Expression Analysis with Linnorm and limma?  
 Answer: No, linear model based methods must have replicates. So, limma wouldn't work.    
   
-4. There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?  
-Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE, which is the default.    
-  
-5. Do I need to run Linnorm.Norm() in addition to transforming the datset with Linnorm()?  
-Answer: Linnorm()'s transformation also performs Linnorm.Norm()'s normalization step. Therefore, please **DO NOT** rerun Linnorm.Norm() before or after Linnorm().    
-
-
-
-
-#Bug Reports, Questions and Suggestions  
-We welcome any Bug Reports, Questions and Suggestions. They can be sent to Ken Yip at <shunyip@bu.edu>. Please add the keyword Linnorm in the email's subject line or title. We appreciate your help in making Linnorm better. Thanks!
+4. There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like

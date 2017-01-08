@@ -709,7 +709,7 @@ NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showin
 	}
 	
 	for (i in seq_along(thisdata_ori[Keep,1])){
-		x <- thisdata_ori[i,]
+		x <- as.numeric(thisdata_ori[i,])
 		MeanList[i] <- mean(x)
 		d[i] <- as.numeric(unlist((glm.nb(x~1))[[24]]))
 	}
