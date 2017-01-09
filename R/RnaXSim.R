@@ -26,6 +26,12 @@
 #' simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=3, NumDiff = 200, NumFea = 2000)
 RnaXSim <- function(datamatrix, distribution="Poisson", NumRep=3, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, DEGlog2FC="Auto", MaxLibSizelog2FC=0.5) {
 	datamatrix <- na.omit(as.matrix(datamatrix))
+	if (length(datamatrix[1,]) < 3) {
+		stop("Number of samples is less than 3.")
+	}
+	if (length(datamatrix[,1]) < 500) {
+		stop("Number of features is too small.")
+	}
 	if (distribution != "Gamma" && distribution != "Poisson" && distribution != "LogNorm" && distribution != "NB") {
 		stop("Invalid distribution.")
 	}
@@ -713,7 +719,11 @@ NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showin
 	for (i in seq_along(thisdata_ori[Keep,1])){
 		x <- as.numeric(thisdata_ori[i,])
 		MeanList[i] <- mean(x)
-		d[i] <- as.numeric(unlist((glm.nb(x~1))[[24]]))
+		if (length(x) > 2) {
+			d[i] <- as.numeric(unlist((glm.nb(x~1))[[24]]))
+		} else {
+			d[i] <- NA
+		}
 	}
 	MeanList <- MeanList[!is.na(d)]
 	d <- d[!is.na(d)]
