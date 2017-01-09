@@ -24,6 +24,12 @@
 #' simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=5, NumDiff = 200, NumFea = 2000)
 RnaXSim <- function(datamatrix, distribution="NB", NumRep=5, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, DEGlog2FC="Auto", MaxLibSizelog2FC=0.5) {
 	datamatrix <- na.omit(as.matrix(datamatrix))
+	if (length(datamatrix[1,]) < 3) {
+		stop("Number of samples is less than 3.")
+	}
+	if (length(datamatrix[,1]) < 500) {
+		stop("Number of features is too small.")
+	}
 	if (distribution != "Gamma" && distribution != "Poisson" && distribution != "LogNorm" && distribution != "NB") {
 		stop("Invalid distribution.")
 	}
@@ -711,7 +717,11 @@ NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showin
 	for (i in seq_along(thisdata_ori[Keep,1])){
 		x <- as.numeric(thisdata_ori[i,])
 		MeanList[i] <- mean(x)
-		d[i] <- as.numeric(unlist((glm.nb(x~1))[[24]]))
+		if (length(x) > 2) {
+			d[i] <- as.numeric(unlist((glm.nb(x~1))[[24]]))
+		} else {
+			d[i] <- NA
+		}
 	}
 	MeanList <- MeanList[!is.na(d)]
 	d <- d[!is.na(d)]
@@ -749,14 +759,7 @@ NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showin
 	NR2 <- NumRep
 	design <- matrix(nrow=(NR2 * 2), ncol=2)
 	colnames(design) <- c("SampleInfo", "Gam")
-	col1 <- c()
-	for (i in 1:NR2) {
-		col1 <- c(col1, "Normal")
-	}
-	for (i in 1:NR2) {
-		col1 <- c(col1, "Tumor")
-	}
-	design[,1] <- col1
+	design[,1] <- c(rep("Normal",NR2),rep("Tumor",NR2))
 	design <- as.data.frame(design)
 	pvstore <- vector(mode="numeric",100)
 	if (DEGlog2FC != "Auto") {
