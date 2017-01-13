@@ -538,30 +538,16 @@ Fold change can be calculated by the Linnorm.limma function. It is included in d
 ```{r, echo=TRUE}
 library(Linnorm)
 data(LIHC)
-datamatrix <- LIHC
 ```
 
 
-2. Linnorm Transformation.
-```{r, echo=TRUE}
-library(Linnorm)
-LNormData <- Linnorm(datamatrix)
-```
-
-
-3. Undo Logarithm from LNormData.
-```{r, echo=TRUE}
-#Let LNormData be a matrix of Linnorm Transformed dataset. 
-Newdata <- exp(LNormData) - 1
-```
-
-4. Calculate Fold Change.
+2. Calculate Fold Change.
 ```{r, echo=TRUE}
 #Now, we can calculate fold changes between
 #sample set 1 and sample set 2.
-#Index of sample set 1 from LNormData and Newdata:
+#Index of sample set 1
 set1 <- 1:10
-#Index of sample set 2 from LNormData and Newdata:
+#Index of sample set 2
 set2 <- 11:20
 
 #Define a function that calculates log 2 fold change:
@@ -570,34 +556,34 @@ return(log(mean(x[set1])/mean(x[set2]),2))
 }
 
 #Calculate log 2 fold change of each gene in the dataset:
-foldchanges <- unlist(apply(Newdata,1,log2fc))
+foldchanges <- unlist(apply(LIHC,1,log2fc))
 
 
 #Put resulting data into a matrix
-FCMatrix <- matrix(nrow=length(foldchanges),ncol=1)
-rownames(FCMatrix) <- rownames(LNormData)
+FCMatrix <- matrix(foldchanges, ncol=1)
+rownames(FCMatrix) <- rownames(LIHC)
 colnames(FCMatrix) <- c("Log 2 Fold Change")
-FCMatrix[,1] <- foldchanges
 
 #Remove Infinite values.
-FCMatrix <- FCMatrix[!is.infinite(foldchanges),]
+FCMatrix <- FCMatrix[!is.infinite(foldchanges),,drop=FALSE]
 
 #Now FCMatrix contains fold change results.
 ```
 
-5. Draw a probability density plot of the fold changes in the dataset.
+3. Draw a probability density plot of the fold changes in the dataset.
 
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
-Density <- density(foldchanges)
+Density <- density(FCMatrix[,1])
 plot(Density$x,Density$y,type="n",xlab="Log 2 Fold Change",
 ylab="Probability Density",)
 lines(Density$x,Density$y, lwd=1.5, col="blue")
 title("Probability Density of Fold Change.\nTCGA Partial LIHC data
 Paired Tumor vs Adjacent Normal")
 legend("topright",legend=paste("mean = ", 
-round(mean(foldchanges),2),
-"\nStdev = ", round(sd(foldchanges),2)))
+round(mean(FCMatrix[,1]),2),
+"\nStdev = ", round(sd(FCMatrix[,1]),2)))
 ```
+
 
 ##RnaXSim
 
