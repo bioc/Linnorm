@@ -7,7 +7,7 @@
 #' @param log.p	Logical. Output p/q values in log scale. Defaults to FALSE.
 #' @param sig.value	Character. "p" or "q". Use p or q value for highlighting significant genes. Defaults to "p".
 #' @param sig	Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.
-#' @param MZP Double >=0, <= 1. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
+#' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
 #' @param FG_Recov	Double >=0, <= 1. In the low count gene filtering algorithm, recover this portion of genes that are filtered. Defaults to 1/3.
 #' @param plot.title	Character. The plot's title. Defaults to "Mean vs SD plot".
 #' @param ... arguments that will be passed into Linnorm's transformation function.
@@ -44,21 +44,21 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 		stop("Invalid sig.value.")
 	}
 	#Linnorm transformation
-	expdata <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, ...)
-	expdata <- expdata[rowSums(expdata != 0) >= 3,]
+	datamatrix <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, ...)
+	datamatrix <- datamatrix[rowSums(datamatrix != 0) >= 3,]
 	#Check available number of spike in genes.
-	spikein <- spikein[which(spikein %in% rownames(expdata))]
+	spikein <- spikein[which(spikein %in% rownames(datamatrix))]
 	if (length(spikein) != 0 && length(spikein) < 10) {
 		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 		spikein = NULL
 	}
 	######First use Linnorm transformed dataset######
-	MeanSD <- NZrowMeanSD(expdata)
+	MeanSD <- NZrowMeanSD(datamatrix)
 	datamean <- MeanSD[1,]
-	#dataRR <- apply(expdata,1,RangeRatio)
+	#dataRR <- apply(datamatrix,1,RangeRatio)
 	dataSD <- MeanSD[2,]
 	
-	#MeanSD2 <- NZrowMeanSD(exp(expdata))
+	#MeanSD2 <- NZrowMeanSD(exp(datamatrix))
 	#datamean2 <- MeanSD[1,]
 	#dataSD2 <- MeanSD[2,]
 	#logitit <- loessFit(dataSD,datamean,weights=dataSD2/datamean2) 
@@ -95,7 +95,7 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(SDRatio2)), lower.tail = FALSE, log.p=TRUE )
 		}
 	} else {
-		spikes <- which(rownames(expdata) %in% spikein)
+		spikes <- which(rownames(datamatrix) %in% spikein)
 		SDRatio2 <- SDRatio[spikes]
 		SDRatio2 <- SDRatio2[!SDRatio2 %in% boxplot.stats(SDRatio2)$out]
 		if (method == "SD") {
@@ -110,7 +110,7 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 	dataSD <- dataSD
 	results <- matrix(ncol=5, nrow=length(SDRatio))
 	colnames(results) <- c("Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
-	rownames(results) <- rownames(expdata)
+	rownames(results) <- rownames(datamatrix)
 	results[,1] <- datamean
 	results[,2] <- dataSD
 	results[,3] <- SDRatio
@@ -136,7 +136,7 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 	groups[spikes] <- "Spike in"
 	plotdata <- data.frame(mean=datamean,SD=dataSD,group=groups)
 	render_plot <- ggplot_build(ggplot(plotdata, aes(x=mean, y=SD, color=group)) + geom_point(size = 1) + scale_x_continuous("Transformed Mean") + scale_y_continuous("Transformed Standard Deviation") + scale_colour_manual(name = "Sig",values = myColors) + ggtitle(plot.title) + theme(aspect.ratio=3/4))
-	listing <- list(results, render_plot, expdata)
+	listing <- list(results, render_plot, datamatrix)
 	result <- setNames(listing, c("Results", "plot", "Linnorm"))
 	return (result)
 }

@@ -3,6 +3,7 @@
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform limma for DEG analysis. Please cite both Linnorm and limma when you use this function for publications.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param design	A design matrix required for limma. Please see limma's documentation or our vignettes for more detail.
+#' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
 #' @param output	Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.
 #' @param noINF	Logical. Prevent generating INF in the fold change column by using CPM+1 or TPM+1. If it is set to FALSE, INF will be generated if one of the conditions has zero expression. Defaults to TRUE.
 #' @param robust Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to FALSE.
@@ -20,7 +21,7 @@
 #' @return If output is set to Both, this function will output a list with the following objects:
 ##' \itemize{
 ##'  \item{DEResults:}{ Differntial Expression Analysis Results as described above.}
-##'  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+##'  \item{Linnorm:}{ Linnorm transformed data matrix.}
 ##' }
 #' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric limma
 #' @export
@@ -35,18 +36,22 @@
 #' #DEG analysis
 #' DEGResults <- Linnorm.limma(LIHC, designmatrix)
 
-Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRUE, robust=FALSE, ...) {
+Linnorm.limma <- function(datamatrix, design=NULL, MZP = 0, output="DEResults", noINF=TRUE, robust=FALSE, ...) {
 	datamatrix <- as.matrix(datamatrix)
 	if (is.null(design)) {
 		stop("design is null.")
 	}
-	expdata <- XPM(datamatrix)
-	colnames(expdata) <- colnames(datamatrix)
-	rownames(expdata) <- rownames(datamatrix)
-	datamatrix <- expdata
+	if (MZP > 1 || MZP < 0) {
+		stop("Invalid MZP.")
+	}
+	CN <- colnames(datamatrix)
+	RN <- rownames(datamatrix)
+	expdata <- XPM(datamatrix) * 1000000
+	colnames(expdata) <- CN
+	rownames(expdata) <- RN
+	
 	#Linnorm transformation
-
-	expdata <- Linnorm(datamatrix, ...)
+	datamatrix <- Linnorm(datamatrix, ...)
 	
 	#limma analysis:
 	#limma has a lot of warnings, lets turn them off.
@@ -58,7 +63,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 		CN <- c(CN, paste("group",i,sep=""))
 	}
 	colnames(design) <- CN
-	fit2 <- lmFit(expdata,design)
+	fit2 <- lmFit(datamatrix,design)
 	if (length(design[1,]) == 2) {
 		contrast.matrix <- makeContrasts("group1-group2", levels=design)
 	} else if (length(design[1,]) == 3) {
@@ -76,27 +81,31 @@ Linnorm.limma <- function(datamatrix, design=NULL, output="DEResults", noINF=TRU
 	fit2 <- eBayes(fit2,robust=robust)
 	limmaResults <- topTable(fit2, number=length(fit2$p.value), adjust.method="BH")
 	datamatrix <- datamatrix[rownames(limmaResults),]
+	expdata <- expdata[rownames(limmaResults),]
 	if (length(design[1,]) == 2) {
 		set1 <- as.numeric(which(design[,1] == 1))
 		set2 <- as.numeric(which(design[,1] != 1))
-		limmaResults[,2] <- unlist(apply(datamatrix,1,mean)) * 1000000
+		limmaResults[,2] <- rowMeans(expdata)
 		if (noINF) {
-			datamatrix <- datamatrix * 1000000 + 1
-			limmaResults[,1] <- unlist(apply(datamatrix,1,function(x){return(log(mean(x[set1])/mean(x[set2] ),2) )}))
+			expdata <- expdata + 1
+			limmaResults[,1] <- log(rowMeans(expdata[,set1])/rowMeans(expdata[,set2]),2)
 		} else {
-			limmaResults[,1] <- unlist(apply(datamatrix,1,function(x){return(log(mean(x[set1])/mean(x[set2]),2) )}))
+			limmaResults[,1] <- log(rowMeans(expdata[,set1])/rowMeans(expdata[,set2]),2)
 		}
 		colnames(limmaResults)[2] <- "XPM"
 	} else {
-		limmaResults[,2] <- unlist(apply(datamatrix,1,mean)) * 1000000
+		limmaResults[,2] <- rowMeans(expdata)
 		colnames(limmaResults)[2] <- "XPM"
 		limmaResults <- limmaResults[,-c(1)]
+	}
+	if (MZP > 0) {
+		limmaResults <- limmaResults[rownames(datamatrix[rowSums(datamatrix != 0) >= MZP * ncol(datamatrix),]),]
 	}
 	if (output=="DEResults") {
 		return (limmaResults)
 	}
 	if (output=="Both") {
-		listing <- list(limmaResults, expdata)
+		listing <- list(limmaResults, datamatrix)
 		results <- setNames(listing, c("DEResults", "Linnorm"))
 		return (results)
 	}

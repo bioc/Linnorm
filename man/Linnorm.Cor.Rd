@@ -18,7 +18,7 @@ Linnorm.Cor(datamatrix, input = "Raw", method = "pearson", MZP = 0.5,
 
 \item{method}{Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson".}
 
-\item{MZP}{Double >=0, <= 1. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.}
+\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.}
 
 \item{sig.q}{Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.}
 
@@ -56,7 +56,7 @@ This function will output a list with the following objects:
  \item{q.Matrix:}{ A matrix of q values of each of the correlation coefficient from Cor.Matrix. }
  \item{Cluster:}{ A data frame that shows which gene belongs to which cluster.}
  \item{igraph:}{ The igraph object for users who want to draw the network plot manually. }
- \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+ \item{Linnorm:}{ Linnorm transformed data matrix.}
 }
 
 The "Results" data frame has the following columns:

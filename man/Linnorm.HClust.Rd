@@ -4,13 +4,15 @@
 \alias{Linnorm.HClust}
 \title{Linnorm-hierarchical clustering analysis.}
 \usage{
-Linnorm.HClust(datamatrix, DataImputation = TRUE, input = "Raw",
+Linnorm.HClust(datamatrix, MZP = 0, DataImputation = TRUE, input = "Raw",
   method_hclust = "ward.D", method_dist = "pearson", Group = NULL,
   num_Clust = 0, ClustRect = TRUE, RectColor = "red", fontsize = 0.5,
   linethickness = 0.5, plot.title = "Hierarchical clustering", ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+
+\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.}
 
 \item{DataImputation}{Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.}
 
@@ -41,7 +43,7 @@ It returns a list with the following objects:
 \itemize{
  \item{Results:}{ If num_Clust > 0, this outputs a named vector that contains the cluster assignment information of each sample. Else, this outputs a number 0.}
  \item{plot:}{ Plot of hierarchical clustering.}
- \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+ \item{Linnorm:}{ Linnorm transformed data matrix.}
 }
 }
 \description{

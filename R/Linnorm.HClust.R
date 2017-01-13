@@ -2,6 +2,7 @@
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform hierarchical clustering analysis.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
 #' @param DataImputation	Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param method_hclust	Charcter. Method to be used in hierarchical clustering. (From hclust {fastcluster}: the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid".) Defaults to "ward.D".
@@ -19,7 +20,7 @@
 ##' \itemize{
 ##'  \item{Results:}{ If num_Clust > 0, this outputs a named vector that contains the cluster assignment information of each sample. Else, this outputs a number 0.}
 ##'  \item{plot:}{ Plot of hierarchical clustering.}
-##'  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+##'  \item{Linnorm:}{ Linnorm transformed data matrix.}
 ##' }
 #' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric hierarchical Clustering
 #' @export
@@ -29,9 +30,12 @@
 #' #Example:
 #' HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)), num_Clust=3, fontsize=2)
 
-Linnorm.HClust <- function(datamatrix, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=0, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
+Linnorm.HClust <- function(datamatrix, MZP = 0, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=0, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
+	}
+	if (MZP > 1 || MZP < 0) {
+		stop("Invalid MZP.")
 	}
 	if (length(Group) != 0) {
 		if (length(Group) != length(datamatrix[1,])) {
@@ -42,25 +46,21 @@ Linnorm.HClust <- function(datamatrix, DataImputation = TRUE, input="Raw", metho
 		stop("Invalid number of clusters.")
 	}
 	
-	expdata <- 0
 	if (input == "Raw") {
 		#Linnorm transformation
-		expdata <- Linnorm(datamatrix, DataImputation=DataImputation, ...)
+		datamatrix <- Linnorm(datamatrix, DataImputation=DataImputation, ...)
 	}
-	x <- list(...)
-	if (input == "Linnorm"){
-		if (sum(x$Filter == TRUE) == 1  && is.numeric(x$minZeroPortion)) {
-			if (x$minZeroPortion > 1 || x$minZeroPortion < 0) {
-				stop("Invalid minZeroPortion.")
-			}
-			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * x$minZeroPortion,]
-		}
-		expdata <- datamatrix
+	Backup <- rowSums(datamatrix != 0) < ncol(datamatrix) * MZP
+	Backup2 <- 0
+	if (sum(Backup) != 0) {
+		Backup2 <-  datamatrix[Backup,]
 	}
-	expdata <- t(expdata)
+	datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * MZP,]
+	
+	datamatrix <- t(datamatrix)
 	
 	#Clustering
-	hc <- hclust(Dist(expdata, method = method_dist), ,method = method_hclust)
+	hc <- hclust(Dist(datamatrix, method = method_dist), ,method = method_hclust)
 	dendr <- dendro_data(hc, type = "rectangle")
 	
 	#plot object
@@ -133,7 +133,7 @@ Linnorm.HClust <- function(datamatrix, DataImputation = TRUE, input="Raw", metho
 		labcol <- as.numeric(label(dendr)[,3])
 		unilab <- as.character(unique(as.character(Group)))
 		for (i in 1:length(unilab)) {
-			labcol[which(as.character(dendr$label$label) %in% rownames(expdata)[which(Group == unilab[i])])] <- i+1
+			labcol[which(as.character(dendr$label$label) %in% rownames(datamatrix)[which(Group == unilab[i])])] <- i+1
 		}
 		render_plot <- render_plot + geom_text(data = label(dendr), 
 			aes(x, y, label = label, colour=factor(labcol)),
@@ -147,11 +147,11 @@ Linnorm.HClust <- function(datamatrix, DataImputation = TRUE, input="Raw", metho
 	}
 	
 	if (ClustRect) {
-		if (length(rownames(expdata)) > length(unique(rownames(expdata)))) {
+		if (length(rownames(datamatrix)) > length(unique(rownames(datamatrix)))) {
 			warning("Duplicate sample names found. Rectangle not drawn.")
 		} else {
 			#rectangle
-			clust.df <- data.frame(label=rownames(expdata), cluster=factor(clust))
+			clust.df <- data.frame(label=rownames(datamatrix), cluster=factor(clust))
 			dendr2 <- merge(dendr[["labels"]],clust.df, by="label")
 			rect <- aggregate(x~cluster,dendr2,range)
 			rect <- data.frame(rect$cluster,rect$x)
@@ -162,8 +162,11 @@ Linnorm.HClust <- function(datamatrix, DataImputation = TRUE, input="Raw", metho
 		}
 	}
 	render_plot <- ggplot_build(render_plot)
-
-	listing <- list(clust, render_plot, t(expdata))
+	datamatrix <- t(datamatrix)
+	if (sum(Backup) != 0) {
+		datamatrix <- rbind(datamatrix, Backup2)
+	}
+	listing <- list(clust, render_plot, datamatrix)
 	results <- setNames(listing, c("Results", "plot", "Linnorm"))
 	return (results)
 }

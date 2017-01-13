@@ -21,7 +21,7 @@ Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, log.p = FALSE,
 
 \item{sig}{Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.}
 
-\item{MZP}{Double >=0, <= 1. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
+\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
 
 \item{FG_Recov}{Double >=0, <= 1. In the low count gene filtering algorithm, recover this portion of genes that are filtered. Defaults to 1/3.}
 

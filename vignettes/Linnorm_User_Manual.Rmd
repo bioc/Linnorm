@@ -15,7 +15,7 @@ vignette: >
 
 
 \begin{center}
-\date{January, 10, 2017}
+\date{January, 13, 2017}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
@@ -39,7 +39,7 @@ vignette: >
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of scRNA-seq, RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, subpopulation analysis pipeline with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA K-means clustering\footnote{Implemented as the Linnorm.PCA function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.} and data imputation\footnote{Implemented as the Linnorm.DataImput function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
+ Linnorm is an R package for the analysis of scRNA-seq, RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.}, data imputation\footnote{Implemented as the Linnorm.DataImput function.} and cell subpopulation analysis with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA K-means clustering\footnote{Implemented as the Linnorm.PCA function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
  Additionally, the RnaXSim function is included for simulating RNA-seq data for the evaluation of DEG analysis methods.
  
 \end{abstract}
@@ -401,7 +401,7 @@ data(Islam2011)
 
 ####Simple subpopulation analysis  
 
-1. Perform PCA analysis using default configurations. Only keep genes with less than half of the samples being zero.
+1. Perform PCA analysis using default configurations.
 ```{r, echo=TRUE}
 PCA.results <- Linnorm.PCA(Islam2011[,1:92])
 ```
@@ -643,30 +643,16 @@ Fold change can be calculated by the Linnorm.limma function. It is included in d
 ```{r, echo=TRUE}
 library(Linnorm)
 data(LIHC)
-datamatrix <- LIHC
 ```
 
 
-2. Linnorm Transformation.
-```{r, echo=TRUE}
-library(Linnorm)
-LNormData <- Linnorm(datamatrix)
-```
-
-
-3. Undo Logarithm from LNormData.
-```{r, echo=TRUE}
-#Let LNormData be a matrix of Linnorm Transformed dataset. 
-Newdata <- exp(LNormData) - 1
-```
-
-4. Calculate Fold Change.
+2. Calculate Fold Change.
 ```{r, echo=TRUE}
 #Now, we can calculate fold changes between
 #sample set 1 and sample set 2.
-#Index of sample set 1 from LNormData and Newdata:
+#Index of sample set 1
 set1 <- 1:10
-#Index of sample set 2 from LNormData and Newdata:
+#Index of sample set 2
 set2 <- 11:20
 
 #Define a function that calculates log 2 fold change:
@@ -675,33 +661,32 @@ return(log(mean(x[set1])/mean(x[set2]),2))
 }
 
 #Calculate log 2 fold change of each gene in the dataset:
-foldchanges <- unlist(apply(Newdata,1,log2fc))
+foldchanges <- unlist(apply(LIHC,1,log2fc))
 
 
 #Put resulting data into a matrix
-FCMatrix <- matrix(nrow=length(foldchanges),ncol=1)
-rownames(FCMatrix) <- rownames(LNormData)
+FCMatrix <- matrix(foldchanges, ncol=1)
+rownames(FCMatrix) <- rownames(LIHC)
 colnames(FCMatrix) <- c("Log 2 Fold Change")
-FCMatrix[,1] <- foldchanges
 
 #Remove Infinite values.
-FCMatrix <- FCMatrix[!is.infinite(foldchanges),]
+FCMatrix <- FCMatrix[!is.infinite(foldchanges),,drop=FALSE]
 
 #Now FCMatrix contains fold change results.
 ```
 
-5. Draw a probability density plot of the fold changes in the dataset.
+3. Draw a probability density plot of the fold changes in the dataset.
 
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
-Density <- density(foldchanges)
+Density <- density(FCMatrix[,1])
 plot(Density$x,Density$y,type="n",xlab="Log 2 Fold Change",
 ylab="Probability Density",)
 lines(Density$x,Density$y, lwd=1.5, col="blue")
 title("Probability Density of Fold Change.\nTCGA Partial LIHC data
 Paired Tumor vs Adjacent Normal")
 legend("topright",legend=paste("mean = ", 
-round(mean(foldchanges),2),
-"\nStdev = ", round(sd(foldchanges),2)))
+round(mean(FCMatrix[,1]),2),
+"\nStdev = ", round(sd(FCMatrix[,1]),2)))
 ```
 
 ##RnaXSim

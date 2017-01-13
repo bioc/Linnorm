@@ -4,7 +4,7 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param output	character. "Raw" or "XPM". Output's total count will be approximately the median of the inputs' when set to "Raw". Output CPM (if input is raw counts or CPM) or TPM (if input is RPKM FPKM or TPM) when set to "XPM". 
-#' @param minZeroPortion Double >=0, <= 1. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
+#' @param minNonZeroPortion Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
 #' @param BE_F_p	Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm's batch effect normalization algorithm. Defaults to 0.3173.
 #' @param BE_F_LC_Genes	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes before applying Linnorm's batch effect normalization algorithm. It can be determined automatically by setting to "Auto". Defaults to "Auto".
 #' @param BE_F_HC_Genes	Double >=0, <= 1. Filter this portion of the highest expressing genes before applying Linnorm's batch effect normalization algorithm. Defaults to 0.01.
@@ -22,7 +22,7 @@
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
+Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
 	if (length(datamatrix[1,]) < 3) {
@@ -34,8 +34,8 @@ Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minZeroPorti
 	if (output != "Raw" && output != "XPM") {
 		stop("Invalid output argument. It must be Raw or XPM.")
 	}
-	if (minZeroPortion > 1 || minZeroPortion < 0) {
-		stop("Invalid minZeroPortion.")
+	if (minNonZeroPortion > 1 || minNonZeroPortion < 0) {
+		stop("Invalid minNonZeroPortion.")
 	}
 	if (BE_F_p > 1 || BE_F_p < 0) {
 		stop("Invalid BE_F_p.")
@@ -75,10 +75,10 @@ Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minZeroPorti
 	datamatrix <- XPM(datamatrix) * multy
 	
 	Keep <- 0
-	if (minZeroPortion == 0) {
-		Keep <- which(rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion)
+	if (minNonZeroPortion == 0) {
+		Keep <- which(rowSums(datamatrix != 0) >= ncol(datamatrix) * minNonZeroPortion)
 	} else {
-		Keep <- which(rowSums(datamatrix != 0) > ncol(datamatrix) * minZeroPortion)
+		Keep <- which(rowSums(datamatrix != 0) > ncol(datamatrix) * minNonZeroPortion)
 	}
 	if (BE_F_LC_Genes == "Auto") {
 		BE_F_LC_Genes <- FindLCT(datamatrix[Keep,], multy)
@@ -103,7 +103,7 @@ Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minZeroPorti
 	}
 	
 	#Normalization
-	datamatrix <- BatchEffectLinnorm1(datamatrix, minZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength)
+	datamatrix <- BatchEffectLinnorm1(datamatrix, minNonZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength)
 
 	colnames(datamatrix) <- CN
 	rownames(datamatrix) <- RN

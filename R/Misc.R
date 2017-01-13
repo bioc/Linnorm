@@ -20,19 +20,19 @@ FindLCT <- function(datamatrix, Multy,showinfo) {
 }
 
 #Filter dataset
-FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_F_HC_Genes = 0.01, spikein = NULL) {
+FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_F_HC_Genes = 0.01, spikein = NULL) {
 	MeanSDSkew <- NZrowLogMeanSDSkew(x)
 	a <- which(!is.nan(MeanSDSkew[3,]))
 	MeanSDSkew <- MeanSDSkew[,a]
 	x <- x[a,]
 	
-	#Sort data and filter LowGeneFil and minZeroPortion
-	if (minZeroPortion == 0) {
-		Keep <- which(rowSums(x != 0) >= ncol(x) * minZeroPortion)
+	#Sort data and filter LowGeneFil and minNonZeroPortion
+	if (minNonZeroPortion == 0) {
+		Keep <- which(rowSums(x != 0) >= ncol(x) * minNonZeroPortion)
 		MeanSDSkew <- MeanSDSkew[,Keep]
 		x <- x[Keep,]
 	} else {
-		Keep <- which(rowSums(x != 0) > ncol(x) * minZeroPortion)
+		Keep <- which(rowSums(x != 0) > ncol(x) * minNonZeroPortion)
 		MeanSDSkew <- MeanSDSkew[,Keep]
 		x <- x[Keep,]
 	}
@@ -135,7 +135,7 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 }
 
 #Normalization for batch effect.
-BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_Genes = 0.05, BE_F_p = 0.5, BE_strength = 0.25, spikein = NULL) {
+BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_Genes = 0.05, BE_F_p = 0.5, BE_strength = 0.25, spikein = NULL) {
 	x2 <- x
 	MeanSDSkew2 <- NZrowLogMeanSDSkew(x)
 	MeanSDSkew <- MeanSDSkew2
@@ -150,13 +150,13 @@ BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_
 	x <- x[a,]
 	MeanSDSkew <- MeanSDSkew[,a]
 	
-	#Sort data and filter LowGeneFil and minZeroPortion
-	if (minZeroPortion == 0) {
-		Keep <- which(rowSums(x != 0) >= ncol(x) * minZeroPortion)
+	#Sort data and filter LowGeneFil and minNonZeroPortion
+	if (minNonZeroPortion == 0) {
+		Keep <- which(rowSums(x != 0) >= ncol(x) * minNonZeroPortion)
 		MeanSDSkew <- MeanSDSkew[,Keep]
 		x <- x[Keep,]
 	} else {
-		Keep <- which(rowSums(x != 0) > ncol(x) * minZeroPortion)
+		Keep <- which(rowSums(x != 0) > ncol(x) * minNonZeroPortion)
 		MeanSDSkew <- MeanSDSkew[,Keep]
 		x <- x[Keep,]
 	}

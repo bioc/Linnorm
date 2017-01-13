@@ -6,7 +6,7 @@
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param perturbation	Integer >=2. To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index). Defaults to 100.
 #' @param Filter	Logical. Should Linnorm filter the dataset in the end results? Defaults to FALSE.
-#' @param minZeroPortion Double >= 0.01, <= 0.95. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
+#' @param minNonZeroPortion Double >= 0.01, <= 0.95. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
 #' @param L_F_p	Double >= 0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm algorithm. Defaults to 0.3173.
 #' @param L_F_LC_Genes	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes before applying Linnorm algorithm. It can be determined automatically by setting to "Auto". Defaults to "Auto".
 #' @param L_F_HC_Genes	Double >= 0.01, <= 0.95. Filter this portion of the highest expressing genes before applying Linnorm algorithm. Defaults to 0.01.
@@ -29,7 +29,7 @@
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm <- function(datamatrix, spikein = NULL, showinfo = FALSE, perturbation=100, Filter=FALSE, minZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
+Linnorm <- function(datamatrix, spikein = NULL, showinfo = FALSE, perturbation=100, Filter=FALSE, minNonZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
 	#data checking
 	RN <- rownames(datamatrix)
 	CN <- colnames(datamatrix)
@@ -43,8 +43,8 @@ Linnorm <- function(datamatrix, spikein = NULL, showinfo = FALSE, perturbation=1
 	if (perturbation < 2) {
 		stop("perturbation is too small.")
 	}
-	if (minZeroPortion > 1 || minZeroPortion < 0) {
-		stop("Invalid minZeroPortion.")
+	if (minNonZeroPortion > 1 || minNonZeroPortion < 0) {
+		stop("Invalid minNonZeroPortion.")
 	}
 	if (L_F_p >1 || L_F_p < 0) {
 		stop("Invalid L_F_p.")
@@ -97,13 +97,13 @@ Linnorm <- function(datamatrix, spikein = NULL, showinfo = FALSE, perturbation=1
 	
 	#Get filter low count genes threhsold
 	Keep <- 0
-	if (minZeroPortion == 0) {
-		Keep <- which(rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion)
+	if (minNonZeroPortion == 0) {
+		Keep <- which(rowSums(datamatrix != 0) >= ncol(datamatrix) * minNonZeroPortion)
 	} else {
-		Keep <- which(rowSums(datamatrix != 0) > ncol(datamatrix) * minZeroPortion)
+		Keep <- which(rowSums(datamatrix != 0) > ncol(datamatrix) * minNonZeroPortion)
 	}
 	if (length(Keep) < 200) {
-		stop("Given the current minZeroPortion threshold, the number of remaining feature (less than 200) is too small.")
+		stop("Given the current minNonZeroPortion threshold, the number of remaining feature (less than 200) is too small.")
 	}
 	LC_Threshold <- 0
 	if (BE_F_LC_Genes == "Auto" || L_F_LC_Genes == "Auto") {
@@ -138,12 +138,12 @@ Linnorm <- function(datamatrix, spikein = NULL, showinfo = FALSE, perturbation=1
 	}
 	
 	#Filter dataset and calculate lambda
-	FilteredData <- FirstFilter(datamatrix, minZeroPortion, L_F_p = L_F_p, L_F_LC_Genes = L_F_LC_Genes, L_F_HC_Genes = L_F_HC_Genes, spikein = spikein)
+	FilteredData <- FirstFilter(datamatrix, minNonZeroPortion, L_F_p = L_F_p, L_F_LC_Genes = L_F_LC_Genes, L_F_HC_Genes = L_F_HC_Genes, spikein = spikein)
 	lambda <- LocateLambda(FilteredData, perturbation, maxBound)
 	
 	#Normalization
 	if (BE_strength > 0) {
-		datamatrix <- BatchEffectLinnorm1(datamatrix * lambda, minZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength, spikein=spikein)
+		datamatrix <- BatchEffectLinnorm1(datamatrix * lambda, minNonZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength, spikein=spikein)
 		colnames(datamatrix) <- CN
 		rownames(datamatrix) <- RN
 		datamatrix <- log1p(datamatrix)
@@ -157,12 +157,12 @@ Linnorm <- function(datamatrix, spikein = NULL, showinfo = FALSE, perturbation=1
 	if (!is.null(x[['Internal']])) {
 		Filter = TRUE
 		LC_Threshold <- round(LC_Threshold * (1 - x$FG_Recov),2)
-		minZeroPortion <- x$MZP
+		minNonZeroPortion <- x$MZP
 	}
 	if (Filter || DataImputation) {
 		if (Filter) {
 			datamatrix <- datamatrix[order(NZrowMeans(datamatrix),decreasing=FALSE),]
-			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion,]
+			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * minNonZeroPortion,]
 			Start <- floor(nrow(datamatrix) * LC_Threshold + 1)
 			End <- nrow(datamatrix)
 			Keep <- Start:End

@@ -705,14 +705,15 @@ LogNormSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, s
 
 NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
 	#Capture distribution from the dataset for simulation
-	MeanList <- vector(mode="numeric",length(thisdata_ori[,1]))
-	d <- vector(mode="numeric",length(thisdata_ori[,1]))
 	options(warn=-1)
 	#This step makes NBSim run slow, compared to the other 3 distributions, so, we will only model at most 10000 of the genes.
 	Keep <- 1:nrow(thisdata_ori)
 	if (nrow(thisdata_ori) > 10000) {
 		Keep <- sample(Keep,10000)
 	}
+	
+	MeanList <- vector(mode="numeric",length(Keep))
+	d <- vector(mode="numeric",length(Keep))
 	
 	for (i in seq_along(thisdata_ori[Keep,1])){
 		x <- as.numeric(thisdata_ori[i,])

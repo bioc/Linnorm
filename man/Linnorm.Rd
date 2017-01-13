@@ -5,7 +5,7 @@
 \title{Linnorm Normalizing Transformation Function}
 \usage{
 Linnorm(datamatrix, spikein = NULL, showinfo = FALSE, perturbation = 100,
-  Filter = FALSE, minZeroPortion = 0.5, L_F_p = 0.3173,
+  Filter = FALSE, minNonZeroPortion = 0.5, L_F_p = 0.3173,
   L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173,
   BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5,
   max_F_LC = 0.75, DataImputation = FALSE, ...)
@@ -21,7 +21,7 @@ Linnorm(datamatrix, spikein = NULL, showinfo = FALSE, perturbation = 100,
 
 \item{Filter}{Logical. Should Linnorm filter the dataset in the end results? Defaults to FALSE.}
 
-\item{minZeroPortion}{Double >= 0.01, <= 0.95. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
+\item{minNonZeroPortion}{Double >= 0.01, <= 0.95. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
 
 \item{L_F_p}{Double >= 0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm algorithm. Defaults to 0.3173.}
 

@@ -4,14 +4,17 @@
 \alias{Linnorm.PCA}
 \title{Linnorm-PCA Clustering pipeline for subpopulation Analysis}
 \usage{
-Linnorm.PCA(datamatrix, input = "Raw", num_PC = 3, num_center = c(1:20),
-  Group = NULL, Coloring = "kmeans", pca.scale = FALSE,
-  kmeans.iter = 2000, plot.title = "PCA K-means clustering", ...)
+Linnorm.PCA(datamatrix, input = "Raw", MZP = 0, num_PC = 3,
+  num_center = c(1:20), Group = NULL, Coloring = "kmeans",
+  pca.scale = FALSE, kmeans.iter = 2000,
+  plot.title = "PCA K-means clustering", ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
+
+\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.}
 
 \item{num_PC}{Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.}
 
@@ -35,7 +38,7 @@ It returns a list with the following objects:
  \item{k_means:}{ Output of kmeans(for K-means clustering) from the stat package. Note: It contains a "cluster" object that indicates each sample's cluster assignment.}
  \item{PCA:}{ Output of prcomp(for Principal component analysis) from the stat package.}
  \item{plot:}{ Plot of PCA clustering.}
- \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+ \item{Linnorm:}{ Linnorm transformed data matrix.}
 }
 }
 \description{

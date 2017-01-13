@@ -4,7 +4,7 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param method	Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson".
-#' @param MZP	Double >=0, <= 1. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.
+#' @param MZP	Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.
 #' @param sig.q	Double >=0, <= 1. Only gene pairs with q values less than this threshold will be included in the "Results" data frame. Defaults to 0.05.
 #' @param plotNetwork	Logical. Should the program output the network plot to a file? An "igraph" object will be included in the output regardless. Defaults to TRUE. 
 #' @param plotNumPairs	Integer >= 50. Number of gene pairs to be used in the network plot. Defaults to 5000.
@@ -27,7 +27,7 @@
 ##'  \item{q.Matrix:}{ A matrix of q values of each of the correlation coefficient from Cor.Matrix. }
 ##'  \item{Cluster:}{ A data frame that shows which gene belongs to which cluster.}
 ##'  \item{igraph:}{ The igraph object for users who want to draw the network plot manually. }
-##'  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+##'  \item{Linnorm:}{ Linnorm transformed data matrix.}
 ##' }
 #' @return The "Results" data frame has the following columns:
 ##' \itemize{
@@ -79,24 +79,18 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", MZP=0.5, si
 		stop("Invalid clusterMethod.")
 	}
 	
-	expdata <- 0
 	if (input == "Raw") {
 		#Linnorm transformation
-		expdata <- Linnorm(datamatrix, ...)
+		datamatrix <- Linnorm(datamatrix, ...)
 	}
-	if (input == "Linnorm"){
-		x <- list(...)
-		if (sum(x$Filter == TRUE) == 1  && is.numeric(x$minZeroPortion)) {
-			if (x$minZeroPortion > 1 || x$minZeroPortion < 0) {
-				stop("Invalid minZeroPortion.")
-			}
-			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * x$minZeroPortion,]
-		}
-		expdata <- datamatrix
+	Backup <- rowSums(datamatrix != 0) < ncol(datamatrix) * MZP
+	Backup2 <- 0
+	if (sum(Backup) != 0) {
+		Backup2 <-  datamatrix[Backup,]
 	}
-	datamatrix <- expdata
-	expdata <- expdata[rowSums(expdata != 0) >= ncol(expdata) * MZP,]
-	correlation <- cor(t(expdata), method=method)
+	datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * MZP,]
+	
+	correlation <- cor(t(datamatrix), method=method)
 	datamatrix <- datamatrix[rownames(correlation),]
 	correlations <- correlation[upper.tri(correlation,diag=FALSE)]
 	
@@ -104,7 +98,7 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", MZP=0.5, si
 	#Note that if you reverse column 1 and column 2 in index, it becomes lower index.
 	index <- createUpperIndex(ncol(correlation), length(correlations))
 	
-	pvalues <- r.sig(correlations, ncol(expdata))
+	pvalues <- r.sig(correlations, ncol(datamatrix))
 	qvalues <- p.adjust(pvalues,"BH")
 	
 	qvaluematrix <- UpperToMatrix(qvalues,index)
@@ -178,6 +172,9 @@ Linnorm.Cor <- function(datamatrix, input="Raw", method = "pearson", MZP=0.5, si
 		plot1 <- plot(g1, vertex.color=vertex.col, vertex.size=0.8 * plotVertexSize,vertex.frame.color="transparent", vertex.label.color="black",vertex.label.cex=0.03 * plotFontSize, edge.curved=0.1,edge.width=0.05 * plotVertexSize, layout=Thislayout, margin=0)
 		print(plot1)
 		dev.off()
+	}
+	if (sum(Backup) != 0) {
+		datamatrix <- rbind(datamatrix, Backup2)
 	}
 	listing <- list(resultmatrix,correlation,qvaluematrix,Clust.res,g1,datamatrix)
 	result <- setNames(listing, c("Results", "Cor.Matrix", "q.Matrix", "Cluster", "igraph", "Linnorm"))

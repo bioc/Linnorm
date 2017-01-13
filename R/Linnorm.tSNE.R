@@ -3,6 +3,7 @@
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform t-distributed stochastic neighbor embedding (t-SNE) dimensionality reduction on the dataset and use k-means clustering to identify subpopulations of cells.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
+#' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
 #' @param num_PC	Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
 #' @param  num_center	Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).
 #' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NULL.
@@ -16,7 +17,7 @@
 ##'  \item{k_means:}{ Output of kmeans(for K-means clustering) from the stat package. Note: It contains a "cluster" object that indicates each sample's cluster assignment.}
 ##'  \item{tSNE:}{ Output from Rtsne.}
 ##'  \item{plot:}{ Plot of t-SNE K-means clustering.}
-##'  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+##'  \item{Linnorm:}{ Linnorm transformed data matrix.}
 ##' }
 #' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric PCA Principal Component Analysis k-means K-means kmeans Clustering t-distributed stochastic neighbor embedding t-SNE
 #' @export
@@ -25,9 +26,12 @@
 #' data(Islam2011)
 #' #Example:
 #' tSNE.results <- Linnorm.tSNE(Islam2011)
-Linnorm.tSNE <- function(datamatrix, input = "Raw", num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", kmeans.iter=2000, plot.title="t-SNE K-means clustering",...) {
+Linnorm.tSNE <- function(datamatrix, input = "Raw", MZP = 0, num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", kmeans.iter=2000, plot.title="t-SNE K-means clustering",...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
+	}
+	if (MZP > 1 || MZP < 0) {
+		stop("Invalid MZP.")
 	}
 	if (Coloring != "Group" && Coloring != "kmeans") {
 		stop("Coloring argument is not recognized.")
@@ -46,26 +50,20 @@ Linnorm.tSNE <- function(datamatrix, input = "Raw", num_PC=3, num_center=c(1:20)
 	if (kmeans.iter < 10) {
 		stop("kmeans.iter is too small.")
 	}
-	expdata <- 0
 	if (input == "Raw") {
 		#Linnorm transformation
-		expdata <- Linnorm(datamatrix, ...)
+		datamatrix <- Linnorm(datamatrix, ...)
 	}
-	x <- list(...)
-	if (input == "Linnorm"){
-		x <- list(...)
-		if (sum(x$Filter == TRUE) == 1  && is.numeric(x$minZeroPortion)) {
-			if (x$minZeroPortion > 1 || x$minZeroPortion < 0) {
-				stop("Invalid minZeroPortion.")
-			}
-			datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * x$minZeroPortion,]
-		}
-		expdata <- datamatrix
+	Backup <- rowSums(datamatrix != 0) < ncol(datamatrix) * MZP
+	Backup2 <- 0
+	if (sum(Backup) != 0) {
+		Backup2 <-  datamatrix[Backup,]
 	}
+	datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * MZP,]
 	
 	
 	#Principal Component Analysis
-	res.pca <- Rtsne(t(expdata),dims=num_PC)
+	res.pca <- Rtsne(t(datamatrix),dims=num_PC)
 	
 	#Extract Principal Components for k means clustering.
 	data <- res.pca$Y
@@ -104,7 +102,7 @@ Linnorm.tSNE <- function(datamatrix, input = "Raw", num_PC=3, num_center=c(1:20)
 			num_clust <- ux[which.max(tabulate(match(num_clust, ux)))]
 		}
 		
-		
+		x <- list(...)
 		if (sum(x$showinfo == TRUE) == 1) {
 			cat("Number of clusters from the fpc package:", pamk.best$nc, "\n")
 			cat("Number of clusters from the vegan package:", calinski.best, "\n")
@@ -174,7 +172,10 @@ Linnorm.tSNE <- function(datamatrix, input = "Raw", num_PC=3, num_center=c(1:20)
 			render_plot <- ggplot_build(ggplot(plotdata, aes(x=PC1, y=PC2, color=Group)) + geom_point(aes(shape=Group), size = 2) + scale_shape_manual(values=shaping) + geom_path(data=df_ell, aes(x=x, y=y,colour=Group), size=0.5, linetype=2) + scale_x_continuous("PC1") + scale_y_continuous("PC2") + ggtitle(plot.title) + theme(aspect.ratio=1))
 		}
 	}
-	listing <- list(results, res.pca, render_plot, expdata)
+	if (sum(Backup) != 0) {
+		datamatrix <- rbind(datamatrix, Backup2)
+	}
+	listing <- list(results, res.pca, render_plot, datamatrix)
 	results <- setNames(listing, c("k_means", "tSNE", "plot", "Linnorm"))
 	return (results)
 }

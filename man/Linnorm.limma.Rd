@@ -4,13 +4,15 @@
 \alias{Linnorm.limma}
 \title{Linnorm-limma pipeline for Differentially Expression Analysis}
 \usage{
-Linnorm.limma(datamatrix, design = NULL, output = "DEResults",
+Linnorm.limma(datamatrix, design = NULL, MZP = 0, output = "DEResults",
   noINF = TRUE, robust = FALSE, ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
 \item{design}{A design matrix required for limma. Please see limma's documentation or our vignettes for more detail.}
+
+\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.}
 
 \item{output}{Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.}
 
@@ -34,7 +36,7 @@ If output is set to "DEResults", this function will output a matrix with Differn
 If output is set to Both, this function will output a list with the following objects:
 \itemize{
  \item{DEResults:}{ Differntial Expression Analysis Results as described above.}
- \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+ \item{Linnorm:}{ Linnorm transformed data matrix.}
 }
 }
 \description{
