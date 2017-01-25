@@ -2,13 +2,13 @@
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform highly variable gene discovery.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
-#' @param method	Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.
 #' @param log.p	Logical. Output p/q values in log scale. Defaults to FALSE.
 #' @param sig.value	Character. "p" or "q". Use p or q value for highlighting significant genes. Defaults to "p".
 #' @param sig	Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.
-#' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
-#' @param FG_Recov	Double >=0, <= 1. In the low count gene filtering algorithm, recover this portion of genes that are filtered. Defaults to 1/3.
+#' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.25.
+#' @param FG_Recov	Double >=0, <= 1. In the low count gene filtering algorithm, recover this portion of genes that are filtered. Defaults to 0.5.
 #' @param plot.title	Character. The plot's title. Defaults to "Mean vs SD plot".
 #' @param ... arguments that will be passed into Linnorm's transformation function.
 #' @details  This function discovers highly variable gene in the dataset using Linnorm transformation.
@@ -32,36 +32,36 @@
 #' data(Islam2011)
 #' results <- Linnorm.HVar(Islam2011)
 
-Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.5, FG_Recov=1/3, plot.title="Mean vs SD plot", ...) {
+Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.25, FG_Recov=0.5, plot.title="Mean vs SD plot", ...) {
 	datamatrix <- as.matrix(datamatrix)
-	if (method != "SE" && method != "SD") {
-		stop("method is not recognized.")
-	}
 	if (sig <= 0 || sig > 1) {
 		stop("Invalid sig value.")
 	}
 	if ( sig.value != "p" &&  sig.value != "q") {
 		stop("Invalid sig.value.")
 	}
+	if (!is.logical(RowSamples)){
+		stop("Invalid RowSamples.")
+	}
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
+	}
 	#Linnorm transformation
-	datamatrix <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, ...)
-	datamatrix <- datamatrix[rowSums(datamatrix != 0) >= 3,]
+	datamatrix <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
+	
+	
+	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= 3]
 	#Check available number of spike in genes.
-	spikein <- spikein[which(spikein %in% rownames(datamatrix))]
+	spikein <- spikein[which(spikein %in% colnames(datamatrix))]
 	if (length(spikein) != 0 && length(spikein) < 10) {
 		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 		spikein = NULL
 	}
 	######First use Linnorm transformed dataset######
-	MeanSD <- NZrowMeanSD(datamatrix)
+	MeanSD <- NZcolMeanSD(datamatrix)
 	datamean <- MeanSD[1,]
-	#dataRR <- apply(datamatrix,1,RangeRatio)
 	dataSD <- MeanSD[2,]
 	
-	#MeanSD2 <- NZrowMeanSD(exp(datamatrix))
-	#datamean2 <- MeanSD[1,]
-	#dataSD2 <- MeanSD[2,]
-	#logitit <- loessFit(dataSD,datamean,weights=dataSD2/datamean2) 
 	#Logistic regression to fit technical noise.
 	logitit <- loessFit(dataSD,datamean, weights=exp(datamean))
 	
@@ -88,29 +88,23 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 	if (length(spikein) < 10) {
 		#Remove outlier
 		SDRatio2 <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-		if (method == "SD") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
-		}
-		if (method == "SE") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(SDRatio2)), lower.tail = FALSE, log.p=TRUE )
-		}
+		TheMean <- mean(SDRatio2)
+		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
+		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
 	} else {
 		spikes <- which(rownames(datamatrix) %in% spikein)
 		SDRatio2 <- SDRatio[spikes]
-		SDRatio2 <- SDRatio2[!SDRatio2 %in% boxplot.stats(SDRatio2)$out]
-		if (method == "SD") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
-		}
-		if (method == "SE") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(spikes)), lower.tail = FALSE, log.p=TRUE )
-		}
+		TheMean <- mean(SDRatio2)
+		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
+		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
+		
 	}
 	epvalues <- exp(pvalues)
 	qvalues <- p.adjust(epvalues,"BH")
 	dataSD <- dataSD
 	results <- matrix(ncol=5, nrow=length(SDRatio))
 	colnames(results) <- c("Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
-	rownames(results) <- rownames(datamatrix)
+	rownames(results) <- colnames(datamatrix)
 	results[,1] <- datamean
 	results[,2] <- dataSD
 	results[,3] <- SDRatio
@@ -132,10 +126,13 @@ Linnorm.HVar <- function(datamatrix, method = "SD", spikein=NULL, log.p=FALSE, s
 	}
 	myColors <- c("blue","red")
 	names(myColors) <- levels(groups)
-
+	
 	groups[spikes] <- "Spike in"
 	plotdata <- data.frame(mean=datamean,SD=dataSD,group=groups)
 	render_plot <- ggplot_build(ggplot(plotdata, aes(x=mean, y=SD, color=group)) + geom_point(size = 1) + scale_x_continuous("Transformed Mean") + scale_y_continuous("Transformed Standard Deviation") + scale_colour_manual(name = "Sig",values = myColors) + ggtitle(plot.title) + theme(aspect.ratio=3/4))
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
+	}
 	listing <- list(results, render_plot, datamatrix)
 	result <- setNames(listing, c("Results", "plot", "Linnorm"))
 	return (result)

@@ -9,6 +9,7 @@ import(igraph)
 import(ggdendro)
 import(Rtsne)
 
+importFrom("gmodels", "fast.prcomp")
 importFrom("amap", "Dist")
 importFrom("stats", "cor", "lm", "kmeans", "loess", "sd", "median", "pnorm", "aov", "p.adjust", "setNames", "cutree", "pt", "aggregate", "prcomp", "na.omit", "line", "cov", "pchisq", "rnorm", "rgamma", "ecdf", "rlnorm", "rnbinom", "rpois", "var")
 importFrom("Rcpp", "evalCpp")

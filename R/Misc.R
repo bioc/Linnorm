@@ -2,9 +2,13 @@
 XPM <- function(x) {
     .Call(XPMCpp, x)
 }
+#Convert Dataset into XPM and transpose
+tXPM <- function(x) {
+    .Call(tXPMCpp, x)
+}
 
 FindLCT <- function(datamatrix, Multy,showinfo) {
-	MeanSD <- rowLog1pMeanSD(datamatrix,Multy)
+	MeanSD <- colLog1pMeanSD(datamatrix,Multy)
 	LC_Threshold <- 0
 	MeanSD <- MeanSD[,which(!is.nan(MeanSD[2,]))]
 	Portion <- 1/3
@@ -19,50 +23,55 @@ FindLCT <- function(datamatrix, Multy,showinfo) {
 	return (round(LC_Threshold,2))
 }
 
+FindLCT_DI <- function(datamatrix, showinfo) {
+	MeanSD <- colMeanSD(datamatrix)
+	LC_Threshold <- 0
+	MeanSD <- MeanSD[,which(!is.nan(MeanSD[2,]))]
+	MeanOrder <- order(MeanSD[1,])
+	Slope <- 1
+	while(Slope > 0 && LC_Threshold < 1) {
+		LC_Threshold <- LC_Threshold + 0.01
+		Range <- floor(ncol(MeanSD) * LC_Threshold + 1):ncol(MeanSD)
+		Slope <- getSlope(MeanSD[1,MeanOrder[Range]],MeanSD[2,MeanOrder[Range]])
+	}
+	return (round(LC_Threshold,2))
+}
+
 #Filter dataset
 FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_F_HC_Genes = 0.01, spikein = NULL) {
-	MeanSDSkew <- NZrowLogMeanSDSkew(x)
-	a <- which(!is.nan(MeanSDSkew[3,]))
-	MeanSDSkew <- MeanSDSkew[,a]
-	x <- x[a,]
+	MeanSDSkew <- NZcolLogMeanSDSkew(x)
+	Keep <- which(!is.nan(MeanSDSkew[3,]))
 	
 	#Sort data and filter LowGeneFil and minNonZeroPortion
-	if (minNonZeroPortion == 0) {
-		Keep <- which(rowSums(x != 0) >= ncol(x) * minNonZeroPortion)
-		MeanSDSkew <- MeanSDSkew[,Keep]
-		x <- x[Keep,]
-	} else {
-		Keep <- which(rowSums(x != 0) > ncol(x) * minNonZeroPortion)
-		MeanSDSkew <- MeanSDSkew[,Keep]
-		x <- x[Keep,]
-	}
+	Keep <- Keep[which(colSums(x[,Keep] != 0) > nrow(x) * minNonZeroPortion)]
 	
-	MeanOrder <- order(MeanSDSkew[1,], decreasing = FALSE)
-	x <- x[MeanOrder,]
-	MeanSDSkew <- MeanSDSkew[,MeanOrder]
+	Keep <- Keep[order(MeanSDSkew[1,Keep], decreasing = FALSE)]
 	
-	Start <- floor(nrow(x) * L_F_LC_Genes + 1)
-	End <- nrow(x) - floor(nrow(x) * L_F_HC_Genes)
-	Keep <- Start:End
-	x <- x[Keep,]
+	Start <- floor(length(Keep) * L_F_LC_Genes + 1)
+	End <- length(Keep) - floor(length(Keep) * L_F_HC_Genes)
+	Keep <- Keep[Start:End]
+	
+	x <- x[,Keep]
 	MeanSDSkew <- MeanSDSkew[,Keep]
+	
 	spikeino <- spikein
-	spikein <- spikein[which(spikein %in% rownames(x))]
+	spikein <- spikein[which(spikein %in% colnames(x))]
 	if (length(spikein) < 10 && length(spikeino) != 0) {
 		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 	}
+	
 	
 	allStableGenes <- 0
 	logitit <- loessFit(MeanSDSkew[2,],MeanSDSkew[1,], weights=1/MeanSDSkew[2,]^2)
 	Keep <- which(logitit$fitted > 0)
 	LogFit <- logitit$fitted[Keep]
-	x <- x[Keep,]
+	x <- x[,Keep]
 	MeanSDSkew <- MeanSDSkew[,Keep]
 	SDRatio <- log(as.numeric(MeanSDSkew[2,]/LogFit))
 	
 	#normalize SDRatio
 	LR <- LinearRegression(MeanSDSkew[1,],SDRatio)
-	Residual <- (SDRatio - (LR$coefficients[[2]] * MeanSDSkew[1,] + LR$coefficients[[1]]))
+	Residual <- SDRatio - LR$coefficients[[2]] * MeanSDSkew[1,] - LR$coefficients[[1]]
 	LR2 <- LinearRegression(MeanSDSkew[1,],abs(Residual))
 	SDRatio <- SDRatio * (LR2$coefficients[[2]] * MeanSDSkew[1,1] + LR2$coefficients[[1]])/(LR2$coefficients[[2]] * MeanSDSkew[1,] + LR2$coefficients[[1]])
 	
@@ -71,50 +80,32 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	
 	#Column 1, SD p values. Column 2, Skew p values
 	if (length(spikein) < 10) {
+	#degree of freedom is 2 (using loess and predict to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-		Themean <- mean(SDnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-		Bigger <- which(SDRatio >= Themean)
-		smaller <- which(SDRatio < Themean)
-		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
-		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		TheMean <- mean(SDnoOutlier)
+		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
+		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 		
 		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
-		
-		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-		Bigger <- which(SkewResidual >= Themean)
-		smaller <- which(SkewResidual < Themean)
-		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+		TheMean <- mean(SkewnoOutlier)
+		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
+		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	} else {
+	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		spikes <- which(rownames(x) %in% spikein)
-		SDnoOutlier <- SDRatio[spikes]
-		Themean <- mean(SDnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-		Bigger <- which(SDRatio >= Themean)
-		smaller <- which(SDRatio < Themean)
-		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
-		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		TheMean <- mean(SDnoOutlier)
+		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
+		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
+		
 		
 		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[spikes]
-		
-		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-		Bigger <- which(SkewResidual >= Themean)
-		smaller <- which(SkewResidual < Themean)
-		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+		TheMean <- mean(SkewnoOutlier)
+		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
+		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	}
 	
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
@@ -131,50 +122,38 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 		allStableGenes <- porder[1:100]
 	}
 	#Slope of th elowest 25% of the genes
-	return (x[allStableGenes,])
+	return (x[,allStableGenes])
 }
 
 #Normalization for batch effect.
 BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_Genes = 0.05, BE_F_p = 0.5, BE_strength = 0.25, spikein = NULL) {
 	x2 <- x
-	MeanSDSkew2 <- NZrowLogMeanSDSkew(x)
-	MeanSDSkew <- MeanSDSkew2
+	MeanSDSkew <- NZcolLogMeanSDSkew(x)
 	
-	MeanOrder <- order(MeanSDSkew[1,], decreasing = FALSE)
-	x <- x[MeanOrder,]
-	MeanSDSkew <- MeanSDSkew[,MeanOrder]
-	MeanSDSkew2 <- MeanSDSkew2[,MeanOrder]
-	
-	
-	a <- which(!is.nan(MeanSDSkew[3,]))
-	x <- x[a,]
-	MeanSDSkew <- MeanSDSkew[,a]
+	Keep <- which(!is.nan(MeanSDSkew[3,]))
+	Keep <- Keep[order(MeanSDSkew[1,Keep], decreasing = FALSE)]
 	
 	#Sort data and filter LowGeneFil and minNonZeroPortion
 	if (minNonZeroPortion == 0) {
-		Keep <- which(rowSums(x != 0) >= ncol(x) * minNonZeroPortion)
-		MeanSDSkew <- MeanSDSkew[,Keep]
-		x <- x[Keep,]
+		Keep <- Keep[which(colSums(x[,Keep] != 0) >= nrow(x) * minNonZeroPortion)]
 	} else {
-		Keep <- which(rowSums(x != 0) > ncol(x) * minNonZeroPortion)
-		MeanSDSkew <- MeanSDSkew[,Keep]
-		x <- x[Keep,]
+		Keep <- Keep[which(colSums(x[,Keep] != 0) > nrow(x) * minNonZeroPortion)]
 	}
 	
-	Start <- floor(nrow(x) * BE_F_LC_Genes + 1)
-	End <- nrow(x) - floor(nrow(x) * BE_F_HC_Genes)
+	Start <- floor(length(Keep) * BE_F_LC_Genes + 1)
+	End <- length(Keep) - floor(length(Keep) * BE_F_HC_Genes)
+	Keep <- Keep[Start:End]
 	
-	Keep <- Start:End
-	x <- x[Keep,]
+	x <- x[,Keep]
 	MeanSDSkew <- MeanSDSkew[,Keep]
-	
 	
 	
 	allStableGenes <- 0
 	logitit <- loessFit(MeanSDSkew[2,],MeanSDSkew[1,], weights=1/MeanSDSkew[2,]^2)
+	
 	Keep <- which(logitit$fitted > 0)
 	LogFit <- logitit$fitted[Keep]
-	x <- x[Keep,]
+	x <- x[,Keep]
 	MeanSDSkew <- MeanSDSkew[,Keep]
 	
 	SDRatio <- log(as.numeric(MeanSDSkew[2,]/LogFit))
@@ -189,50 +168,32 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
 	if (length(spikein) < 10) {
+	#degree of freedom is 2 (using loess and predict to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-		Themean <- mean(SDnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-		Bigger <- which(SDRatio >= Themean)
-		smaller <- which(SDRatio < Themean)
-		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
-		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		TheMean <- mean(SDnoOutlier)
+		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
+		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 		
 		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
-		
-		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-		Bigger <- which(SkewResidual >= Themean)
-		smaller <- which(SkewResidual < Themean)
-		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+		TheMean <- mean(SkewnoOutlier)
+		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
+		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	} else {
+	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		spikes <- which(rownames(x) %in% spikein)
-		SDnoOutlier <- SDRatio[spikes]
-		Themean <- mean(SDnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-		Bigger <- which(SDRatio >= Themean)
-		smaller <- which(SDRatio < Themean)
-		pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
-		#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+		TheMean <- mean(SDnoOutlier)
+		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
+		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
+		
 		
 		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[spikes]
-		
-		Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-		TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-		Bigger <- which(SkewResidual >= Themean)
-		smaller <- which(SkewResidual < Themean)
-		pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-		pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-		pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
+		TheMean <- mean(SkewnoOutlier)
+		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
+		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	}
 	
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
@@ -247,12 +208,14 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 		porder <- order(combinedPvalues, decreasing=TRUE)
 		allStableGenes <- porder[1:100]
 	}
+	CN <- colnames(x2)
+	RN <- rownames(x2)
 	
-	Results <- BatchEffect2(x[allStableGenes,], x2, MeanSDSkew[1,allStableGenes], BE_strength)
-	colnames(Results) <- colnames(x2)
-	rownames(Results) <- rownames(x2)
-	#x2[is.infinite(x2)] <- 0
-	return (Results)
+	x2 <- BatchEffect2(x[,allStableGenes], x2, MeanSDSkew[1,allStableGenes], BE_strength)
+	
+	colnames(x2) <- CN
+	rownames(x2) <- RN
+	return (x2)
 }
 #Batch effect results
 BatchEffect2 <- function(x,y,z,z2) {
@@ -263,8 +226,15 @@ BatchEffect2 <- function(x,y,z,z2) {
 LocateLambda <- function(x,y,z) {
     .Call(LocateLambdaCpp, x,y,z)
 }
+LocateLambda_legacy <- function(x,y,z) {
+    .Call(LocateLambdaCpp_legacy, t(x),y,z)
+}
+
 SkewVar <- function(x,y) {
     .Call(SkewVarCpp, x,y)
+}
+SkewVar2 <- function(x,y) {
+    .Call(SkewVar2Cpp, x,y)
 }
 SkewAVar <- function(x,y) {
     .Call(SkewAVarCpp, x,y)

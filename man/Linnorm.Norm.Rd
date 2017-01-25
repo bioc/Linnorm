@@ -4,12 +4,15 @@
 \alias{Linnorm.Norm}
 \title{Linnorm Normalization Function}
 \usage{
-Linnorm.Norm(datamatrix, showinfo = FALSE, output = "XPM",
-  minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto",
-  BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75)
+Linnorm.Norm(datamatrix, RowSamples = FALSE, showinfo = FALSE,
+  output = "XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173,
+  BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5,
+  max_F_LC = 0.75)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{showinfo}{Logical. Show algorithm running information. Defaults to FALSE.}
 

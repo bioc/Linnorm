@@ -1,60 +1,45 @@
 #Calculate Moments:
 
-NZrowLog1pMeanSD <- function(x,y) {
-    .Call(NZrowLog1pMeanSDCpp, x,y)
-}
-HZrowLog1pMeanSD <- function(x,y) {
-    .Call(HZrowLog1pMeanSDCpp, x,y)
-}
-
-NZrowLog1pMeanSqrtSD <- function(x,y) {
-    .Call(NZrowLog1pMeanSqrtSDCpp, x,y)
-}
-NZrowLogMeanSDSkew <- function(x) {
-    .Call(NZrowLogMeanSDSkewCpp, x)
-}
-NZrowMeanSDSkew <- function(x) {
-    .Call(NZrowMeanSDSkewCpp, x)
-}
-NZrowMeanSD <- function(x) {
-    .Call(NZrowMeanSDCpp, x)
-}
-
-rowLog1pMeanSD <- function(x,y) {
-    .Call(rowLog1pMeanSDCpp, x,y)
-}
-
-rowLogMeanSDSkew <- function(x) {
-    .Call(rowLogMeanSDSkewCpp, x)
-}
-rowMeanSDSkew <- function(x) {
-    .Call(rowMeanSDSkewCpp, x)
-}
-rowMeanSD <- function(x) {
-    .Call(rowMeanSDCpp, x)
-}
-
-NZrowMeans <- function(x) {
-    .Call(NZrowMeansCpp, x)
-}
 rowVars <- function(x) {
-    .Call(rowVarsCpp, x)
+    .Call(colVarsCpp, t(x))
 }
 rowSDs <- function(x) {
-    .Call(rowSDsCpp, x)
+    .Call(colSDsCpp, t(x))
+}
+colVars <- function(x) {
+    .Call(colVarsCpp, x)
 }
 colSDs <- function(x) {
     .Call(colSDsCpp, x)
 }
+colMeanSD <- function(x) {
+    .Call(colMeanSDCpp, x)
+}
+rowMeanSD <- function(x) {
+    .Call(colMeanSDCpp, t(x))
+}
+
+NZcolMeans <- function(x) {
+    .Call(NZcolMeansCpp, x)
+}
+NZcolMeanSD <- function(x) {
+    .Call(NZcolMeanSDCpp, x)
+}
+
+colLog1pMeanSD <- function(x,y) {
+    .Call(colLog1pMeanSDCpp, x,y)
+}
+NZcolLogMeanSDSkew <- function(x) {
+    .Call(NZcolLogMeanSDSkewCpp, x)
+}
 
 #Weighted rowMeans
-WrowMeans <- function(x,y) {
-	.Call(WrowMeansCpp, x,y)
+WNZcolMeans <- function(x,y) {
+	.Call(WNZcolMeansCpp, x,y)
 }
-WNZrowMeans <- function(x,y) {
-	.Call(WNZrowMeansCpp, x,y)
+WcolMeans <- function(x,y) {
+	.Call(WcolMeansCpp, x,y)
 }
-
 
 #Fisher's method of combining p values.
 FishersMethod <- function(p) {

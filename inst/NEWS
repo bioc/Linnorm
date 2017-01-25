@@ -1,3 +1,22 @@
+26th, January, 2017
+	o Development 1.99.8
+		o Algorithm is now optimized for speed.
+		o Added unit tests.
+		o Modified data imputation algorithm. In the manual, we also added the note "In development" to this function.
+		o Compressed all datasets with the smallest possible format.
+		o Changed parameters in HVar function to make it less stringent.
+		o Allow PCA and HClust to utilize data imputation. Since these two tests are more prone to zero counts, we find that data imputation can help improve their performances.
+			o Note that t-SNE does not need data imputaiton and is the preferred method for cell subpopulation analysis.
+		o PCA is speeded up using gmodels library.
+	o Release 1.2.8
+		o We now formally declare Linnorm version 1 to be deprecated.
+		o Release 1.2.7 and 1.2.8 are already implemented with many modifications that are intended for Linnorm 2. Still, Linnorm version 1.99.8+ will allow more functionalities. We strongly suggest using the newer version.
+
+17th, January, 2017
+	o Development 1.99.7, Release 1.2.7
+		o Finally, build is successful on bioconductor.
+		o minZeroPortoin argument is renamed into minNonZeroPortion (minimum non-zero portion filtering threshold), to better reflect its real function.
+
 2nd, January, 2017
 	o Development 1.99.0
 		o Improved Linnorm's algorithm
@@ -7,6 +26,7 @@
 		o Almost all functions are updated.
 	o Release 1.2.1
 		o It now matches 1.99.0 as much as possible.
+
 6th, October, 2016
 	o Development 1.1.16:
 		o Removed warnings from loading package.

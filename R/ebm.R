@@ -29,16 +29,14 @@
 # Editor: (Ken) Shun Hang Yip
 # Editor Email: shunyip@bu.edu
 
-pop.var <- function(x) var(x) * (length(x)-1) / length(x)
-pop.sd <- function(x) sqrt(pop.var(x))
-
+popZScore <- function(data_vector) {
+	.Call(popZScoreCPP, data_vector)
+}
 
 #Input: raw data vector (of one variable) with no missing samples. May be a list or an array.
 #Output Transforemd data vector w.
 transformData <- function(data_vector) {
-    dvm = mean(data_vector)
-    dvsd = pop.sd(data_vector)
-    s = (data_vector-dvm)/dvsd
+    s = popZScore(data_vector)
     distr = ecdf(s)
     sapply(s, function(a) -2*log(distr(a)))
 }

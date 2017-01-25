@@ -4,12 +4,14 @@
 \alias{Linnorm.tSNE}
 \title{Linnorm t-SNE Clustering pipeline for subpopulation Analysis}
 \usage{
-Linnorm.tSNE(datamatrix, input = "Raw", MZP = 0, num_PC = 3,
-  num_center = c(1:20), Group = NULL, Coloring = "kmeans",
+Linnorm.tSNE(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0,
+  num_PC = 3, num_center = c(1:20), Group = NULL, Coloring = "kmeans",
   kmeans.iter = 2000, plot.title = "t-SNE K-means clustering", ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 

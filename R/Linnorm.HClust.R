@@ -2,6 +2,7 @@
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform hierarchical clustering analysis.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
 #' @param DataImputation	Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can input the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
@@ -30,7 +31,7 @@
 #' #Example:
 #' HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)), num_Clust=3, fontsize=2)
 
-Linnorm.HClust <- function(datamatrix, MZP = 0, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=0, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
+Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=0, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
@@ -45,19 +46,29 @@ Linnorm.HClust <- function(datamatrix, MZP = 0, DataImputation = TRUE, input="Ra
 	if (num_Clust < 0) {
 		stop("Invalid number of clusters.")
 	}
-	
+	if (!is.logical(RowSamples)){
+		stop("Invalid RowSamples.")
+	}
+	if (!is.logical(DataImputation)){
+		stop("Invalid DataImputation.")
+	}
+	if (!is.logical(ClustRect)){
+		stop("Invalid ClustRect.")
+	}
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
+	}
 	if (input == "Raw") {
 		#Linnorm transformation
-		datamatrix <- Linnorm(datamatrix, DataImputation=DataImputation, ...)
+		datamatrix <- Linnorm(datamatrix, DataImputation=DataImputation, RowSamples = TRUE,...)
 	}
-	Backup <- rowSums(datamatrix != 0) < ncol(datamatrix) * MZP
+	
+	Backup <- colSums(datamatrix != 0) < nrow(datamatrix) * MZP
 	Backup2 <- 0
 	if (sum(Backup) != 0) {
-		Backup2 <-  datamatrix[Backup,]
+		Backup2 <-  datamatrix[,Backup]
 	}
-	datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * MZP,]
-	
-	datamatrix <- t(datamatrix)
+	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= nrow(datamatrix) * MZP]
 	
 	#Clustering
 	hc <- hclust(Dist(datamatrix, method = method_dist), ,method = method_hclust)
@@ -162,9 +173,12 @@ Linnorm.HClust <- function(datamatrix, MZP = 0, DataImputation = TRUE, input="Ra
 		}
 	}
 	render_plot <- ggplot_build(render_plot)
-	datamatrix <- t(datamatrix)
+	
 	if (sum(Backup) != 0) {
-		datamatrix <- rbind(datamatrix, Backup2)
+		datamatrix <- cbind(datamatrix, Backup2)
+	}
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
 	}
 	listing <- list(clust, render_plot, datamatrix)
 	results <- setNames(listing, c("Results", "plot", "Linnorm"))

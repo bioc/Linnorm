@@ -4,14 +4,14 @@
 \alias{Linnorm.HVar}
 \title{Linnorm-Hvar pipeline for highly variable gene discovery.}
 \usage{
-Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, log.p = FALSE,
-  sig.value = "p", sig = 0.05, MZP = 0.5, FG_Recov = 1/3,
-  plot.title = "Mean vs SD plot", ...)
+Linnorm.HVar(datamatrix, RowSamples = FALSE, spikein = NULL,
+  log.p = FALSE, sig.value = "p", sig = 0.05, MZP = 0.25,
+  FG_Recov = 0.5, plot.title = "Mean vs SD plot", ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
-\item{method}{Character. "SE" or "SD". Use Standard Error (SE) or Standard Deviation (SD) to calculate p values. Defaults to SD.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{spikein}{character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.}
 
@@ -21,9 +21,9 @@ Linnorm.HVar(datamatrix, method = "SD", spikein = NULL, log.p = FALSE,
 
 \item{sig}{Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.}
 
-\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.}
+\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.25.}
 
-\item{FG_Recov}{Double >=0, <= 1. In the low count gene filtering algorithm, recover this portion of genes that are filtered. Defaults to 1/3.}
+\item{FG_Recov}{Double >=0, <= 1. In the low count gene filtering algorithm, recover this portion of genes that are filtered. Defaults to 0.5.}
 
 \item{plot.title}{Character. The plot's title. Defaults to "Mean vs SD plot".}
 

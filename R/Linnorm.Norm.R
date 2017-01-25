@@ -2,6 +2,7 @@
 #'
 #' This function performs batch effect and library size difference normalization on the input dataset.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param output	character. "Raw" or "XPM". Output's total count will be approximately the median of the inputs' when set to "Raw". Output CPM (if input is raw counts or CPM) or TPM (if input is RPKM FPKM or TPM) when set to "XPM". 
 #' @param minNonZeroPortion Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
@@ -22,7 +23,7 @@
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
+Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
 	if (length(datamatrix[1,]) < 3) {
@@ -60,28 +61,55 @@ Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minNonZeroPo
 	if (max_F_LC > 0.95 || max_F_LC < 0) {
 		stop("Invalid max_F_LC.")
 	}
+	if (!is.logical(RowSamples)){
+		stop("Invalid RowSamples.")
+	}
+	if (!is.logical(showinfo)){
+		stop("Invalid showinfo.")
+	}
 	
 	#Step 1: Relative Expression
 	#Turn it into relative expression
 	#Note that expdata does not have colnames and rownames now
-	RN <- rownames(datamatrix)
-	CN <- colnames(datamatrix)
+	RN <- 0
+	CN <- 0
 	multy <- 0
-	if (output == "Raw") {
-		multy <- median(colSums(datamatrix))
+	if (RowSamples) {
+		if (output == "Raw") {
+			multy <- median(rowSums(datamatrix))
+			RN <- rownames(datamatrix)
+			CN <- colnames(datamatrix)
+			datamatrix <- XPM(datamatrix) * (multy/1000000)
+		} else {
+			multy <- 1000000
+			RN <- rownames(datamatrix)
+			CN <- colnames(datamatrix)
+			datamatrix <- XPM(datamatrix)
+		}
 	} else {
-		multy <- 1000000
+		if (output == "Raw") {
+			multy <- median(colSums(datamatrix))
+			CN <- rownames(datamatrix)
+			RN <- colnames(datamatrix)
+			datamatrix <- tXPM(datamatrix) * (multy/1000000)
+		} else {
+			multy <- 1000000
+			CN <- rownames(datamatrix)
+			RN <- colnames(datamatrix)
+			datamatrix <- tXPM(datamatrix)
+		}
 	}
-	datamatrix <- XPM(datamatrix) * multy
+	colnames(datamatrix) <- CN
+	rownames(datamatrix) <- RN
 	
 	Keep <- 0
 	if (minNonZeroPortion == 0) {
-		Keep <- which(rowSums(datamatrix != 0) >= ncol(datamatrix) * minNonZeroPortion)
+		Keep <- which(colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion)
 	} else {
-		Keep <- which(rowSums(datamatrix != 0) > ncol(datamatrix) * minNonZeroPortion)
+		Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
 	}
 	if (BE_F_LC_Genes == "Auto") {
-		BE_F_LC_Genes <- FindLCT(datamatrix[Keep,], multy)
+		BE_F_LC_Genes <- FindLCT(datamatrix[,Keep], 1)
 		if (BE_F_LC_Genes > max_F_LC) {
 			if (showinfo) {
 				message(paste("Filter low count gene threshold is ", LC_Threshold, ". It is larger than max_F_LC, ", max_F_LC, ", which is now used.", sep=""))
@@ -104,10 +132,10 @@ Linnorm.Norm <- function (datamatrix, showinfo=FALSE, output="XPM", minNonZeroPo
 	
 	#Normalization
 	datamatrix <- BatchEffectLinnorm1(datamatrix, minNonZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength)
-
-	colnames(datamatrix) <- CN
-	rownames(datamatrix) <- RN
 	
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
+	}
 	return(datamatrix)
 }
 

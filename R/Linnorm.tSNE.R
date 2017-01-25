@@ -2,6 +2,7 @@
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform t-distributed stochastic neighbor embedding (t-SNE) dimensionality reduction on the dataset and use k-means clustering to identify subpopulations of cells.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
 #' @param num_PC	Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
@@ -26,7 +27,7 @@
 #' data(Islam2011)
 #' #Example:
 #' tSNE.results <- Linnorm.tSNE(Islam2011)
-Linnorm.tSNE <- function(datamatrix, input = "Raw", MZP = 0, num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", kmeans.iter=2000, plot.title="t-SNE K-means clustering",...) {
+Linnorm.tSNE <- function(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0, num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", kmeans.iter=2000, plot.title="t-SNE K-means clustering",...) {
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
@@ -50,20 +51,29 @@ Linnorm.tSNE <- function(datamatrix, input = "Raw", MZP = 0, num_PC=3, num_cente
 	if (kmeans.iter < 10) {
 		stop("kmeans.iter is too small.")
 	}
+	if (!is.logical(RowSamples)){
+		stop("Invalid RowSamples.")
+	}
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
+	}
 	if (input == "Raw") {
 		#Linnorm transformation
-		datamatrix <- Linnorm(datamatrix, ...)
+		datamatrix <- Linnorm(datamatrix, RowSamples = TRUE, ...)
 	}
-	Backup <- rowSums(datamatrix != 0) < ncol(datamatrix) * MZP
+	Backup <- colSums(datamatrix != 0) < nrow(datamatrix) * MZP
 	Backup2 <- 0
 	if (sum(Backup) != 0) {
-		Backup2 <-  datamatrix[Backup,]
+		Backup2 <-  datamatrix[,Backup]
 	}
-	datamatrix <- datamatrix[rowSums(datamatrix != 0) >= ncol(datamatrix) * MZP,]
+	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= nrow(datamatrix) * MZP]
 	
-	
+	if (showinfo) {
+		message("To enhance running time, we use the t-SNE function without checking for duplicate samples.\nPlease do not allow any samples to be duplicates of each other.",appendLF=TRUE)
+		flush.console()
+	}
 	#Principal Component Analysis
-	res.pca <- Rtsne(t(datamatrix),dims=num_PC)
+	res.pca <- Rtsne(datamatrix,dims=num_PC,check_duplicates = FALSE)
 	
 	#Extract Principal Components for k means clustering.
 	data <- res.pca$Y
@@ -173,7 +183,10 @@ Linnorm.tSNE <- function(datamatrix, input = "Raw", MZP = 0, num_PC=3, num_cente
 		}
 	}
 	if (sum(Backup) != 0) {
-		datamatrix <- rbind(datamatrix, Backup2)
+		datamatrix <- cbind(datamatrix, Backup2)
+	}
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
 	}
 	listing <- list(results, res.pca, render_plot, datamatrix)
 	results <- setNames(listing, c("k_means", "tSNE", "plot", "Linnorm"))

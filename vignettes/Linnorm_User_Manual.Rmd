@@ -15,7 +15,7 @@ vignette: >
 
 
 \begin{center}
-\date{January, 13, 2017}
+\date{January, 26, 2017}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
@@ -39,7 +39,7 @@ vignette: >
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of scRNA-seq, RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.}, data imputation\footnote{Implemented as the Linnorm.DataImput function.} and cell subpopulation analysis with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA K-means clustering\footnote{Implemented as the Linnorm.PCA function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
+ Linnorm is an R package for the analysis of single cell RNA-seq (scRNA-seq), RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.}, data imputation\footnote{Implemented as the Linnorm.DataImput function.} and cell subpopulation analysis with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA K-means clustering\footnote{Implemented as the Linnorm.PCA function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
  Additionally, the RnaXSim function is included for simulating RNA-seq data for the evaluation of DEG analysis methods.
  
 \end{abstract}
@@ -72,13 +72,15 @@ The Linnorm R package contains a variety of functions for single cell RNA-seq da
 * Data Imputation \( Linnorm.DataImput \)
 * RNA-seq data simulation for negative binomial, Poisson, log normal or gamma distribution. \( RnaXSim \)
 
+Compared to RNA-seq or other large scale count data, scRNA-seq data have more noises and more zero counts. Linnorm is developed to work with scRNA-seq data. Of course, a good method that can cope with a high noise dataset can work with a dataset with fewer noise, such as RNA-seq data. Therefore, Linnorm is also compatible with RNA-seq data analysis.
+
 ##Linnorm
 
 ###Datatypes and Input Format  
 
 Linnorm accepts any RNA-seq Expression data, including but not limited to
 
-* Raw Count \( scRNA-seq or ChIP-seq \)
+* Raw Count \( scRNA-seq, RNA-seq, ChIP-seq or any large scale count data \)
 * Count per Million       \( CPM \)
 * Reads per Kilobase per Million reads sequenced       \( RPKM \)
 * expected Fragments Per Kilobase of transcript per Million fragments sequenced       \( FPKM \)
@@ -100,7 +102,7 @@ Example:
 
 Please note that undefined values such as NA, NaN, INF, etc are **NOT** supported.
 
-By using the argument, "input = "Linnorm"", several functions provided by the Linnorm package can also accept Linnorm transformed datasets as input.
+By using the argument, "input = "Linnorm"", several functions provided by the Linnorm package can also accept Linnorm transformed datasets as input. Therefore, the dataset doesn't need to be re-transformed multiple times for multiple functions.
 
 
 \newpage
@@ -214,7 +216,7 @@ The Linnorm-limma pipeline only consists of two steps.
 #10 samples for condition 1 and 10 samples for condition 2.
 #You might need to edit this line
 design <- c(rep(1,10),rep(2,10))
-#There lines can be copied directly.
+#These lines can be copied directly.
 design <- model.matrix(~ 0+factor(design))
 colnames(design) <- c("group1", "group2")
 rownames(design) <- colnames(datamatrix)
@@ -444,6 +446,37 @@ Group=Groups, num_center=2, num_PC=3)
 print(PCA.results$plot$plot)
 ```
 
+\newpage
+###Hierarchical Clustering  
+
+In this section, we will perform hierarchical clustering on Islam2011 data.
+
+1. Obtain data.
+```{r, echo=TRUE}
+data(Islam2011)
+Islam <- Islam2011[,1:92]
+```
+
+2. Assign group to samples.
+```{r, echo=TRUE}
+#48 ESC, 44 EF, and 4 NegCtrl
+Group <- c(rep("ESC",48),rep("EF",44))
+colnames(Islam) <- paste(colnames(Islam),Group,sep="_")
+```
+
+3. Perform Analysis.
+```{r, echo=TRUE}
+#Note that there are 3 known clusters.
+HClust.Results <- Linnorm.HClust(Islam,Group=Group, num_Clust=2, fontsize=1.5)
+```
+
+####Hierarchical Clustering plot  
+We can simply print the plot out.
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+print(HClust.Results$plot$plot)
+```
+
+
 
 \newpage
 ###Gene Co-expression Network Analysis  
@@ -604,42 +637,13 @@ kable(Genes10, digits=4)
 print(results$plot$plot)
 ```
 
-###Hierarchical Clustering  
-
-In this section, we will perform hierarchical clustering on Islam2011 data.
-
-1. Obtain data.
-```{r, echo=TRUE}
-data(Islam2011)
-Islam <- Islam2011[,1:92]
-```
-
-2. Assign group to samples.
-```{r, echo=TRUE}
-#48 ESC, 44 EF, and 4 NegCtrl
-Group <- c(rep("ESC",48),rep("EF",44))
-colnames(Islam) <- paste(colnames(Islam),Group,sep="_")
-```
-
-3. Perform Analysis.
-```{r, echo=TRUE}
-#Note that there are 3 known clusters.
-HClust.Results <- Linnorm.HClust(Islam,Group=Group, num_Clust=2, fontsize=1.5)
-```
-
-####Hierarchical Clustering plot  
-We can simply print the plot out.
-```{r, echo=TRUE, fig.height=6, fig.width=6}
-print(HClust.Results$plot$plot)
-```
-
 
 ###Calculate Fold Change  
 
 Fold change can be calculated by the Linnorm.limma function. It is included in differential expression analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
 
 
-1. Get 20 samples of TCGA RNA-seq data.
+1. Get 20 samples of TCGA RNA-seq data and convert it into TPM.
 ```{r, echo=TRUE}
 library(Linnorm)
 data(LIHC)
@@ -655,22 +659,14 @@ set1 <- 1:10
 #Index of sample set 2
 set2 <- 11:20
 
-#Define a function that calculates log 2 fold change:
-log2fc <- function(x) {
-return(log(mean(x[set1])/mean(x[set2]),2))
-}
-
-#Calculate log 2 fold change of each gene in the dataset:
-foldchanges <- unlist(apply(LIHC,1,log2fc))
-
 
 #Put resulting data into a matrix
-FCMatrix <- matrix(foldchanges, ncol=1)
+FCMatrix <- matrix(0, ncol=1, nrow=nrow(LIHC))
 rownames(FCMatrix) <- rownames(LIHC)
 colnames(FCMatrix) <- c("Log 2 Fold Change")
-
+FCMatrix[,1] <- log(rowMeans(LIHC[,set1])/rowMeans(LIHC[,set2]),2)
 #Remove Infinite values.
-FCMatrix <- FCMatrix[!is.infinite(foldchanges),,drop=FALSE]
+FCMatrix <- FCMatrix[!is.infinite(FCMatrix[,1]),,drop=FALSE]
 
 #Now FCMatrix contains fold change results.
 ```
@@ -782,4 +778,14 @@ Answer: No, you cannot. Linnorm requires a minimum of 3 samples.
 3. I only have 1 replicate for each sample set. Can I perform Differential Expression Analysis with Linnorm and limma?  
 Answer: No, linear model based methods must have replicates. So, limma wouldn't work.    
   
-4. There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like
+4. There are a lot of fold changes with INF values in Linnorm.limma output. Can I convert them into numerical units like those in the voom-limma pipeline?  
+Answer: Since the expression in one set of sample can be zero, while the other can be otherwise, it is arithmetically correct to generate INFs. However, it is possible for the Linnorm.limma function to prevent generating INFs by setting the noINF argument as TRUE, which is the default.    
+  
+5. Do I need to run Linnorm.Norm() in addition to transforming the datset with Linnorm()?  
+Answer: Linnorm()'s transformation also performs Linnorm.Norm()'s normalization step. Therefore, please **DO NOT** rerun Linnorm.Norm() before or after Linnorm().    
+
+
+
+
+#Bug Reports, Questions and Suggestions  
+We welcome any Bug Reports, Questions and Suggestions. They can be sent to Ken Yip at <shunyip@bu.edu>. Please add the keyword Linnorm in the email's subject line or title. We appreciate your help in making Linnorm better. Thanks!
