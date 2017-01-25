@@ -68,29 +68,18 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 	
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
-	#Column 1, SD p values. Column 2, Skew p values
 	SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-	Themean <- mean(SDnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-	Bigger <- which(SDRatio >= Themean)
-	smaller <- which(SDRatio < Themean)
-	pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,1] <- 2 * (1 - pvalues[smaller])
-	#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE )
+	TheMean <- mean(SDnoOutlier)
+	tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
+	pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 	
 	SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-	SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+	SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 	SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
-	
-	Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-	Bigger <- which(SkewResidual >= Themean)
-	smaller <- which(SkewResidual < Themean)
-	pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
-	
+	TheMean <- mean(SkewnoOutlier)
+	tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
+	pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
+
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
 	combinedPvalues <- empiricalBrownsMethod(MeanSDSkew[2:3,],pvalueMatrix)
 	allStableGenes <- which(combinedPvalues > L_F_p)
@@ -163,29 +152,18 @@ BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_
 	
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
-	#Column 1, SD p values. Column 2, Skew p values
 	SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-	Themean <- mean(SDnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SDnoOutlier,na.rm=TRUE)
-	Bigger <- which(SDRatio >= Themean)
-	smaller <- which(SDRatio < Themean)
-	pvalues <- pnorm(SDRatio,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,1] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,1] <- 2 * (1- pvalues[smaller])
-	
-	#pvalueMatrix[,1] <- pnorm(SDRatio,mean(SDRatio,na.rm=TRUE),sd(SDRatio,na.rm=TRUE), lower.tail = FALSE)
+	TheMean <- mean(SDnoOutlier)
+	tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
+	pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 	
 	SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-	SkewResidual <- MeanSDSkew[3,] - (SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]])
+	SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 	SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
-	Themean <- mean(SkewnoOutlier,na.rm=TRUE)
-	TheSD <- sd(SkewnoOutlier,na.rm=TRUE)
-	Bigger <- which(SkewResidual >= Themean)
-	smaller <- which(SkewResidual < Themean)
-	pvalues <- pnorm(SkewResidual,Themean,TheSD, lower.tail = FALSE)
-	pvalueMatrix[Bigger,2] <- 2 * pvalues[Bigger]
-	pvalueMatrix[smaller,2] <- 2 * (1 - pvalues[smaller])
-	
+	TheMean <- mean(SkewnoOutlier)
+	tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
+	pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
+
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
 	combinedPvalues <- empiricalBrownsMethod(MeanSDSkew[2:3,],pvalueMatrix)
 

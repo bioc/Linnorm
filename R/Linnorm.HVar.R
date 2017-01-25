@@ -89,30 +89,18 @@ Linnorm.HVar <- function(datamatrix, input="Raw", method = "SD", spikein=NULL, s
 	#if spike in list is provided, we test whether a given standard deviation is larger than the spike in.
 	pvalues <- 0
 	spikes <- 0
-	
-	if (length(spikein) < 2) {
-		if (showinfo == TRUE) {
-			message("Length of spikein <= 2. Not used.",appendLF=TRUE)
-			flush.console()
-		}
+	if (length(spikein) < 10) {
 		#Remove outlier
 		SDRatio2 <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
-		if (method == "SD") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
-		}
-		if (method == "SE") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(SDRatio2)), lower.tail = FALSE, log.p=TRUE )
-		}
+		TheMean <- mean(SDRatio2)
+		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
+		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
 	} else {
-		spikes <- which(rownames(expdata) %in% spikein)
+		spikes <- which(rownames(datamatrix) %in% spikein)
 		SDRatio2 <- SDRatio[spikes]
-		SDRatio2 <- SDRatio2[!SDRatio2 %in% boxplot.stats(SDRatio2)$out]
-		if (method == "SD") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE), lower.tail = FALSE, log.p=TRUE )
-		}
-		if (method == "SE") {
-			pvalues <- pnorm(SDRatio,mean(SDRatio2,na.rm=TRUE),sd(SDRatio2,na.rm=TRUE)/sqrt(length(spikes)), lower.tail = FALSE, log.p=TRUE )
-		}
+		TheMean <- mean(SDRatio2)
+		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
+		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
 	}
 	epvalues <- exp(pvalues)
 	qvalues <- p.adjust(epvalues,"BH")
