@@ -2,8 +2,8 @@
 	o Development 1.99.8
 		o Algorithm is now optimized for speed.
 		o Added unit tests.
-		o Modified data imputation algorithm. In the manual, we also added the note "In development" to this function.
 		o Compressed all datasets with the smallest possible format.
+		o Added data imputation function. In the manual, we added this function with the note "In development".
 		o Changed parameters in HVar function to make it less stringent.
 		o Allow PCA and HClust to utilize data imputation. Since these two tests are more prone to zero counts, we find that data imputation can help improve their performances.
 			o Note that t-SNE does not need data imputaiton and is the preferred method for cell subpopulation analysis.
@@ -43,7 +43,7 @@
 
 23th, August, 2016
 	o Critical update for development version 1.1.13:
-		o Added Linnorm.HVar, Linnorm.Cor functions for highly variable gene discovery and gene correlation study.
+		o Added Linnorm.HVar, Linnorm.Cor functions for highly variable gene discovery and gene correlation network analysis.
 		o Added input argument for users who wish to reuse Linnorm transformed datasets in various functions.
 		o Added keepAll argument for users to control whether filtering would remove some genes from the results.
 	o Author list update in release 1.0.5.
