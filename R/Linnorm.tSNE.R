@@ -67,7 +67,11 @@ Linnorm.tSNE <- function(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0,
 		Backup2 <-  datamatrix[,Backup]
 	}
 	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= nrow(datamatrix) * MZP]
-	
+	x <- list(...)
+	showinfo <- FALSE
+	if (!is.null(x[['showinfo']])) {
+		showinfo <- x$showinfo
+	}
 	if (showinfo) {
 		message("To enhance running time, we use the t-SNE function without checking for duplicate samples.\nPlease do not allow any samples to be duplicates of each other.",appendLF=TRUE)
 		flush.console()

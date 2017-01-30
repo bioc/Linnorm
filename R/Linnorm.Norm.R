@@ -77,27 +77,21 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 	if (RowSamples) {
 		if (output == "Raw") {
 			multy <- median(rowSums(datamatrix))
-			RN <- rownames(datamatrix)
-			CN <- colnames(datamatrix)
-			datamatrix <- XPM(datamatrix) * (multy/1000000)
 		} else {
 			multy <- 1000000
-			RN <- rownames(datamatrix)
-			CN <- colnames(datamatrix)
-			datamatrix <- XPM(datamatrix)
 		}
+		RN <- rownames(datamatrix)
+		CN <- colnames(datamatrix)
+		datamatrix <- XPM(datamatrix) * multy
 	} else {
 		if (output == "Raw") {
 			multy <- median(colSums(datamatrix))
-			CN <- rownames(datamatrix)
-			RN <- colnames(datamatrix)
-			datamatrix <- tXPM(datamatrix) * (multy/1000000)
 		} else {
 			multy <- 1000000
-			CN <- rownames(datamatrix)
-			RN <- colnames(datamatrix)
-			datamatrix <- tXPM(datamatrix)
 		}
+		CN <- rownames(datamatrix)
+		RN <- colnames(datamatrix)
+		datamatrix <- tXPM(datamatrix) * multy
 	}
 	colnames(datamatrix) <- CN
 	rownames(datamatrix) <- RN
