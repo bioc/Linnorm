@@ -1,3 +1,9 @@
+30th, January, 2017
+	o Development 1.99.10
+		o Bug Fixes.
+		o Added Linnorm.SGenes function.
+			o This function selects stable genses from scRNA-seq data for users without spike-ins or do not want to rely on spike-ins.
+
 26th, January, 2017
 	o Development 1.99.8
 		o Algorithm is now optimized for speed.

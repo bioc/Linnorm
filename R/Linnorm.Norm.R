@@ -26,12 +26,6 @@
 Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
-	if (length(datamatrix[1,]) < 3) {
-		stop("Number of samples is less than 3.")
-	}
-	if (length(datamatrix[,1]) < 500) {
-		stop("Number of features is too small.")
-	}
 	if (output != "Raw" && output != "XPM") {
 		stop("Invalid output argument. It must be Raw or XPM.")
 	}
@@ -95,7 +89,12 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 	}
 	colnames(datamatrix) <- CN
 	rownames(datamatrix) <- RN
-	
+	if (length(datamatrix[,1]) < 3) {
+		stop("Number of samples is less than 3.")
+	}
+	if (length(datamatrix[1,]) < 500) {
+		stop("Number of features is too small.")
+	}
 	Keep <- 0
 	if (minNonZeroPortion == 0) {
 		Keep <- which(colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion)

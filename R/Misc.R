@@ -62,6 +62,8 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	
 	
 	allStableGenes <- 0
+	
+	#Use precision weight as weight
 	logitit <- loessFit(MeanSDSkew[2,],MeanSDSkew[1,], weights=1/MeanSDSkew[2,]^2)
 	Keep <- which(logitit$fitted > 0)
 	LogFit <- logitit$fitted[Keep]
@@ -76,18 +78,19 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	SDRatio <- SDRatio * (LR2$coefficients[[2]] * MeanSDSkew[1,1] + LR2$coefficients[[1]])/(LR2$coefficients[[2]] * MeanSDSkew[1,] + LR2$coefficients[[1]])
 	
 	
+	SkewResidual <- loessFit(MeanSDSkew[3,],MeanSDSkew[1,])
+	SkewResidual <- SkewResidual$residuals
+	
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
 	#Column 1, SD p values. Column 2, Skew p values
 	if (length(spikein) < 10) {
-	#degree of freedom is 2 (using loess and predict to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
+	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
 		TheMean <- mean(SDnoOutlier)
 		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 		
-		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
 		TheMean <- mean(SkewnoOutlier)
 		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
@@ -99,9 +102,6 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 		
-		
-		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[spikes]
 		TheMean <- mean(SkewnoOutlier)
 		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
@@ -163,6 +163,8 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	LR2 <- LinearRegression(MeanSDSkew[1,],abs(Residual))
 	SDRatio <- SDRatio * (LR2$coefficients[[2]] * MeanSDSkew[1,1] + LR2$coefficients[[1]])/(LR2$coefficients[[2]] * MeanSDSkew[1,] + LR2$coefficients[[1]])
 	
+	SkewResidual <- loessFit(MeanSDSkew[3,],MeanSDSkew[1,])
+	SkewResidual <- SkewResidual$residuals
 	
 	
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
@@ -174,8 +176,6 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 		
-		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
 		TheMean <- mean(SkewnoOutlier)
 		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
@@ -188,8 +188,6 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 		
 		
-		SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-		SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
 		SkewnoOutlier <- SkewResidual[spikes]
 		TheMean <- mean(SkewnoOutlier)
 		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))

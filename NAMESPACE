@@ -1,5 +1,5 @@
 useDynLib(Linnorm, .registration = TRUE)
-export(Linnorm, Linnorm.limma, Linnorm.PCA, Linnorm.HVar, Linnorm.Cor, Linnorm.HClust, LinearRegression, Linnorm.Norm, LinearRegressionFP, Linnorm.DataImput, Linnorm.tSNE, RnaXSim)
+export(Linnorm, Linnorm.limma, Linnorm.PCA, Linnorm.HVar, Linnorm.Cor, Linnorm.HClust, LinearRegression, Linnorm.Norm, LinearRegressionFP, Linnorm.SGenes, Linnorm.DataImput, Linnorm.tSNE, RnaXSim)
 import(limma)
 import(statmod)
 import(utils)

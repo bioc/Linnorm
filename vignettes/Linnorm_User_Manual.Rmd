@@ -39,7 +39,7 @@ vignette: >
 \bigskip
 
 \begin{abstract}
- Linnorm is an R package for the analysis of single cell RNA-seq (scRNA-seq), RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.}, data imputation\footnote{Implemented as the Linnorm.DataImput function.} and cell subpopulation analysis with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA K-means clustering\footnote{Implemented as the Linnorm.PCA function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
+ Linnorm is an R package for the analysis of single cell RNA-seq (scRNA-seq), RNA-seq, ChIP-seq count data or any large scale count data. Its main function is to normalize and transform such datasets for parametric tests. Various analysis pipelines are also implemented for users' convenience, including using \Biocpkg{limma} for differential expression analysis or differential peak detection\footnote{The Linnorm-limma pipeline is implemented as the "Linnorm.limma" function. Please cite both Linnorm and limma if you use this function for publication.}, co-expression network analysis\footnote{Implemented as the Linnorm.Cor function.}, highly variable gene discovery\footnote{Implemented as the Linnorm.HVar function.}, stable gene selection for scRNA-seq datasets without spike-in genes\footnote{Implemented as the Linnorm.SGenes function.}, data imputation\footnote{Implemented as the Linnorm.DataImput function.} and cell subpopulation analysis with t-SNE K-means clustering\footnote{Implemented as the Linnorm.tSNE function.}, PCA K-means clustering\footnote{Implemented as the Linnorm.PCA function.} and hierarchical clustering analysis\footnote{Implemented as the Linnorm.HClust function.}. Linnorm can work with raw count, CPM, RPKM, FPKM and TPM and is compatible with data generated from simple count algorithms\footnote{Such as \href{http://www-huber.embl.de/HTSeq/doc/overview.html}{HTSeq}, \Biocpkg{Rsubread} and etc} and supervised learning algorithms\footnote{Such as \href{http://cole-trapnell-lab.github.io/cufflinks/}{Cufflinks}, \href{http://bio.math.berkeley.edu/eXpress/index.html}{eXpress}, \href{https://pachterlab.github.io/kallisto/}{Kallisto}, \href{http://deweylab.github.io/RSEM/}{RSEM}, \href{http://www.cs.cmu.edu/~ckingsf/software/sailfish/}{Sailfish}, and etc}.
  Additionally, the RnaXSim function is included for simulating RNA-seq data for the evaluation of DEG analysis methods.
  
 \end{abstract}
@@ -69,6 +69,7 @@ The Linnorm R package contains a variety of functions for single cell RNA-seq da
 * Hierarchical clustering analysis \( Linnorm.HClust \)
 * Highly variable gene discovery \( Linnorm.HVar \)
 * Coexpression network analysis \( Linnorm.Cor \)
+* Stable gene selection for scRNA-seq datasets without spike-in genes \( Linnorm.SGenes \)
 * Data Imputation \( Linnorm.DataImput \)
 * RNA-seq data simulation for negative binomial, Poisson, log normal or gamma distribution. \( RnaXSim \)
 
@@ -163,9 +164,29 @@ write.table(Normalized, "Normalized.txt",
 quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 ```
 
-###Linnorm Data Imputation  
 
-By default, Linnorm's data imputation function replaces zerores in the dataset by inverse euclidean distance weighted mean.
+###Stable Genes Selection
+
+
+1. Stable Genes Selection
+```{r, echo=TRUE}
+library(Linnorm)
+data(Islam2011)
+#Obtain stable genes
+StableGenes <- Linnorm.SGenes(Islam2011)
+```
+
+2. Write out the results to a tab delimited file.
+```{r, echo=TRUE}
+#You can use this file with Excel.
+write.table(StableGenes, "StableGenes.txt",
+quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
+```
+
+
+###Data Imputation  
+
+By default, Linnorm's data imputation function replaces zerores in the dataset by inverse euclidean distance weighted mean, where weights are determined by PCA.
 However, we discourage performing data imputation unless it is shown to improve results.
 
 1. Linnorm Data Imputation
