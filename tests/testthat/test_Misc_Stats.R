@@ -38,7 +38,7 @@ LIHC <- t(LIHC)
 NZcolMeans2 <- function(x) {
 	answer <- rep(0, ncol(x))
 	for (i in 1:ncol(x)) {
-		answer[i] <- mean(x[x[,i] > 0,i])
+		answer[i] <- mean(x[x[,i] != 0,i])
 	}
 	return(answer)
 }
@@ -62,9 +62,10 @@ test_that("NZcolMeans is accurate", {
 NZcolLogMeanSDSkew2 <- function(x) {
 	answer <- matrix(nrow=3, ncol=ncol(x))
 	for (i in 1:ncol(x)) {
-		answer[1,i] <- mean(log(x[x[,i] > 0,i]))
-		answer[2,i] <- sd(log(x[x[,i] > 0,i]))
-		answer[3,i] <- skewness(log(x[x[,i] > 0,i]))
+		thisdata <- log(x[x[,i] != 0,i])
+		answer[1,i] <- mean(thisdata)
+		answer[2,i] <- sd(thisdata)
+		answer[3,i] <- skewness(thisdata)
 	}
 	return(answer)
 }

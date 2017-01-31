@@ -33,7 +33,7 @@ SEXP XPMCpp (SEXP xSEXP){
 		//std::cout << (*it) << std::endl;
 		*it = *it/RowSums.at(n);
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			n=0;
 			i++;
 		}
@@ -50,7 +50,7 @@ SEXP tXPMCpp (SEXP xSEXP){
 		//std::cout << (*it) << std::endl;
 		*it = *it/ColumnSums.at(i);
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			n=0;
 			i++;
 		}
@@ -162,7 +162,7 @@ static double SkewVar1 (arma::mat& GeneExp, const double& lambda2) {
 		numData++;
 		
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			//Here, calculate skewness and SD using 3rd and 2nd moments.
 			thisSkew =  (sqrt(numData) * M3) / pow(M2,1.5);
 			thisSD =  sqrt(M2/(numData - 1));
@@ -259,7 +259,7 @@ static vector< double > SkewVar2 (arma::mat& GeneExp, const double& lambda2, dou
 		numData++;
 		
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			//Here, calculate skewness and SD using 3rd and 2nd moments.
 			thisSkew =  (sqrt(numData) * M3) / pow(M2,1.5);
 			thisSD =  sqrt(M2/(numData - 1));
@@ -936,7 +936,7 @@ SEXP BatchEffectCpp(SEXP xSEXP, SEXP ySEXP, SEXP zSEXP, SEXP z2SEXP){
 			SumY.at(n) += meanvec.at(i);
 		}
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			n=0;
 			i++;
 		}
@@ -994,7 +994,7 @@ SEXP colVarsCpp(SEXP xSEXP) {
 		mean = mean + delta_n;
 		M2 = M2 + term1;
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			switch (numData) {
 				case 0:
 					Answer.at(i) = std::numeric_limits<double>::quiet_NaN();
@@ -1037,7 +1037,7 @@ SEXP colSDsCpp(SEXP xSEXP) {
 		mean = mean + delta_n;
 		M2 = M2 + term1;
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			switch (numData) {
 				case 0:
 					Answer.at(i) = std::numeric_limits<double>::quiet_NaN();
@@ -1081,7 +1081,7 @@ SEXP colMeanSDCpp(SEXP xSEXP) {
 		mean = mean + delta_n;
 		M2 = M2 + term1;
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			switch (numData) {
 				case 0:
 					Answer.at(1,i) = std::numeric_limits<double>::quiet_NaN();
@@ -1125,7 +1125,7 @@ SEXP colLog1pMeanSDCpp (SEXP xSEXP, SEXP ySEXP) {
 		mean = mean + delta_n;
 		M2 = M2 + term1;
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			Answer.at(1,i) = sqrt(M2/(GeneExp.n_rows - 1));
 			Answer.at(0,i) = mean;
 			
@@ -1163,7 +1163,7 @@ SEXP NZcolLogMeanSDSkewCpp(SEXP xSEXP) {
 			numData++;
 		}
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			switch (numData) {
 				case 0:
 					Answer.at(2,i) = std::numeric_limits<double>::quiet_NaN();
@@ -1185,7 +1185,6 @@ SEXP NZcolLogMeanSDSkewCpp(SEXP xSEXP) {
 					Answer.at(1,i) = sqrt(M2/(GeneExp.n_rows - 1));
 					Answer.at(0,i) = mean;
 			}
-			
 			numData = 0;
 			mean = 0;
 			M2 = 0;
@@ -1194,7 +1193,6 @@ SEXP NZcolLogMeanSDSkewCpp(SEXP xSEXP) {
 			i++;
 		}
 	}
-	
 	return Rcpp::wrap(Answer);
 }
 SEXP NZcolMeansCpp(SEXP xSEXP) {
@@ -1217,7 +1215,7 @@ SEXP NZcolMeansCpp(SEXP xSEXP) {
 			numData++;
 		}
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			Answer.at(i) = mean;
 			numData = 0;
 			mean = 0;
@@ -1250,7 +1248,7 @@ SEXP NZcolMeanSDCpp(SEXP xSEXP) {
 			numData++;
 		}
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			switch (numData) {
 				case 0:
 					Answer.at(1,i) = std::numeric_limits<double>::quiet_NaN();
@@ -1295,7 +1293,7 @@ SEXP WNZcolMeansCpp(SEXP xSEXP, SEXP ySEXP) {
 			sumweight += weights.at(n);
 		}
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			if (numData > 0) {
 				Answer.at(i) = (mean * numData)/(sumweight);
 			} else {
@@ -1330,7 +1328,7 @@ SEXP WcolMeansCpp(SEXP xSEXP, SEXP ySEXP) {
 		delta_n = delta / (n + 1);
 		mean = mean + delta_n;
 		n++;
-		if (n == GeneExp.n_rows) {
+		if (n == int(GeneExp.n_rows)) {
 			Answer.at(i) = (mean * n)/(sumweight);
 			
 			mean = 0;
