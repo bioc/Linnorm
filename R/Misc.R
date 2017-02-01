@@ -73,8 +73,8 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 	tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 	pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 	
-	SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-	SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
+	SkewResidual <- loessFit(MeanSDSkew[3,],MeanSDSkew[1,])
+	SkewResidual <- SkewResidual$residuals
 	SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
 	TheMean <- mean(SkewnoOutlier)
 	tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
@@ -157,8 +157,8 @@ BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_
 	tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 	pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 	
-	SkewLR <- LinearRegression(MeanSDSkew[1,],MeanSDSkew[3,])
-	SkewResidual <- MeanSDSkew[3,] - SkewLR$coefficients[[2]] * MeanSDSkew[3,] - SkewLR$coefficients[[1]]
+	SkewResidual <- loessFit(MeanSDSkew[3,],MeanSDSkew[1,])
+	SkewResidual <- SkewResidual$residuals
 	SkewnoOutlier <- SkewResidual[!SkewResidual %in% boxplot.stats(SkewResidual)$out]
 	TheMean <- mean(SkewnoOutlier)
 	tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
