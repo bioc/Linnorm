@@ -19,6 +19,10 @@ rowMeanSD <- function(x) {
     .Call(colMeanSDCpp, t(x))
 }
 
+NZrowMeans <- function(x) {
+    .Call(NZcolMeansCpp, t(x))
+}
+
 NZcolMeans <- function(x) {
     .Call(NZcolMeansCpp, x)
 }
@@ -29,8 +33,15 @@ NZcolMeanSD <- function(x) {
 colLog1pMeanSD <- function(x,y) {
     .Call(colLog1pMeanSDCpp, x,y)
 }
+rowLog1pMeanSD <- function(x,y) {
+    .Call(colLog1pMeanSDCpp, t(x),y)
+}
+
 NZcolLogMeanSDSkew <- function(x) {
     .Call(NZcolLogMeanSDSkewCpp, x)
+}
+NZrowLogMeanSDSkew  <- function(x) {
+    .Call(NZcolLogMeanSDSkewCpp, t(x))
 }
 
 #Weighted rowMeans

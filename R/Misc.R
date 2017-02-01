@@ -98,6 +98,7 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	} else {
 	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		spikes <- which(rownames(x) %in% spikein)
+		SDnoOutlier <- SDRatio[spikein]
 		TheMean <- mean(SDnoOutlier)
 		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
@@ -183,6 +184,7 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	} else {
 	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		spikes <- which(rownames(x) %in% spikein)
+		SDnoOutlier <- SDRatio[spikein]
 		TheMean <- mean(SDnoOutlier)
 		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
