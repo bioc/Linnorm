@@ -43,7 +43,11 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	Keep <- which(!is.nan(MeanSDSkew[3,]))
 	
 	#Sort data and filter LowGeneFil and minNonZeroPortion
-	Keep <- Keep[which(colSums(x[,Keep] != 0) > nrow(x) * minNonZeroPortion)]
+	if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
+		Keep <- Keep[which(colSums(x[,Keep] != 0) >= nrow(x) * minNonZeroPortion)]
+	} else {
+		Keep <- Keep[which(colSums(x[,Keep] != 0) > nrow(x) * minNonZeroPortion)]
+	}
 	
 	Keep <- Keep[order(MeanSDSkew[1,Keep], decreasing = FALSE)]
 	
@@ -135,7 +139,7 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	Keep <- Keep[order(MeanSDSkew[1,Keep], decreasing = FALSE)]
 	
 	#Sort data and filter LowGeneFil and minNonZeroPortion
-	if (minNonZeroPortion == 0) {
+	if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
 		Keep <- Keep[which(colSums(x[,Keep] != 0) >= nrow(x) * minNonZeroPortion)]
 	} else {
 		Keep <- Keep[which(colSums(x[,Keep] != 0) > nrow(x) * minNonZeroPortion)]

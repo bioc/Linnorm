@@ -96,7 +96,7 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 		stop("Number of features is too small.")
 	}
 	Keep <- 0
-	if (minNonZeroPortion == 0) {
+	if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
 		Keep <- which(colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion)
 	} else {
 		Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)

@@ -121,7 +121,11 @@ Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, showinfo = F
 	if (nrow(datamatrix) * minNonZeroPortion < 3) {
 		Keep <- which(colSums(datamatrix != 0) >= 3)
 	} else {
-		Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
+		if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
+			Keep <- which(colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion)
+		} else {
+			Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
+		}
 	}
 	if (length(Keep) < 200) {
 		stop("Given the current minNonZeroPortion threshold, the number of remaining feature (less than 200) is too small.")
