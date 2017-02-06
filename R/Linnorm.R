@@ -100,7 +100,7 @@ Linnorm <- function(datamatrix, showinfo = FALSE, method="default",perturbation=
 	
 	#Get filter low count genes threhsold
 	Keep <- 0
-	if (minZeroPortion == 0) {
+	if (minZeroPortion == 0 || minZeroPortion == 1) {
 		Keep <- which(rowSums(datamatrix != 0) >= ncol(datamatrix) * minZeroPortion)
 	} else {
 		Keep <- which(rowSums(datamatrix != 0) > ncol(datamatrix) * minZeroPortion)

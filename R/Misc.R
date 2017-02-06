@@ -27,7 +27,7 @@ FirstFilter <- function(x, minZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_
 	x <- x[a,]
 	
 	#Sort data and filter LowGeneFil and minZeroPortion
-	if (minZeroPortion == 0) {
+	if (minZeroPortion == 0 || minZeroPortion == 1) {
 		Keep <- which(rowSums(x != 0) >= ncol(x) * minZeroPortion)
 		MeanSDSkew <- MeanSDSkew[,Keep]
 		x <- x[Keep,]
@@ -115,7 +115,7 @@ BatchEffectLinnorm1 <- function(x, minZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_
 	MeanSDSkew <- MeanSDSkew[,a]
 	
 	#Sort data and filter LowGeneFil and minZeroPortion
-	if (minZeroPortion == 0) {
+	if (minZeroPortion == 0 || minZeroPortion == 1) {
 		Keep <- which(rowSums(x != 0) >= ncol(x) * minZeroPortion)
 		MeanSDSkew <- MeanSDSkew[,Keep]
 		x <- x[Keep,]
