@@ -26,7 +26,7 @@ Linnorm.PCA(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0,
 
 \item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NULL.}
 
-\item{Coloring}{Character. "kmeans" or "Group". If Group is not NA, coloring in the PCA plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".}
+\item{Coloring}{Character. "kmeans" or "Group". If Group is not NULL, coloring in the PCA plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".}
 
 \item{pca.scale}{Logical. In the prcomp(for Principal component analysis) function, set the "scale." parameter. It signals the function to scale unit variances in the variables before the analysis takes place. Defaults to FALSE.}
 

@@ -59,7 +59,7 @@ This function performs PCA clustering using Linnorm transformation.
 #Obtain example matrix:
 data(Islam2011)
 #Example:
-HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)), num_Clust=3, fontsize=2)
+HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)))
 }
 \keyword{CPM}
 \keyword{Clustering}

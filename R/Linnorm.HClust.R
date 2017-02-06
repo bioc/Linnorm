@@ -29,7 +29,7 @@
 #' #Obtain example matrix:
 #' data(Islam2011)
 #' #Example:
-#' HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)), num_Clust=3, fontsize=2)
+#' HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)))
 
 Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=0, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
 	if (input != "Raw" && input != "Linnorm") {

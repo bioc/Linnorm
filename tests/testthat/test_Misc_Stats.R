@@ -28,7 +28,7 @@ test_that("rowSDs is accurate", {
 	expect_equal(matrixStatsAnswerLIHC[12988],LinnormAnswerLIHC[12988])
 	
 	expect_equal(matrixStatsAnswerSEQC[13061],LinnormAnswerSEQC[13061])
-	expect_equal(matrixStatsAnswerSEQC[26106],LinnormAnswerSEQC[26106])
+	expect_equal(matrixStatsAnswerSEQC[16106],LinnormAnswerSEQC[16106])
 	expect_equal(matrixStatsAnswerSEQC[10132],LinnormAnswerSEQC[10132])
 })
 
@@ -54,7 +54,7 @@ test_that("NZcolMeans is accurate", {
 	expect_equal(AnswerLIHC[12988],LinnormAnswerLIHC[12988])
 	
 	expect_equal(AnswerSEQC[13061],LinnormAnswerSEQC[13061])
-	expect_equal(AnswerSEQC[26106],LinnormAnswerSEQC[26106])
+	expect_equal(AnswerSEQC[16106],LinnormAnswerSEQC[16106])
 	expect_equal(AnswerSEQC[10132],LinnormAnswerSEQC[10132])
 })
 
@@ -82,7 +82,7 @@ test_that("NZcolLogMeanSDSkew mean is accurate", {
 	expect_equal(AnswerLIHC[1,12988],LinnormAnswerLIHC[1,12988])
 	
 	expect_equal(AnswerSEQC[1,13061],LinnormAnswerSEQC[1,13061])
-	expect_equal(AnswerSEQC[1,26106],LinnormAnswerSEQC[1,26106])
+	expect_equal(AnswerSEQC[1,16106],LinnormAnswerSEQC[1,16106])
 	expect_equal(AnswerSEQC[1,10132],LinnormAnswerSEQC[1,10132])
 })
 
@@ -92,7 +92,7 @@ test_that("NZcolLogMeanSDSkew sd is accurate", {
 	expect_equal(AnswerLIHC[2,12988],LinnormAnswerLIHC[2,12988])
 	
 	expect_equal(AnswerSEQC[2,13061],LinnormAnswerSEQC[2,13061])
-	expect_equal(AnswerSEQC[2,26106],LinnormAnswerSEQC[2,26106])
+	expect_equal(AnswerSEQC[2,16106],LinnormAnswerSEQC[2,16106])
 	expect_equal(AnswerSEQC[2,10132],LinnormAnswerSEQC[2,10132])
 })
 
@@ -102,6 +102,6 @@ test_that("NZcolLogMeanSDSkew skew is accurate", {
 	expect_equal(AnswerLIHC[3,12988],LinnormAnswerLIHC[3,12988])
 	
 	expect_equal(AnswerSEQC[3,13061],LinnormAnswerSEQC[3,13061])
-	expect_equal(AnswerSEQC[3,26106],LinnormAnswerSEQC[3,26106])
+	expect_equal(AnswerSEQC[3,16106],LinnormAnswerSEQC[3,16106])
 	expect_equal(AnswerSEQC[3,10132],LinnormAnswerSEQC[3,10132])
 })

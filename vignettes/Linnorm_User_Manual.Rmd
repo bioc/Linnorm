@@ -15,7 +15,7 @@ vignette: >
 
 
 \begin{center}
-\date{January, 30, 2017}
+\date{Feburary, 07, 2017}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
@@ -62,11 +62,10 @@ The Linnorm R package contains a variety of functions for single cell RNA-seq da
 * The Linnorm-limma pipeline \( Linnorm.limma \)
 	* Differential expression analysis
 	* Differential peak detection
-* t-SNE k-means clustering \( Linnorm.tSNE \)
-	* Single cell RNA-seq subpopulation analysis
-* PCA k-means clustering \( Linnorm.PCA \)
-	* Single cell RNA-seq subpopulation analysis
-* Hierarchical clustering analysis \( Linnorm.HClust \)
+* Single cell RNA-seq subpopulation analysis (Clustering)
+	* t-SNE k-means clustering \( Recommanded \) \( Linnorm.tSNE \)
+	* PCA k-means clustering \( Linnorm.PCA \)
+	* Hierarchical clustering analysis \( Linnorm.HClust \)
 * Highly variable gene discovery \( Linnorm.HVar \)
 * Coexpression network analysis \( Linnorm.Cor \)
 * Stable gene selection for scRNA-seq datasets without spike-in genes \( Linnorm.SGenes \)
@@ -292,10 +291,12 @@ Genes10 <- DEG_Results[order(DEG_Results[,"adj.P.Val"]),][1:10,]
 #P.Value: p value.
 #adj.P.Val: Adjusted p value. This is also called False Discovery Rate or q value.}
 #B: log odds that the feature is differential.
+
+#We will not print all columns here
 ```
 ```{r,kable1, echo=FALSE}
 library(knitr)
-kable(Genes10, digits=4)
+kable(Genes10[,c(1:5)], digits=4)
 ```
 
 
@@ -685,7 +686,7 @@ set2 <- 11:20
 FCMatrix <- matrix(0, ncol=1, nrow=nrow(LIHC))
 rownames(FCMatrix) <- rownames(LIHC)
 colnames(FCMatrix) <- c("Log 2 Fold Change")
-FCMatrix[,1] <- log(rowMeans(LIHC[,set1])/rowMeans(LIHC[,set2]),2)
+FCMatrix[,1] <- log((rowMeans(LIHC[,set1])+1)/(rowMeans(LIHC[,set2])+1),2)
 #Remove Infinite values.
 FCMatrix <- FCMatrix[!is.infinite(FCMatrix[,1]),,drop=FALSE]
 
@@ -696,7 +697,7 @@ FCMatrix <- FCMatrix[!is.infinite(FCMatrix[,1]),,drop=FALSE]
 
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
 Density <- density(FCMatrix[,1])
-plot(Density$x,Density$y,type="n",xlab="Log 2 Fold Change",
+plot(Density$x,Density$y,type="n",xlab="Log 2 Fold Change of TPM+1",
 ylab="Probability Density",)
 lines(Density$x,Density$y, lwd=1.5, col="blue")
 title("Probability Density of Fold Change.\nTCGA Partial LIHC data

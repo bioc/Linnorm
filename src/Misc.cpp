@@ -962,7 +962,7 @@ SEXP BatchEffectCpp(SEXP xSEXP, SEXP ySEXP, SEXP zSEXP, SEXP z2SEXP){
 			*it2 = exp(Slope.at(n) * log(*it2) + constant.at(n));
 		}
 		n++;
-		if (n == Output.n_rows) {
+		if (n == int(Output.n_rows)) {
 			n=0;
 			i++;
 		}

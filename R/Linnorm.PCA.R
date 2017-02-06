@@ -9,7 +9,7 @@
 #' @param num_PC	Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
 #' @param  num_center	Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).
 #' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. In the plot, the shape of the points that represent each sample will be indicated by their group assignment. Defaults to NULL.
-#' @param Coloring	Character. "kmeans" or "Group". If Group is not NA, coloring in the PCA plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".
+#' @param Coloring	Character. "kmeans" or "Group". If Group is not NULL, coloring in the PCA plot will reflect each sample's group. Otherwise, coloring will reflect k means clustering results. Defaults to "Group".
 #' @param  pca.scale	Logical. In the prcomp(for Principal component analysis) function, set the "scale." parameter. It signals the function to scale unit variances in the variables before the analysis takes place. Defaults to FALSE.
 #' @param  kmeans.iter	Numeric. Number of iterations in k-means clustering. Defaults to 2000.
 #' @param plot.title	Character. Set the title of the plot. Defaults to "PCA K-means clustering".
