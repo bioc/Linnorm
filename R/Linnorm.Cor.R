@@ -45,6 +45,8 @@
 #' #Analysis on Islam2011 embryonic stem cells
 #' results <- Linnorm.Cor(Islam2011[,1:48])
 Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pearson", MZP=0.5, sig.q=0.05, plotNetwork=TRUE, plotNumPairs=5000, plotdegree=0, plotname="networkplot", plotformat = "png", plotVertexSize=1, plotFontSize=1, plot.Pos.cor.col="red", plot.Neg.cor.col="green", vertex.col="cluster", plotlayout="kk", clusterMethod = "cluster_edge_betweenness", ...) {
+	#Correlation network analysis by using Linnorm transformed data
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
@@ -85,21 +87,24 @@ Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pe
 	if (!is.logical(plotNetwork)){
 		stop("Invalid plotNetwork.")
 	}
+	#Check data format
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)
 	}
+	#Linnorm transformation
 	if (input == "Raw") {
-		#Linnorm transformation
 		datamatrix <- Linnorm(datamatrix, RowSamples = TRUE, ...)
 	}
-	
+	#Backup data that will be filtered, so that we can include them in the output
 	Backup <- colSums(datamatrix != 0) < nrow(datamatrix) * MZP
 	Backup2 <- 0
 	if (sum(Backup) != 0) {
 		Backup2 <-  datamatrix[,Backup]
 	}
+	#Filter zeroes based on MZP threshold
 	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= nrow(datamatrix) * MZP]
 	
+	#Calculate correlation coefficients
 	correlation <- cor(datamatrix, method=method)
 	datamatrix <- datamatrix[,colnames(correlation)]
 	correlations <- correlation[upper.tri(correlation,diag=FALSE)]
@@ -108,9 +113,11 @@ Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pe
 	#Note that if you reverse column 1 and column 2 in index, it becomes lower index.
 	index <- createUpperIndex(ncol(correlation), length(correlations))
 	
+	#Calculate p and q values for each correlation coefficient
 	pvalues <- r.sig(correlations, nrow(datamatrix))
 	qvalues <- p.adjust(pvalues,"BH")
 	
+	#Construct q value matrix
 	qvaluematrix <- UpperToMatrix(qvalues,index)
 	
 	#Result matrix
@@ -118,7 +125,7 @@ Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pe
 	resultmatrix <- data.frame(Gene1=rownames(correlation)[index[wanted,1]],Gene2=rownames(correlation)[index[wanted,2]],Cor=correlations[wanted],p.value=pvalues[wanted],q.value=qvalues[wanted])
 	
 	
-	#Network for the top "plotNumPairs" significant positively correlated gene pairs.
+	#Network for the top "plotNumPairs" significantly correlated gene pairs.
 	AllGene1 <- as.character(resultmatrix[,1])
 	AllGene2 <- as.character(resultmatrix[,2])
 	
@@ -171,7 +178,7 @@ Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pe
 	#Cluster results
 	Clust.res <- data.frame(Gene=clustering$names,Cluster=clustering$membership)
 	
-	
+	#Plot the correlation network
 	if (plotNetwork) {
 		if(plotformat == "pdf") {
 			pdf(paste(plotname,".pdf",sep=""),width = 10, height = 10)
@@ -183,12 +190,14 @@ Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pe
 		print(plot1)
 		dev.off()
 	}
+	#Reconstruct Linnorm transformed matrix
 	if (sum(Backup) != 0) {
 		datamatrix <- cbind(datamatrix, Backup2)
 	}
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)
 	}
+	#Prepare for result output
 	listing <- list(resultmatrix,correlation,qvaluematrix,Clust.res,g1,datamatrix)
 	result <- setNames(listing, c("Results", "Cor.Matrix", "q.Matrix", "Cluster", "igraph", "Linnorm"))
 	return (result)

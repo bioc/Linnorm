@@ -1,3 +1,12 @@
+9th, February, 2017
+	o Development 1.99.11 to 1.99.15
+		o Fixed a bug in minNonZeroPortion.
+		o Edited comments.
+		o Added more unit tests.
+		o Coloring oF HClust's labels should now match their cluster.
+	o Release 1.2.10
+		o Fixed a bug in minNonZeroPortion.
+
 30th, January, 2017
     o Development 1.99.10
         o Bug Fixes.

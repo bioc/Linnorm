@@ -41,7 +41,6 @@ transformData <- function(data_vector) {
     sapply(s, function(a) -2*log(distr(a)))
 }
 
-
 #Input: An m x n data matrix with each of m rows representing a variable and each of n columns representing a sample. Should be of type numpy.array.
 #       Note: Method does not deal with missing values within the data.
 #Output: An m x m matrix of pairwise covariances between transformed raw data vectors
@@ -49,7 +48,7 @@ calculateCovariances <- function(data_matrix){
     transformed_data_matrix = apply(data_matrix, MARGIN=1, FUN=transformData)
     covar_matrix = cov(transformed_data_matrix)
     covar_matrix
-  }
+}
 
 
 #Input: A m x m numpy array of covariances between transformed data vectors and a vector of m p-values to combine.

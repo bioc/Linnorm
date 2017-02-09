@@ -24,6 +24,8 @@
 #' Rcpp
 #' RcppArmadillo
 Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
+	#Expressoin data normalization
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
 	if (output != "Raw" && output != "XPM") {
@@ -62,7 +64,6 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 		stop("Invalid showinfo.")
 	}
 	
-	#Step 1: Relative Expression
 	#Turn it into relative expression
 	#Note that expdata does not have colnames and rownames now
 	RN <- 0
@@ -95,12 +96,16 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 	if (length(datamatrix[1,]) < 500) {
 		stop("Number of features is too small.")
 	}
+	#Filter zeroes based on minNonZeroPortion threshold
 	Keep <- 0
 	if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
 		Keep <- which(colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion)
 	} else {
 		Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
 	}
+	
+	
+	#Obtain low count gene filtering threshold
 	if (BE_F_LC_Genes == "Auto") {
 		BE_F_LC_Genes <- FindLCT(datamatrix[,Keep], 1)
 		if (BE_F_LC_Genes > max_F_LC) {
@@ -114,7 +119,6 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 			flush.console()
 		}
 	}
-
 	if (BE_F_LC_Genes + BE_F_HC_Genes > 0.95){
 		BE_F_HC_Genes <- 0.01
 		if (showinfo) {
@@ -126,6 +130,7 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 	#Normalization
 	datamatrix <- BatchEffectLinnorm1(datamatrix, minNonZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength)
 	
+	#Output
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)
 	}

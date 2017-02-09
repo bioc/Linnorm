@@ -15,7 +15,7 @@ vignette: >
 
 
 \begin{center}
-\date{Feburary, 07, 2017}
+\date{Feburary, 09, 2017}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
@@ -63,7 +63,7 @@ The Linnorm R package contains a variety of functions for single cell RNA-seq da
 	* Differential expression analysis
 	* Differential peak detection
 * Single cell RNA-seq subpopulation analysis (Clustering)
-	* t-SNE k-means clustering \( Recommanded \) \( Linnorm.tSNE \)
+	* t-SNE k-means clustering \( Recommended \) \( Linnorm.tSNE \)
 	* PCA k-means clustering \( Linnorm.PCA \)
 	* Hierarchical clustering analysis \( Linnorm.HClust \)
 * Highly variable gene discovery \( Linnorm.HVar \)
@@ -489,7 +489,8 @@ colnames(Islam) <- paste(colnames(Islam),Group,sep="_")
 3. Perform Analysis.
 ```{r, echo=TRUE}
 #Note that there are 3 known clusters.
-HClust.Results <- Linnorm.HClust(Islam,Group=Group, num_Clust=2, fontsize=1.5)
+HClust.Results <- Linnorm.HClust(Islam,Group=Group,
+num_Clust=2, fontsize=1.5, Color = c("Red","Blue"))
 ```
 
 ####Hierarchical Clustering plot  
@@ -810,4 +811,4 @@ Answer: Linnorm()'s transformation also performs Linnorm.Norm()'s normalization 
 
 
 #Bug Reports, Questions and Suggestions  
-We welcome any Bug Reports, Questions and Suggestions. They can be sent to Ken Yip at <shunyip@bu.edu>. Please add the keyword Linnorm in the email's subject line or title. We appreciate your help in making Linnorm better. Thanks!
+We welcome any Bug Reports, Questions and Suggestions. They can be sent to Ken Yip at <shunyip@bu.edu> or posted on bioconductor's forum <https://support.bioconductor.org/>. We appreciate your help in making Linnorm better. Thanks!

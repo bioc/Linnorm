@@ -23,6 +23,8 @@
 #' #Example for Gamma distribution
 #' simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=5, NumDiff = 200, NumFea = 2000)
 RnaXSim <- function(datamatrix, distribution="NB", NumRep=5, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, DEGlog2FC="Auto", MaxLibSizelog2FC=0.5) {
+	#RNA-seq data simulation for DEG analysis evaluation
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	datamatrix <- na.omit(as.matrix(datamatrix))
 	if (length(datamatrix[1,]) < 3) {
 		stop("Number of samples is less than 3.")
@@ -79,6 +81,8 @@ RnaXSim <- function(datamatrix, distribution="NB", NumRep=5, NumDiff = 2000, Num
 }
 
 GammaSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
+	#RNA-seq data simulation for DEG analysis evaluation
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	#Capture distribution from the dataset for simulation
 	#K is the shape parameter from Gamma distribution
 	MeanSD <- rowMeanSD(thisdata_ori)
@@ -294,6 +298,8 @@ GammaSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, sho
 }
 
 PoissonSim <- function(thisdata, NumRep=5, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
+	#RNA-seq data simulation for DEG analysis evaluation
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	thisdata_ori <- thisdata
 	poismatrix <- matrix(0, ncol=(2 * NumRep), nrow=NumFea)
 	RN <- vector(mode="character", NumFea)
@@ -486,6 +492,8 @@ PoissonSim <- function(thisdata, NumRep=5, NumDiff = 2000, NumFea = 20000, showi
 }
 
 LogNormSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
+	#RNA-seq data simulation for DEG analysis evaluation
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	#Capture distribution from the dataset for simulation
 	MeanSD <- rowMeanSD(thisdata_ori)
 	Fit <- LinearRegression(log(MeanSD[1,]),log(MeanSD[2,]))
@@ -704,6 +712,8 @@ LogNormSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, s
 }
 
 NBSim <- function(thisdata_ori, NumRep=5, NumDiff = 2000, NumFea = 20000, showinfo=FALSE, MaxLibSizelog2FC=0.5, DEGlog2FC="Auto") {
+	#RNA-seq data simulation for DEG analysis evaluation
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	#Capture distribution from the dataset for simulation
 	options(warn=-1)
 	#This step makes NBSim run slow, compared to the other 3 distributions, so, we will only model at most 10000 of the genes.

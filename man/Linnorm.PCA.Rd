@@ -16,7 +16,7 @@ Linnorm.PCA(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0,
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 
-\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.}
+\item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from the analysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.}
 
 \item{DataImputation}{Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.}
 

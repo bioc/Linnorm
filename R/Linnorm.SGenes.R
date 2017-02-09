@@ -22,6 +22,9 @@
 #' Rcpp
 #' RcppArmadillo
 Linnorm.SGenes <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, minNonZeroPortion = 0.5, F_p = 0.3173, F_LC_Genes = "Auto", F_HC_Genes = 0.01, max_F_LC = 0.75) {
+	#Model stable gene selection
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
 	RN <- 0
@@ -80,6 +83,7 @@ Linnorm.SGenes <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, minN
 	fivepercent <- floor(0.05 * ncol(datamatrix)) + 1
 	nonZero <- datamatrix[,MeanOrder[numZero:(numZero +fivepercent)]][which(datamatrix[,MeanOrder[numZero:(numZero +fivepercent)]] != 0)]
 	maxBound <- length(nonZero)/sum(nonZero)
+	
 	#Get filter low count genes threhsold
 	Keep <- 0
 	if (nrow(datamatrix) * minNonZeroPortion < 3) {
@@ -115,9 +119,9 @@ Linnorm.SGenes <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, minN
 			message(paste("F_HC_Genes Reset to ", F_HC_Genes, sep=""),appendLF=TRUE)
 		}
 	}
-	#Filter dataset and calculate lambda
-	datamatrix <- FirstFilter(datamatrix, minNonZeroPortion, L_F_p = F_p, L_F_LC_Genes = F_LC_Genes, L_F_HC_Genes = F_HC_Genes, spikein = NULL)
 	
+	#Filter dataset based on stdev and skewness
+	datamatrix <- FirstFilter(datamatrix, minNonZeroPortion, L_F_p = F_p, L_F_LC_Genes = F_LC_Genes, L_F_HC_Genes = F_HC_Genes, spikein = NULL)
 	
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)

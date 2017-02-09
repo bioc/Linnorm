@@ -17,10 +17,14 @@
 #' Rcpp
 #' RcppArmadillo
 LinearRegression <- function(x,y) {
+	#Linear regression function
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	if (length(x) != length(y)) {
 		stop("x and y do not have the same length.")
 	}
+	#Call C++
 	Answer <- LR(x,y)
+	#Put results into list for output
 	listing <- list(Answer[2], Answer[1])
 	listing2 <- list(listing)
 	result <- setNames(listing2, c("coefficients"))
@@ -32,10 +36,14 @@ LR <- function(x,y) {
 }
 
 LinearRegressionZero <- function(x,y) {
+	#Linear regression through the origin.
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	if (length(x) != length(y)) {
 		stop("x and y do not have the same length.")
 	}
+	#Call C++
 	Answer <- LRZ(x,y)
+	#Put results into list for output
 	listing <- list(Answer[2], Answer[1])
 	listing2 <- list(listing)
 	result <- setNames(listing2, c("coefficients"))
@@ -69,10 +77,19 @@ LRZ <- function(x,y) {
 #' Rcpp
 #' RcppArmadillo
 LinearRegressionFP <- function(x,y, x1,y1) {
+	#Linear regression through a fixed point.
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	if (length(x) != length(y)) {
 		stop("x and y do not have the same length.")
 	}
-	Answer <- LRFP(x,y,x1,y1)
+	#Call C++
+	Answer <- 0
+	if (x1 == 0 && y1 == 0) {
+		Answer <- LRZ(x,y)
+	} else {
+		Answer <- LRFP(x,y,x1,y1)
+	}
+	#Put results into list for output
 	listing <- list(Answer[2], Answer[1])
 	listing2 <- list(listing)
 	result <- setNames(listing2, c("coefficients"))
@@ -81,4 +98,9 @@ LinearRegressionFP <- function(x,y, x1,y1) {
 
 LRFP <- function(x,y, x1,y1) {
 	.Call(LinearRegressionFPCpp, x,y, x1,y1)
+}
+
+#Get Slope from x and y vectors
+getSlope <- function(x,y) {
+	.Call(getSlopeCpp, x,y)
 }

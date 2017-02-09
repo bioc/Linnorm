@@ -27,6 +27,8 @@
 #' RcppArmadillo
 
 Linnorm.DataImput <- function(datamatrix, RowSamples = FALSE, showinfo = FALSE, MZP=0.25, LC_F = "Auto", max_LC_F = 0.75, FG_Recov = 0.5, method="euclidean", VarPortion = 0.75,  ...) {
+	#Data imputation function
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	if (MZP > 1 || MZP < 0) {
 		stop("Invalid MZP.")
 	}

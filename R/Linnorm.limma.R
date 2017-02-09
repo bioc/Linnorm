@@ -38,6 +38,8 @@
 #' DEGResults <- Linnorm.limma(LIHC, designmatrix)
 
 Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, output="DEResults", noINF=TRUE, robust=FALSE, ...) {
+	#Differential expression analysis with Linnorm transformed dataset using limma
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	datamatrix <- as.matrix(datamatrix)
 	if (is.null(design)) {
 		stop("design is null.")
@@ -54,6 +56,7 @@ Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, 
 	if (!is.logical(robust)){
 		stop("Invalid robust.")
 	}
+	#Normalize into XPM
 	RN <- 0
 	CN <- 0
 	expdata <- 0
@@ -99,6 +102,8 @@ Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, 
 	fit2 <- contrasts.fit(fit2, contrast.matrix)
 	fit2 <- eBayes(fit2,robust=robust)
 	limmaResults <- topTable(fit2, number=length(fit2$p.value), adjust.method="BH")
+	
+	#limma Results is obtained. Now, we correct expression and fold change values.
 	datamatrix <- datamatrix[,rownames(limmaResults)]
 	expdata <- expdata[,rownames(limmaResults)]
 	if (length(design[1,]) == 2) {
@@ -117,9 +122,11 @@ Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, 
 		colnames(limmaResults)[2] <- "XPM"
 		limmaResults <- limmaResults[,-c(1)]
 	}
+	#Filter zeroes based on MZP threshold
 	if (MZP > 0) {
 		limmaResults <- limmaResults[colnames(datamatrix)[colSums(datamatrix != 0) >= MZP * nrow(datamatrix)],]
 	}
+	#Output
 	if (output=="DEResults") {
 		return (limmaResults)
 	}

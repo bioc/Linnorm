@@ -33,6 +33,8 @@
 #' results <- Linnorm.HVar(Islam2011)
 
 Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.25, FG_Recov=0.5, plot.title="Mean vs SD plot", ...) {
+	#Highly variable gene analysis with Linnorm transformed dataset
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	datamatrix <- as.matrix(datamatrix)
 	if (sig <= 0 || sig > 1) {
 		stop("Invalid sig value.")
@@ -49,7 +51,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FAL
 	#Linnorm transformation
 	datamatrix <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
 	
-	
+	#Filter genes based on number of non-zero values
 	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= 3]
 	#Check available number of spike in genes.
 	spikein <- spikein[which(spikein %in% colnames(datamatrix))]
@@ -57,12 +59,12 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FAL
 		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 		spikein = NULL
 	}
-	######First use Linnorm transformed dataset######
-	MeanSD <- NZcolMeanSD(datamatrix)
+	#Get mean and SD
+	MeanSD <- NZcolMeanSD_acc(datamatrix)
 	datamean <- MeanSD[1,]
 	dataSD <- MeanSD[2,]
 	
-	#Logistic regression to fit technical noise.
+	#Loess Fit
 	logitit <- loessFit(dataSD,datamean, weights=exp(datamean))
 	
 	#In case of negative fit, where negative stdev is impossible in our case, change them into the smallest stdev in the dataset
@@ -81,10 +83,9 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FAL
 	Residual <- (SDRatio - (LR$coefficients[[2]] * datamean + LR$coefficients[[1]]))
 	
 	#Calculate p values
-	#if spike in list is provided, we test whether a given standard deviation is larger than the spike in.
 	pvalues <- 0
 	spikes <- 0
-	
+	#if spike in list is provided, we use spike ins.
 	if (length(spikein) < 10) {
 		#Remove outlier
 		SDRatio2 <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
@@ -99,6 +100,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FAL
 		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
 		
 	}
+	#Organize results for output
 	epvalues <- exp(pvalues)
 	qvalues <- p.adjust(epvalues,"BH")
 	dataSD <- dataSD
@@ -116,7 +118,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FAL
 		results[,5] <- qvalues
 	}
 	
-
+	#Plot Mean vs stdev
 	groups <- rep("non-sig", length(SDRatio))
 	if (sig.value == "p") {
 		groups[which(epvalues <= sig)] <- "Significant"
@@ -133,6 +135,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FAL
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)
 	}
+	#Results for output
 	listing <- list(results, render_plot, datamatrix)
 	result <- setNames(listing, c("Results", "plot", "Linnorm"))
 	return (result)

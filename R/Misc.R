@@ -7,13 +7,19 @@ tXPM <- function(x) {
     .Call(tXPMCpp, x)
 }
 
+#Find low count gene filtering threshold
 FindLCT <- function(datamatrix, Multy,showinfo) {
+	#Find low count gene filtering threshold
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	#Obtain mean and stdev for log(Relative Expression * estimated total count + 1) dataset
 	MeanSD <- colLog1pMeanSD(datamatrix,Multy)
 	LC_Threshold <- 0
 	MeanSD <- MeanSD[,which(!is.nan(MeanSD[2,]))]
+	#Lowest expressing 1/3 of the genes will be used for the calculation of slope
 	Portion <- 1/3
 	MeanOrder <- order(MeanSD[1,])
 	Slope <- 1
+	#Loop until Slope is negative or thersohld is too big
 	while(Slope > 0 && LC_Threshold < 1) {
 		LC_Threshold <- LC_Threshold + 0.01
 		Range <- floor(ncol(MeanSD) * LC_Threshold + 1):ncol(MeanSD)
@@ -22,8 +28,10 @@ FindLCT <- function(datamatrix, Multy,showinfo) {
 	}
 	return (round(LC_Threshold,2))
 }
-
 FindLCT_DI <- function(datamatrix, showinfo) {
+	#Find low count gene filtering threshold for Data imputation funciton, where the dataset is Linnorm transformed.
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	#Obtain mean and stdev
 	MeanSD <- colMeanSD(datamatrix)
 	LC_Threshold <- 0
 	MeanSD <- MeanSD[,which(!is.nan(MeanSD[2,]))]
@@ -37,12 +45,15 @@ FindLCT_DI <- function(datamatrix, showinfo) {
 	return (round(LC_Threshold,2))
 }
 
-#Filter dataset
+#Filter dataset and obtain model genes
 FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01, L_F_HC_Genes = 0.01, spikein = NULL) {
+	#Filter dataset and obtain model genes for calculation of lambda
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	#Obtain mean, stdev and skewness
 	MeanSDSkew <- NZcolLogMeanSDSkew(x)
 	Keep <- which(!is.nan(MeanSDSkew[3,]))
 	
-	#Sort data and filter LowGeneFil and minNonZeroPortion
+	#Sort data and filter with L_F_LC_Genes and minNonZeroPortion
 	if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
 		Keep <- Keep[which(colSums(x[,Keep] != 0) >= nrow(x) * minNonZeroPortion)]
 	} else {
@@ -58,16 +69,17 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	x <- x[,Keep]
 	MeanSDSkew <- MeanSDSkew[,Keep]
 	
+	#Check the number if spike in genes and whether they are provided
 	spikeino <- spikein
 	spikein <- spikein[which(spikein %in% colnames(x))]
 	if (length(spikein) < 10 && length(spikeino) != 0) {
 		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 	}
 	
-	
+	#Initialize object for storing genes that will be retained
 	allStableGenes <- 0
 	
-	#Use precision weight as weight
+	#LOWESS fit, Use precision weight as weight
 	logitit <- loessFit(MeanSDSkew[2,],MeanSDSkew[1,], weights=1/MeanSDSkew[2,]^2)
 	Keep <- which(logitit$fitted > 0)
 	LogFit <- logitit$fitted[Keep]
@@ -81,13 +93,14 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	LR2 <- LinearRegression(MeanSDSkew[1,],abs(Residual))
 	SDRatio <- SDRatio * (LR2$coefficients[[2]] * MeanSDSkew[1,1] + LR2$coefficients[[1]])/(LR2$coefficients[[2]] * MeanSDSkew[1,] + LR2$coefficients[[1]])
 	
-	
+	#LOWESS fit for skewness
 	SkewResidual <- loessFit(MeanSDSkew[3,],MeanSDSkew[1,])
 	SkewResidual <- SkewResidual$residuals
 	
+	#Object for storing pvalues from stdev and skewness. Column 1: Stdev p values. Column 2: Skew p values.
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
-	#Column 1, SD p values. Column 2, Skew p values
+	
 	if (length(spikein) < 10) {
 	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
@@ -113,32 +126,37 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	}
 	
+	#Combine p values
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
 	combinedPvalues <- empiricalBrownsMethod(MeanSDSkew[2:3,],pvalueMatrix)
-	allStableGenes <- which(combinedPvalues > L_F_p)
 	
-	#allStableGenes <- which(pvalueMatrix[,1] < L_F_p)
-	#allStableGenes <- which(allStableGenes %in% which(pvalueMatrix[,2] < L_F_p))
-	#allStableGenes <- which(!((1:nrow(pvalueMatrix)) %in% allStableGenes))
+	#Obtain stable genes
+	allStableGenes <- which(combinedPvalues > L_F_p)
 	
 	#Safety, need 100 genes at least
 	while (length(allStableGenes) < 100) {
 		porder <- order(combinedPvalues, decreasing=TRUE)
 		allStableGenes <- porder[1:100]
 	}
-	#Slope of th elowest 25% of the genes
+	#Output
 	return (x[,allStableGenes])
 }
 
-#Normalization for batch effect.
 BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_HC_Genes = 0.05, BE_F_p = 0.5, BE_strength = 0.25, spikein = NULL) {
+	#Normalization for batch effect.
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	
+	#Save a copy of the raw matrix. x2 will not be filtered and used for normalization. x will be filtered and used as the model.
 	x2 <- x
+	
+#Filter dataset and obtain model genes
+	#Obtain mean, stdev and skewness
 	MeanSDSkew <- NZcolLogMeanSDSkew(x)
 	
 	Keep <- which(!is.nan(MeanSDSkew[3,]))
 	Keep <- Keep[order(MeanSDSkew[1,Keep], decreasing = FALSE)]
 	
-	#Sort data and filter LowGeneFil and minNonZeroPortion
+	#Sort data and filter with BE_F_LC_Genes and minNonZeroPortion
 	if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
 		Keep <- Keep[which(colSums(x[,Keep] != 0) >= nrow(x) * minNonZeroPortion)]
 	} else {
@@ -153,25 +171,28 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	MeanSDSkew <- MeanSDSkew[,Keep]
 	
 	
+	#Initialize object for storing genes that will be retained
 	allStableGenes <- 0
-	logitit <- loessFit(MeanSDSkew[2,],MeanSDSkew[1,], weights=1/MeanSDSkew[2,]^2)
 	
+	#LOWESS fit, Use precision weight as weight
+	logitit <- loessFit(MeanSDSkew[2,],MeanSDSkew[1,], weights=1/MeanSDSkew[2,]^2)	
 	Keep <- which(logitit$fitted > 0)
 	LogFit <- logitit$fitted[Keep]
 	x <- x[,Keep]
-	MeanSDSkew <- MeanSDSkew[,Keep]
-	
+	MeanSDSkew <- MeanSDSkew[,Keep]	
 	SDRatio <- log(as.numeric(MeanSDSkew[2,]/LogFit))
+	
 	#normalize SDRatio
 	LR <- LinearRegression(MeanSDSkew[1,],SDRatio)
 	Residual <- SDRatio - (LR$coefficients[[2]] * MeanSDSkew[1,] + LR$coefficients[[1]])
 	LR2 <- LinearRegression(MeanSDSkew[1,],abs(Residual))
 	SDRatio <- SDRatio * (LR2$coefficients[[2]] * MeanSDSkew[1,1] + LR2$coefficients[[1]])/(LR2$coefficients[[2]] * MeanSDSkew[1,] + LR2$coefficients[[1]])
 	
+	#LOWESS fit for skewness
 	SkewResidual <- loessFit(MeanSDSkew[3,],MeanSDSkew[1,])
 	SkewResidual <- SkewResidual$residuals
 	
-	
+	#Object for storing pvalues from stdev and skewness. Column 1: Stdev p values. Column 2: Skew p values.
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
 	if (length(spikein) < 10) {
@@ -199,12 +220,12 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
 		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	}
-	
+	#Combine p values
 	#combinedPvalues <- apply(pvalueMatrix,1,FisherMethod)
 	combinedPvalues <- empiricalBrownsMethod(MeanSDSkew[2:3,],pvalueMatrix)
-
 	combinedPvalues[is.na(combinedPvalues)] <- 0
 
+	#Obtain stable genes
 	allStableGenes <- which(combinedPvalues > BE_F_p)
 
 	#Safety, need 100 genes at least
@@ -215,13 +236,14 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	CN <- colnames(x2)
 	RN <- rownames(x2)
 	
+	#Using the model stable genes, perform normalization
 	x2 <- BatchEffect2(x[,allStableGenes], x2, MeanSDSkew[1,allStableGenes], BE_strength)
-	
 	colnames(x2) <- CN
 	rownames(x2) <- RN
+	
+	#Output
 	return (x2)
 }
-#Batch effect results
 BatchEffect2 <- function(x,y,z,z2) {
 	.Call(BatchEffectCpp, x,y,z,z2)
 }
@@ -234,6 +256,7 @@ LocateLambda_legacy <- function(x,y,z) {
     .Call(LocateLambdaCpp_legacy, t(x),y,z)
 }
 
+#Legacy functions used for testing.
 SkewVar <- function(x,y) {
     .Call(SkewVarCpp, x,y)
 }
@@ -244,13 +267,9 @@ SkewAVar <- function(x,y) {
     .Call(SkewAVarCpp, x,y)
 }
 
-#Get Slope from x and y vectors
-getSlope <- function(x,y) {
-	.Call(getSlopeCpp, x,y)
-}
-
-#Create index for parsing correlation matrix on the "upper triangle" vector.
 createUpperIndex <- function(colLength,TotalLength) {
+	#Create index for parsing correlation matrix on the "upper triangle" vector.
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	index <- matrix(0,nrow=TotalLength,ncol=2)
 	TL <- 1
 	for (i in 2:colLength) {
@@ -261,8 +280,9 @@ createUpperIndex <- function(colLength,TotalLength) {
 	}
 	return (index)
 }
-#for "lower triangle"
 createLowerIndex <- function(rowLength,TotalLength) {
+	#Same as above, but for "lower triangle"
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	index <- matrix(0,nrow=TotalLength,ncol=2)
 	TL <- 1
 	for (i in 2:rowLength) {
@@ -273,8 +293,9 @@ createLowerIndex <- function(rowLength,TotalLength) {
 	}
 	return (index)
 }
-#Convert  "upper triangle" vector to matrix.
 UpperToMatrix <- function(datavalues,UpperIndex) {
+	#Convert  "upper triangle" vector to matrix.
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	theMatrix <- matrix(1, ncol=max(UpperIndex[,2]), nrow=max(UpperIndex[,2]))
 	upperrow <- order(UpperIndex[,1])
 	lowerrow <- order(UpperIndex[,2])
@@ -309,23 +330,10 @@ UpperToMatrix <- function(datavalues,UpperIndex) {
 	return (theMatrix)
 }
 
-#Check if input are colors
 areColors <- function(x) {
+	#Check if input are colors
 	sapply(x, function(X) {
 		tryCatch(is.matrix(col2rgb(X)), 
 		error = function(e) FALSE)
 	})
-}
-
-#RangeRatio for HVG discovery
-RangeRatio <- function(x) {
-	Keep <- sort(x[x!=0])
-	if (length(Keep) <= 2) {
-		return(NA)
-	}
-	twentypercent <- floor(length(Keep) * 0.15) + 1
-	Top5 <- mean(Keep[(length(Keep)-twentypercent -1):length(Keep)])
-	Bottom5 <- mean(Keep[1:twentypercent])
-	answer <- Top5 - Bottom5
-	return(answer) 
 }

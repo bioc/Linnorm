@@ -1,5 +1,6 @@
-#Calculate Moments:
+#Statistical functions.
 
+#Calculate Moments:
 rowVars <- function(x) {
     .Call(colVarsCpp, t(x))
 }
@@ -29,6 +30,15 @@ NZcolMeans <- function(x) {
 NZcolMeanSD <- function(x) {
     .Call(NZcolMeanSDCpp, x)
 }
+NZcolMeanSD_acc <- function(x) {
+	#Unlike the previous function, which focuses on speed by estimating SD, this function calculates SD accurately.
+	answer <- matrix(nrow=2, ncol=ncol(x))
+	for (i in 1:ncol(x)) {
+		answer[1,i] <- mean(x[x[,i] != 0,i])
+		answer[2,i] <- sd(x[x[,i] != 0,i])
+	}
+	return(answer)
+}
 
 colLog1pMeanSD <- function(x,y) {
     .Call(colLog1pMeanSDCpp, x,y)
@@ -44,7 +54,7 @@ NZrowLogMeanSDSkew  <- function(x) {
     .Call(NZcolLogMeanSDSkewCpp, t(x))
 }
 
-#Weighted rowMeans
+#Weighted Means
 WNZcolMeans <- function(x,y) {
 	.Call(WNZcolMeansCpp, x,y)
 }

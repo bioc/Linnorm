@@ -6,7 +6,7 @@
 \usage{
 Linnorm.HClust(datamatrix, RowSamples = FALSE, MZP = 0,
   DataImputation = TRUE, input = "Raw", method_hclust = "ward.D",
-  method_dist = "pearson", Group = NULL, num_Clust = 0,
+  method_dist = "pearson", Group = NULL, num_Clust = 0, Color = "Auto",
   ClustRect = TRUE, RectColor = "red", fontsize = 0.5,
   linethickness = 0.5, plot.title = "Hierarchical clustering", ...)
 }
@@ -28,6 +28,8 @@ Linnorm.HClust(datamatrix, RowSamples = FALSE, MZP = 0,
 \item{Group}{Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. If this is provided, sample names will be colored according to their group. Defaults to NULL.}
 
 \item{num_Clust}{Integer >= 0. Number of clusters in hierarchical clustering. No cluster will be highlighted if this is set to 0. Defaults to 0.}
+
+\item{Color}{Character vector. Color of the groups/clusters in the plot. This vector must be as long as num_Clust, or Group if it is provided. Defaults to "Auto".}
 
 \item{ClustRect}{Logical. If num_Clust > 0, should a rectangle be used to highlight the clusters? Defaults to TRUE.}
 

@@ -31,6 +31,9 @@
 #' Rcpp
 #' RcppArmadillo
 Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, showinfo = FALSE, perturbation="Auto", Filter=FALSE, minNonZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
+	#Linnorm transformation
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
 	#Step 1: Relative Expression

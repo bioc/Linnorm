@@ -10,6 +10,7 @@
 #' @param method_dist	Charcter. Method to be used in hierarchical clustering. (From Dist {amap}: the distance measure to be used. This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary", "pearson", "correlation", "spearman" or "kendall". Any unambiguous substring can be given.) Defaults to "pearson".
 #' @param  Group	Character vector with length equals to sample size. Each character in this vector corresponds to each of the columns (samples) in the datamatrix. If this is provided, sample names will be colored according to their group. Defaults to NULL.
 #' @param num_Clust	Integer >= 0. Number of clusters in hierarchical clustering. No cluster will be highlighted if this is set to 0. Defaults to 0.
+#' @param Color	Character vector. Color of the groups/clusters in the plot. This vector must be as long as num_Clust, or Group if it is provided. Defaults to "Auto".
 #' @param ClustRect	Logical. If num_Clust > 0, should a rectangle be used to highlight the clusters? Defaults to TRUE.
 #' @param RectColor	Character. If ClustRect is TRUE, this controls the color of the rectangle. Defaults to "red".
 #' @param fontsize	Numeric. Font size of the texts in the figure. Defualts to 0.5.
@@ -31,7 +32,10 @@
 #' #Example:
 #' HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44), rep("NegCtrl",4)))
 
-Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=0, ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
+Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputation = TRUE, input="Raw", method_hclust="ward.D", method_dist="pearson", Group=NULL, num_Clust=0, Color="Auto", ClustRect=TRUE, RectColor="red", fontsize=0.5, linethickness=0.5, plot.title="Hierarchical clustering", ...) {
+	#Hierarchical clustering with Linnorm transformed dataset
+	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	#Note from http://stackoverflow.com/questions/24140339/tree-cut-and-rectangles-around-clusters-for-a-horizontal-dendrogram-in-r last accessed Feb 9th, 2017
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
@@ -58,16 +62,17 @@ Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputati
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)
 	}
+	#Linnorm transformation
 	if (input == "Raw") {
-		#Linnorm transformation
 		datamatrix <- Linnorm(datamatrix, DataImputation=DataImputation, RowSamples = TRUE,...)
 	}
-	
+	#Backup data that will be filtered, so that we can include them in the output
 	Backup <- colSums(datamatrix != 0) < nrow(datamatrix) * MZP
 	Backup2 <- 0
 	if (sum(Backup) != 0) {
 		Backup2 <-  datamatrix[,Backup]
 	}
+	#Filter zeroes based on MZP threshold
 	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= nrow(datamatrix) * MZP]
 	
 	#Clustering
@@ -78,10 +83,44 @@ Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputati
 	render_plot <- 0
 	
 	#Render Color of plot
-	if (length(unique(Group)) > num_Clust) {
-		colorCode <- c("grey60", rainbow(length(unique(Group))))
+	colorCode <- 0
+	if (length(Color) == 0) {
+		Color = "Auto"
+	}
+	if (length(Color) == 1) {
+		if (Color != "Auto") {
+			if (!areColors(Color)) {
+				stop("Invalid Color.")
+			}
+			if (length(unique(Group)) > 1) {
+				stop("Number of Color provided does not equal to the number of groups.")
+			}
+			if (num_Clust != 1 && length(unique(Group)) == 0) {
+				stop("Number of Color provided does not equal to num_Clust.")
+			}
+			colorCode <- c("grey60", Color)
+		}
+		if (Color == "Auto") {
+			if (length(unique(Group)) > num_Clust) {
+				colorCode <- c("grey60", rainbow(length(unique(Group))))
+			} else {
+				colorCode <- c("grey60", rainbow(num_Clust))
+			}
+		}
 	} else {
-		colorCode <- c("grey60", rainbow(num_Clust))
+		if (!areColors(Color)) {
+			stop("Invalid Color.")
+		}
+		if (length(unique(Group)) > num_Clust) {
+			if (length(Color) != length(unique(Group))) {
+				stop("Number of Color provided does not equal to the number of groups.")
+			}
+		} else {
+			if (length(Color) != num_Clust) {
+				stop("Number of Color provided does not equal to num_Clust.")
+			}
+		}
+		colorCode <- c("grey60", Color)
 	}
 	
 	#Cluster object
@@ -143,8 +182,10 @@ Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputati
 		#Set label color
 		labcol <- as.numeric(label(dendr)[,3])
 		unilab <- as.character(unique(as.character(Group)))
-		for (i in 1:length(unilab)) {
-			labcol[which(as.character(dendr$label$label) %in% rownames(datamatrix)[which(Group == unilab[i])])] <- i+1
+		index <- 1
+		for (i in length(unilab):1) {
+			labcol[which(as.character(dendr$label$label) %in% rownames(datamatrix)[which(Group == unilab[i])])] <- index+1
+			index <- index + 1
 		}
 		render_plot <- render_plot + geom_text(data = label(dendr), 
 			aes(x, y, label = label, colour=factor(labcol)),
@@ -173,13 +214,14 @@ Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputati
 		}
 	}
 	render_plot <- ggplot_build(render_plot)
-	
+	#Reconstruct Linnorm transformed matrix for output
 	if (sum(Backup) != 0) {
 		datamatrix <- cbind(datamatrix, Backup2)
 	}
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)
 	}
+	#Results for output
 	listing <- list(clust, render_plot, datamatrix)
 	results <- setNames(listing, c("Results", "plot", "Linnorm"))
 	return (results)

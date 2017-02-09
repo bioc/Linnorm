@@ -1,6 +1,6 @@
 /*
 The MIT License (MIT) 
-Copyright (c) <2016> <Shun Hang Yip>
+Copyright (c) <2017> <(Ken) Shun Hang Yip> <shunyip@bu.edu>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 using namespace std;
 using namespace Rcpp;
 
-//Convert dataset into XPM, each row is a gene(feature) each column is a sample.
+//Convert dataset into Relative Expression. Please note that even though they are called "Per million", they ceased to be per million during development.
 SEXP XPMCpp (SEXP xSEXP){
 	arma::mat GeneExp = Rcpp::as<arma::mat>(xSEXP);
 	arma::colvec RowSums = sum(GeneExp, 1);
@@ -57,7 +57,9 @@ SEXP tXPMCpp (SEXP xSEXP){
 	}
 	return Rcpp::wrap(trans(GeneExp));
 }
-//The following three functions calculate the optimal lambda for the dataset.
+
+//The following three functions calculate the F(lambda) for the dataset given a lambda.
+//This function is the original one written, and is used for unit test (together with the other two R functions.)
 static double SkewVar (const arma::mat& GeneExp, const double& lambda2) {
 	//vectors to store skewness, standard deviation and mean of each gene/feature.
 
@@ -127,6 +129,7 @@ SEXP SkewVarCpp(SEXP xSEXP,SEXP ySEXP) {
 	return Rcpp::wrap(SkewVar(GeneExp, lambda2));
 }
 //Optimized for speed
+//This function is the same as SkewVar.
 static double SkewVar1 (arma::mat& GeneExp, const double& lambda2) {
 	//double makes the program slower, but it is needed for accurate lambda calcuation.
 	//vectors to store skewness, standard deviation and mean of each gene/feature.
@@ -203,6 +206,7 @@ static double SkewVar1 (arma::mat& GeneExp, const double& lambda2) {
 	
 	return pow(log1p(abs(SDevM))+1,2) + pow(log1p(Skewintegral)+1,2);
 }
+//This function outputs  F(lambda) and F(lambda + 1) together and in one pass, improving running speed.
 static vector< double > SkewVar2 (arma::mat& GeneExp, const double& lambda2, double extra) {
 	//double makes the program slower, but it is needed for accurate lambda calcuation.
 	//vectors to store skewness, standard deviation and mean of each gene/feature.
@@ -339,7 +343,7 @@ SEXP SkewVar2Cpp(SEXP xSEXP,SEXP ySEXP) {
 	return Rcpp::wrap(SkewVar2(GeneExp, lambda2, 1));
 }
 
-//These functions output S and V functions for evaluations. 
+//Legacy: This function output S(lambda) and V(lambda) functions for testing. 
 static arma::vec SkewAVar (const arma::mat& GeneExp, const double& lambda2) {
 	//vectors to store skewness, standard deviation and mean of each gene/feature.
 	double lambda = (double) lambda2;
@@ -413,7 +417,7 @@ SEXP SkewAVarCpp(SEXP xSEXP,SEXP ySEXP) {
 	return Rcpp::wrap(SkewAVar(GeneExp, lambda2));
 }
 
-//Given a range of lambda, this function finds lambda that minimizes F(lambda) (see article) based on the expression matrix by using binary search.
+//Given a range of lambda, this function finds lambda that minimizes F(lambda) (see article) based on the expression matrix by using a history recording binary search.
 static double LocalSearch(arma::mat& GeneExp, double minBound, double maxBound, double& smallest, double search_exponent) {
 	minBound = round(minBound);
 	maxBound = round(maxBound);
@@ -835,6 +839,7 @@ SEXP getSlopeCpp(SEXP xSEXP, SEXP ySEXP) {
 	//double constant = (SumY.at(n) - Slope * SumX)/GeneExp.n_rows;
 	return Rcpp::wrap(Slope);
 }
+
 SEXP LinearRegressionCpp(SEXP xSEXP, SEXP ySEXP) {
 	arma::vec xvec = Rcpp::as<arma::vec>(xSEXP);
 	arma::vec yvec = Rcpp::as<arma::vec>(ySEXP);
@@ -1057,7 +1062,6 @@ SEXP colSDsCpp(SEXP xSEXP) {
 	}
 	return Rcpp::wrap(Answer);
 }
-
 SEXP colMeanSDCpp(SEXP xSEXP) {
 	arma::mat GeneExp = Rcpp::as<arma::mat>(xSEXP);
 	//vectors to store skewness, standard deviation, kurtosis and mean of each gene/feature.
@@ -1137,6 +1141,7 @@ SEXP colLog1pMeanSDCpp (SEXP xSEXP, SEXP ySEXP) {
 	}
 	return Rcpp::wrap(Answer);
 }
+
 SEXP NZcolLogMeanSDSkewCpp(SEXP xSEXP) {
 	arma::mat GeneExp = Rcpp::as<arma::mat>(xSEXP);
 	//vectors to store skewness, standard deviation, kurtosis and mean of each gene/feature.
@@ -1271,6 +1276,7 @@ SEXP NZcolMeanSDCpp(SEXP xSEXP) {
 	}
 	return Rcpp::wrap(Answer);
 }
+
 SEXP WNZcolMeansCpp(SEXP xSEXP, SEXP ySEXP) {
 	arma::mat GeneExp = Rcpp::as<arma::mat>(xSEXP);
 	
