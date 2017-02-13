@@ -1,11 +1,16 @@
+13th, February, 2017
+    o Development 1.99.16
+        o Reorganized Vignettes
+        o Linnorm.limma's noINF fold change calculation now adds estimated count of one instead of adding 1 XPM.
+
 9th, February, 2017
-	o Development 1.99.11 to 1.99.15
-		o Fixed a bug in minNonZeroPortion.
-		o Edited comments.
-		o Added more unit tests.
-		o Coloring oF HClust's labels should now match their cluster.
-	o Release 1.2.10
-		o Fixed a bug in minNonZeroPortion.
+    o Development 1.99.11 to 1.99.15
+        o Fixed a bug in minNonZeroPortion.
+        o Edited comments.
+        o Added more unit tests.
+        o Coloring oF HClust's labels should now match their cluster.
+    o Release 1.2.10
+        o Fixed a bug in minNonZeroPortion.
 
 30th, January, 2017
     o Development 1.99.10

@@ -6,7 +6,7 @@
 #' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
 #' @param output	Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.
-#' @param noINF	Logical. Prevent generating INF in the fold change column by using CPM+1 or TPM+1. If it is set to FALSE, INF will be generated if one of the conditions has zero expression. Defaults to TRUE.
+#' @param noINF	Logical. Prevent generating INF in the fold change column by adding the estimated count of one. If it is set to FALSE, zero or INF will be generated if one of the conditions has zero expression. Defaults to TRUE.
 #' @param robust Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to FALSE.
 #' @param ... arguments that will be passed into Linnorm's transformation function.
 #' @details  This function performs both Linnorm and limma for users who are interested in differential expression analysis.
@@ -29,8 +29,8 @@
 #' @examples
 #' #Obtain example matrix:
 #' data(LIHC)
-#' #Create limma design matrix (first 10 columns are tumor, last 10 columns are normal)
-#' designmatrix <- c(rep(1,10),rep(2,10))
+#' #Create limma design matrix (first 5 columns are tumor, last 5 columns are normal)
+#' designmatrix <- c(rep(1,5),rep(2,5))
 #' designmatrix <- model.matrix(~ 0+factor(designmatrix))
 #' colnames(designmatrix) <- c("group1", "group2")
 #' rownames(designmatrix) <- colnames(LIHC)
@@ -111,7 +111,15 @@ Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, 
 		set2 <- as.numeric(which(design[,1] != 1))
 		limmaResults[,2] <- colMeans(expdata)
 		if (noINF) {
-			expdata <- expdata + 1
+			#Find maxBound
+			TheMean <- NZcolMeans(expdata)
+			MeanOrder <- order(TheMean, decreasing = FALSE)
+			numZero <- sum(TheMean == 0)
+			fivepercent <- floor(0.05 * ncol(expdata)) + 1
+			nonZero <- expdata[,MeanOrder[numZero:(numZero +fivepercent)]][which(expdata[,MeanOrder[numZero:(numZero +fivepercent)]] != 0)]
+			maxBound <- length(nonZero)/sum(nonZero)
+			#Get filter low count genes threhsold
+			expdata <- expdata + 1/maxBound
 			limmaResults[,1] <- log(colMeans(expdata[set1,])/colMeans(expdata[set2,]),2)
 		} else {
 			limmaResults[,1] <- log(colMeans(expdata[set1,])/colMeans(expdata[set2,]),2)

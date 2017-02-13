@@ -54,21 +54,31 @@ SEQC <- t(tXPM(SEQC))
 SEQC <- SEQC[rowSums(SEQC != 0) > 4, ]
 SEQC <- SEQC[order(rowMeans(SEQC)),]
 
+LIHC2Raw2 <- SkewVar_Raw2(LIHC,1000000)
+LIHC2 <- SkewVar(LIHC,1000000)
+PDLIHC <- abs((LIHC2Raw2 - LIHC2)/mean(c(LIHC2,LIHC2Raw2))) * 100
+AcceptableLIHC <- PDLIHC < 5
+SEQC2Raw2 <- SkewVar_Raw2(SEQC,1000000)
+SEQC2 <- SkewVar(SEQC,1000000)
+PDSEQC <- abs((SEQC2Raw2 - SEQC2)/mean(c(SEQC2,SEQC2Raw2))) * 100
+AcceptableSEQC <- PDSEQC < 5
 
-test_that("SkewVar is accurate", {
-	expect_equal(SkewVar_Raw2(LIHC,1000000), SkewVar(LIHC,1000000))
-	expect_equal(SkewVar_Raw2(SEQC,1000000), SkewVar(SEQC,1000000))
+test_that("SkewVar", {
+	expect_true(AcceptableLIHC)
+	expect_true(AcceptableSEQC)
 })
 
 LIHC2 <- SkewVar2(t(LIHC),1000000)
 SEQC2 <- SkewVar2(t(SEQC),1000000)
 
-test_that("SkewVar2 is accurate", {
-	expect_equal(SkewVar_Raw2(LIHC,1000000), LIHC2[1])
-	expect_equal(SkewVar_Raw2(LIHC,1000001), LIHC2[2])
-	
-	expect_equal(SkewVar_Raw2(SEQC,1000000), SEQC2[1])
-	expect_equal(SkewVar_Raw2(SEQC,1000001), SEQC2[2])
+PDLIHC <- abs((LIHC2Raw2 - LIHC2[1])/mean(c(LIHC2[1],LIHC2Raw2))) * 100
+AcceptableLIHC <- PDLIHC < 5
+PDSEQC <- abs((SEQC2Raw2 - SEQC2[1])/mean(c(SEQC2[1],SEQC2Raw2))) * 100
+AcceptableSEQC <- PDSEQC < 5
+
+test_that("SkewVar2", {
+	expect_true(AcceptableLIHC)
+	expect_true(AcceptableSEQC)
 })
 
 test_that("Integral simplification done correctly.", {

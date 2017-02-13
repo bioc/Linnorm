@@ -18,7 +18,7 @@ Linnorm.limma(datamatrix, design = NULL, RowSamples = FALSE, MZP = 0,
 
 \item{output}{Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.}
 
-\item{noINF}{Logical. Prevent generating INF in the fold change column by using CPM+1 or TPM+1. If it is set to FALSE, INF will be generated if one of the conditions has zero expression. Defaults to TRUE.}
+\item{noINF}{Logical. Prevent generating INF in the fold change column by adding the estimated count of one. If it is set to FALSE, zero or INF will be generated if one of the conditions has zero expression. Defaults to TRUE.}
 
 \item{robust}{Logical. In the eBayes function of Limma, run with robust setting with TRUE or FALSE. Defaults to FALSE.}
 
@@ -50,8 +50,8 @@ This function performs both Linnorm and limma for users who are interested in di
 \examples{
 #Obtain example matrix:
 data(LIHC)
-#Create limma design matrix (first 10 columns are tumor, last 10 columns are normal)
-designmatrix <- c(rep(1,10),rep(2,10))
+#Create limma design matrix (first 5 columns are tumor, last 5 columns are normal)
+designmatrix <- c(rep(1,5),rep(2,5))
 designmatrix <- model.matrix(~ 0+factor(designmatrix))
 colnames(designmatrix) <- c("group1", "group2")
 rownames(designmatrix) <- colnames(LIHC)

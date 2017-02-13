@@ -17,7 +17,7 @@ NULL
 #' @docType data
 #' @name LIHC
 #' @usage data(LIHC)
-#' @format A matrix with 25914 rows (genes) and 20 columns (samples). The first 10 columns are Tumor samples, the remaining 10 columns are adjacent Normal samples. They are paired samples from 10 individuals. Data is in TPM format.
+#' @format A matrix with 25914 rows (genes) and 10 columns (samples). The first 5 columns are Tumor samples, the remaining 5 columns are adjacent Normal samples. They are paired samples from 5 individuals. Data is in TPM format.
 #' @references https://tcga-data.nci.nih.gov/
 NULL
 
