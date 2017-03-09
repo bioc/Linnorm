@@ -48,7 +48,15 @@ Linnorm.limma <- function(datamatrix, design=NULL, input="Raw", output="DEResult
 	}
 	#Linnorm transformation
 	expdata <- 0
+	
 	if (input == "Raw") {
+		RN <- rownames(datamatrix)
+		CN <- colnames(datamatrix)
+		datamatrix <- as.matrix(datamatrix)
+		datamatrix <- XPM(datamatrix)
+		rownames(datamatrix) <- RN
+		colnames(datamatrix) <- CN
+		
 		#Linnorm transformation
 		expdata <- Linnorm(datamatrix, showinfo = showinfo, method="default",perturbation=perturbation, minZeroPortion = minZeroPortion, keepAll=keepAll)
 	} 
@@ -92,9 +100,17 @@ Linnorm.limma <- function(datamatrix, design=NULL, input="Raw", output="DEResult
 	if (length(design[1,]) == 2) {
 		set1 <- as.numeric(which(design[,1] == 1))
 		set2 <- as.numeric(which(design[,1] != 1))
-		limmaResults[,2] <- unlist(apply(datamatrix,1,mean)) * 1000000
+		limmaResults[,2] <- rowMeans(datamatrix) * 1000000
 		if (noINF) {
-			datamatrix <- datamatrix * 1000000 + 1
+			#Find maxBound
+			TheMean <- NZrowMeans(datamatrix)
+			MeanOrder <- order(TheMean, decreasing = FALSE)
+			numZero <- sum(TheMean == 0)
+			fivepercent <- floor(0.05 * nrow(datamatrix)) + 1
+			nonZero <- datamatrix[MeanOrder[numZero:(numZero +fivepercent)],][which(datamatrix[MeanOrder[numZero:(numZero +fivepercent)],] != 0)]
+			maxBound <- length(nonZero)/sum(nonZero)
+			
+			datamatrix <- datamatrix + 1/maxBound
 			limmaResults[,1] <- unlist(apply(datamatrix,1,function(x){return(log(mean(x[set1])/mean(x[set2] ),2) )}))
 		} else {
 			limmaResults[,1] <- unlist(apply(datamatrix,1,function(x){return(log(mean(x[set1])/mean(x[set2]),2) )}))

@@ -550,9 +550,9 @@ set1 <- 1:10
 #Index of sample set 2
 set2 <- 11:20
 
-#Define a function that calculates log 2 fold change:
+#Define a function that calculates log 2 fold change from TPM + 1:
 log2fc <- function(x) {
-return(log(mean(x[set1])/mean(x[set2]),2))
+return(log(mean(x[set1] + 1)/mean(x[set2] + 1),2))
 }
 
 #Calculate log 2 fold change of each gene in the dataset:
