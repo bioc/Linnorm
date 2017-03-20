@@ -37,7 +37,7 @@ Linnorm(datamatrix, RowSamples = FALSE, spikein = NULL, showinfo = FALSE,
 
 \item{BE_F_HC_Genes}{Double >= 0.01, <= 0.95. Filter this portion of the highest expressing genes before applying Linnorm's batch effect normalization algorithm. Defaults to 0.01.}
 
-\item{BE_strength}{Double >=0, <= 1. Before Linnorm transformation, how strongly should Linnorm normalize batch effects? Defaults to 0.5.}
+\item{BE_strength}{Double >0, <= 1. Before Linnorm transformation, how strongly should Linnorm normalize batch effects? Defaults to 0.5.}
 
 \item{max_F_LC}{Double >=0, <= 0.95. When L_F_LC or B_F_LC is set to auto, this is the maximum threshold that Linnorm would assign. Defaults to 0.75.}
 

@@ -1,3 +1,8 @@
+20th, March, 2017
+    o Development 1.99.18
+        o Bug fix on BE_strength when it is set to zero.
+        o Allow Linnorm.Norm to use spikein.
+
 13th, February, 2017
     o Development 1.99.16
         o Reorganized Vignettes

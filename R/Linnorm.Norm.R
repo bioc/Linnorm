@@ -3,13 +3,14 @@
 #' This function performs batch effect and library size difference normalization on the input dataset.
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
+#' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param output	character. "Raw" or "XPM". Output's total count will be approximately the median of the inputs' when set to "Raw". Output CPM (if input is raw counts or CPM) or TPM (if input is RPKM FPKM or TPM) when set to "XPM". 
 #' @param minNonZeroPortion Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
 #' @param BE_F_p	Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm's batch effect normalization algorithm. Defaults to 0.3173.
 #' @param BE_F_LC_Genes	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes before applying Linnorm's batch effect normalization algorithm. It can be determined automatically by setting to "Auto". Defaults to "Auto".
 #' @param BE_F_HC_Genes	Double >=0, <= 1. Filter this portion of the highest expressing genes before applying Linnorm's batch effect normalization algorithm. Defaults to 0.01.
-#' @param BE_strength	Double >=0, <= 1. How strongly should Linnorm normalize batch effects? Defaults to 0.5.
+#' @param BE_strength	Double >0, <= 1. How strongly should Linnorm normalize batch effects? Defaults to 0.5.
 #' @param max_F_LC	Double >=0, <= 0.95. When L_F_LC or B_F_LC is set to auto, this is the maximum threshold that Linnorm would assign. Defaults to 0.75.
 #' @details  This function normalizes the input dataset using the Linnorm algorithm.
 #' @return This function returns a normalized data matrix.
@@ -23,7 +24,7 @@
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
+Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, spikein = NULL, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
 	#Expressoin data normalization
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	#data checking
@@ -37,7 +38,7 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 	if (BE_F_p > 1 || BE_F_p < 0) {
 		stop("Invalid BE_F_p.")
 	}
-	if (BE_strength > 1 || BE_strength < 0) {
+	if (BE_strength > 1 || BE_strength <= 0) {
 		stop("Invalid BE_strength.")
 	}
 	if (BE_F_LC_Genes > 0.75 || BE_F_LC_Genes < 0.01) {
@@ -110,12 +111,12 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 		BE_F_LC_Genes <- FindLCT(datamatrix[,Keep], 1)
 		if (BE_F_LC_Genes > max_F_LC) {
 			if (showinfo) {
-				message(paste("Filter low count gene threshold is ", LC_Threshold, ". It is larger than max_F_LC, ", max_F_LC, ", which is now used.", sep=""))
+				message(paste("Filter low count gene threshold is ", BE_F_LC_Genes, ". It is larger than max_F_LC, ", max_F_LC, ", which is now used.", sep=""))
 				BE_F_LC_Genes <- max_F_LC
 			}
 		}
 		if (showinfo) {
-			message(paste("Filter low count genes threshold is set to ", LC_Threshold, sep=""),appendLF=TRUE)
+			message(paste("Filter low count genes threshold is set to ", BE_F_LC_Genes, sep=""),appendLF=TRUE)
 			flush.console()
 		}
 	}
@@ -128,7 +129,7 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, output
 	}
 	
 	#Normalization
-	datamatrix <- BatchEffectLinnorm1(datamatrix, minNonZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength)
+	datamatrix <- BatchEffectLinnorm1(datamatrix, minNonZeroPortion, BE_F_LC_Genes = BE_F_LC_Genes, BE_F_HC_Genes = BE_F_HC_Genes, BE_F_p = BE_F_p, BE_strength = BE_strength, spikein=spikein)
 	
 	#Output
 	if (!RowSamples) {

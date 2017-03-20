@@ -14,7 +14,7 @@
 #' @param BE_F_p	Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm's batch effect normalization algorithm. Defaults to 0.3173.
 #' @param BE_F_LC_Genes	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes before applying Linnorm's batch effect normalization algorithm. It can be determined automatically by setting to "Auto". Defaults to "Auto".
 #' @param BE_F_HC_Genes	Double >= 0.01, <= 0.95. Filter this portion of the highest expressing genes before applying Linnorm's batch effect normalization algorithm. Defaults to 0.01.
-#' @param BE_strength	Double >=0, <= 1. Before Linnorm transformation, how strongly should Linnorm normalize batch effects? Defaults to 0.5.
+#' @param BE_strength	Double >0, <= 1. Before Linnorm transformation, how strongly should Linnorm normalize batch effects? Defaults to 0.5.
 #' @param max_F_LC	Double >=0, <= 0.95. When L_F_LC or B_F_LC is set to auto, this is the maximum threshold that Linnorm would assign. Defaults to 0.75.
 #' @param DataImputation	Logical. Perform data imputation on the dataset after transformation. Defaults to FALSE.
 #' @param ... place holder for any new arguments.
@@ -87,7 +87,7 @@ Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, showinfo = F
 	if (BE_F_HC_Genes > 0.95 || BE_F_HC_Genes < 0.01) {
 		stop("Invalid BE_F_HC_Genes.")
 	}
-	if (BE_strength > 1 | BE_strength < 0) {
+	if (BE_strength > 1 | BE_strength <= 0) {
 		stop("Invalid BE_strength.")
 	}
 	if (anyNA(datamatrix)) {
