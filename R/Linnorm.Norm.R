@@ -4,6 +4,7 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
+#' @param spikein_log2FC	Numeric vector. Log 2 fold change of the spike-in genes. Defaults to NULL.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param output	character. "Raw" or "XPM". Output's total count will be approximately the median of the inputs' when set to "Raw". Output CPM (if input is raw counts or CPM) or TPM (if input is RPKM FPKM or TPM) when set to "XPM". 
 #' @param minNonZeroPortion Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.5.
@@ -24,13 +25,19 @@
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, spikein = NULL, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
+Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, spikein = NULL, spikein_log2FC = NULL, showinfo=FALSE, output="XPM", minNonZeroPortion = 0.5, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75) {
 	#Expressoin data normalization
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
 	if (output != "Raw" && output != "XPM") {
 		stop("Invalid output argument. It must be Raw or XPM.")
+	}
+	if (length(spikein) != length(spikein_log2FC)) {
+		stop("spikein length must be the same as spikein_log2FC.")
+	} else {
+		keep <- which(spikein_log2FC == 0)
+		spikein <- spikein[keep]
 	}
 	if (minNonZeroPortion > 1 || minNonZeroPortion < 0) {
 		stop("Invalid minNonZeroPortion.")

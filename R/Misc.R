@@ -73,7 +73,7 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	spikeino <- spikein
 	spikein <- spikein[which(spikein %in% colnames(x))]
 	if (length(spikein) < 10 && length(spikeino) != 0) {
-		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
+		spikein = NULL
 	}
 	
 	#Initialize object for storing genes that will be retained

@@ -15,7 +15,7 @@ vignette: >
 
 
 \begin{center}
-\date{Feburary, 13, 2017}
+\date{April, 11, 2017}
 
 
 \small{$^{1}$ Centre for Genomic Sciences, LKS Faculty of Medicine, The}\protect \\ 
@@ -591,15 +591,12 @@ In this section, we will perform highly variable gene discovery on the embryonic
 ```{r, echo=TRUE}
 data(Islam2011)
 
-#Identify spike in genes:
-SPIKEIN <- rownames(Islam2011)[c(grep("Ppia",rownames(Islam2011)),
-grep("H2afz",rownames(Islam2011)),grep("Hprt1",rownames(Islam2011)))]
 ```
 
 2. Analysis
 ```{r, echo=TRUE}
 #The first 48 columns are the embryonic stem cells.
-results <- Linnorm.HVar(Islam2011[,1:48], spikein=SPIKEIN)
+results <- Linnorm.HVar(Islam2011[,1:48])
 ```
 
 3. Print out the most significant 10 genes.

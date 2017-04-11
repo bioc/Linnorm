@@ -5,8 +5,8 @@
 \title{Linnorm-Hvar pipeline for highly variable gene discovery.}
 \usage{
 Linnorm.HVar(datamatrix, RowSamples = FALSE, spikein = NULL,
-  log.p = FALSE, sig.value = "p", sig = 0.05, MZP = 0.25,
-  FG_Recov = 0.5, plot.title = "Mean vs SD plot", ...)
+  spikein_log2FC = NULL, log.p = FALSE, sig.value = "p", sig = 0.05,
+  MZP = 0.25, FG_Recov = 0.5, plot.title = "Mean vs SD plot", ...)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
@@ -14,6 +14,8 @@ Linnorm.HVar(datamatrix, RowSamples = FALSE, spikein = NULL,
 \item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{spikein}{character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.}
+
+\item{spikein_log2FC}{Numeric vector. Log 2 fold change of the spike-in genes. Defaults to NULL.}
 
 \item{log.p}{Logical. Output p/q values in log scale. Defaults to FALSE.}
 

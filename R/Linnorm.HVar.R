@@ -4,6 +4,7 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
+#' @param spikein_log2FC	Numeric vector. Log 2 fold change of the spike-in genes. Defaults to NULL.
 #' @param log.p	Logical. Output p/q values in log scale. Defaults to FALSE.
 #' @param sig.value	Character. "p" or "q". Use p or q value for highlighting significant genes. Defaults to "p".
 #' @param sig	Double >0, <= 1. Significant level of p or q value for plotting. Defaults to 0.05.
@@ -32,12 +33,18 @@
 #' data(Islam2011)
 #' results <- Linnorm.HVar(Islam2011)
 
-Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.25, FG_Recov=0.5, plot.title="Mean vs SD plot", ...) {
+Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_log2FC=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.25, FG_Recov=0.5, plot.title="Mean vs SD plot", ...) {
 	#Highly variable gene analysis with Linnorm transformed dataset
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	datamatrix <- as.matrix(datamatrix)
 	if (sig <= 0 || sig > 1) {
 		stop("Invalid sig value.")
+	}
+	if (length(spikein) != length(spikein_log2FC)) {
+		stop("spikein length must be the same as spikein_log2FC.")
+	} else {
+		keep <- which(spikein_log2FC == 0)
+		spikein <- spikein[keep]
 	}
 	if ( sig.value != "p" &&  sig.value != "q") {
 		stop("Invalid sig.value.")
@@ -56,7 +63,6 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, log.p=FAL
 	#Check available number of spike in genes.
 	spikein <- spikein[which(spikein %in% colnames(datamatrix))]
 	if (length(spikein) != 0 && length(spikein) < 10) {
-		warning("Not enough sufficiently expressed spike-in genes (less than 10), they will be ignored.")
 		spikein = NULL
 	}
 	#Get mean and SD

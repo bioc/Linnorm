@@ -4,6 +4,7 @@
 #' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
+#' @param spikein_log2FC	Numeric vector. Log 2 fold change of the spike-in genes. Defaults to NULL.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param perturbation	Integer >=2 or "Auto". To search for an optimal minimal deviation parameter (please see the article), Linnorm uses the iterated local search algorithm which perturbs away from the initial local minimum. The range of the area searched in each perturbation is exponentially increased as the area get further away from the initial local minimum, which is determined by their index. This range is calculated by 10 * (perturbation ^ index). Defaults to "Auto".
 #' @param Filter	Logical. Should Linnorm filter the dataset in the end results? Defaults to FALSE.
@@ -30,7 +31,7 @@
 #' @import
 #' Rcpp
 #' RcppArmadillo
-Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, showinfo = FALSE, perturbation="Auto", Filter=FALSE, minNonZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
+Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, spikein_log2FC = NULL, showinfo = FALSE, perturbation="Auto", Filter=FALSE, minNonZeroPortion = 0.5, L_F_p = 0.3173, L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC=0.75, DataImputation = FALSE, ...) {
 	#Linnorm transformation
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	
@@ -59,7 +60,13 @@ Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, showinfo = F
 	if (length(datamatrix[1,]) < 500) {
 		stop("Number of features is too small.")
 	}
-	if (perturbation < 2 && perturbation !="Auto" ) {
+	if (length(spikein) != length(spikein_log2FC)) {
+		stop("spikein length must be the same as spikein_log2FC.")
+	} else {
+		keep <- which(spikein_log2FC == 0)
+		spikein <- spikein[keep]
+	}
+	if (perturbation < 2 && perturbation != "Auto") {
 		stop("Invalid perturbation.")
 	}
 	if (minNonZeroPortion > 1 || minNonZeroPortion < 0) {
