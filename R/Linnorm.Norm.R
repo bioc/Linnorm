@@ -34,7 +34,11 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, spikein = NULL, spikei
 		stop("Invalid output argument. It must be Raw or XPM.")
 	}
 	if (length(spikein) != length(spikein_log2FC)) {
-		stop("spikein length must be the same as spikein_log2FC.")
+		if (length(spikein_log2FC) == 0) {
+			spikein_log2FC <- rep(0, length(spikein))
+		} else {
+			stop("spikein length must be the same as spikein_log2FC.")
+		}
 	} else {
 		keep <- which(spikein_log2FC == 0)
 		spikein <- spikein[keep]

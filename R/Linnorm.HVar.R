@@ -41,7 +41,11 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		stop("Invalid sig value.")
 	}
 	if (length(spikein) != length(spikein_log2FC)) {
-		stop("spikein length must be the same as spikein_log2FC.")
+		if (length(spikein_log2FC) == 0) {
+			spikein_log2FC <- rep(0, length(spikein))
+		} else {
+			stop("spikein length must be the same as spikein_log2FC.")
+		}
 	} else {
 		keep <- which(spikein_log2FC == 0)
 		spikein <- spikein[keep]
