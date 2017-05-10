@@ -60,7 +60,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		datamatrix <- t(datamatrix)
 	}
 	#Linnorm transformation
-	datamatrix <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
+	datamatrix <- Linnorm(datamatrix, spikein=spikein, spikein_log2FC=spikein_log2FC, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
 	
 	#Filter genes based on number of non-zero values
 	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= 3]
