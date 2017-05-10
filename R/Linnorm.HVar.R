@@ -32,14 +32,6 @@
 #' @examples
 #' data(Islam2011)
 #' results <- Linnorm.HVar(Islam2011)
-datamatrix <- TPM[,which(Groups=="MGH26"),drop=FALSE]
-RowSamples = FALSE
- spikein_log2FC=NULL
- log.p=FALSE
- sig.value="p"
- sig=0.05
- MZP=0.25
- FG_Recov=0.5
 
 Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_log2FC=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.25, FG_Recov=0.5, plot.title="Mean vs SD plot", ...) {
 	#Highly variable gene analysis with Linnorm transformed dataset
