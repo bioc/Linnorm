@@ -32,6 +32,14 @@
 #' @examples
 #' data(Islam2011)
 #' results <- Linnorm.HVar(Islam2011)
+datamatrix <- TPM[,which(Groups=="MGH26"),drop=FALSE]
+RowSamples = FALSE
+ spikein_log2FC=NULL
+ log.p=FALSE
+ sig.value="p"
+ sig=0.05
+ MZP=0.25
+ FG_Recov=0.5
 
 Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_log2FC=NULL, log.p=FALSE, sig.value="p", sig=0.05, MZP=0.25, FG_Recov=0.5, plot.title="Mean vs SD plot", ...) {
 	#Highly variable gene analysis with Linnorm transformed dataset
@@ -103,7 +111,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
 		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
 	} else {
-		spikes <- which(rownames(datamatrix) %in% spikein)
+		spikes <- which(colnames(datamatrix) %in% spikein)
 		SDRatio2 <- SDRatio[spikes]
 		TheMean <- mean(SDRatio2)
 		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
