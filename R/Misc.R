@@ -74,6 +74,7 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	spikein <- spikein[which(spikein %in% colnames(x))]
 	if (length(spikein) < 10 && length(spikeino) != 0) {
 		spikein = NULL
+		warning("Too many Spikein are filtered. They will not be utilized.")
 	}
 	
 	#Initialize object for storing genes that will be retained
@@ -114,12 +115,11 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	} else {
 	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
-		spikes <- which(rownames(x) %in% spikein)
-		SDnoOutlier <- SDRatio[spikein]
+		spikes <- which(colnames(x) %in% spikein)
+		SDnoOutlier <- SDRatio[spikes]
 		TheMean <- mean(SDnoOutlier)
 		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
-		
 		SkewnoOutlier <- SkewResidual[spikes]
 		TheMean <- mean(SkewnoOutlier)
 		tdeno <- sqrt(sum((SkewnoOutlier - TheMean)^2)/(length(SkewnoOutlier) - 2))
@@ -170,6 +170,13 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	x <- x[,Keep]
 	MeanSDSkew <- MeanSDSkew[,Keep]
 	
+	#Check the number if spike in genes and whether they are provided
+	spikeino <- spikein
+	spikein <- spikein[which(spikein %in% colnames(x))]
+	if (length(spikein) < 10 && length(spikeino) != 0) {
+		spikein = NULL
+		warning("Too many Spikein are filtered. They will not be utilized.")
+	}
 	
 	#Initialize object for storing genes that will be retained
 	allStableGenes <- 0
@@ -208,10 +215,11 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 		pvalueMatrix[,2] <- 2 * pt(abs((SkewResidual - TheMean)/tdeno),df = length(SkewnoOutlier) - 2, lower.tail = FALSE)
 	} else {
 	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
-		spikes <- which(rownames(x) %in% spikein)
-		SDnoOutlier <- SDRatio[spikein]
+		spikes <- which(colnames(x) %in% spikein)
+		SDnoOutlier <- SDRatio[spikes]
 		TheMean <- mean(SDnoOutlier)
 		tdeno <- sqrt(sum((SDnoOutlier - TheMean)^2)/(length(SDnoOutlier) - 2))
+		
 		pvalueMatrix[,1] <- 2 * pt(abs((SDRatio - TheMean)/tdeno), df = length(SDnoOutlier) - 2, lower.tail = FALSE)
 		
 		

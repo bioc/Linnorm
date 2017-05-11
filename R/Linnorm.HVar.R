@@ -41,7 +41,11 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		stop("Invalid sig value.")
 	}
 	if (length(spikein) != length(spikein_log2FC)) {
-		stop("spikein length must be the same as spikein_log2FC.")
+		if (length(spikein_log2FC) == 0) {
+			spikein_log2FC <- rep(0, length(spikein))
+		} else {
+			stop("spikein length must be the same as spikein_log2FC.")
+		}
 	} else {
 		keep <- which(spikein_log2FC == 0)
 		spikein <- spikein[keep]
@@ -56,38 +60,33 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		datamatrix <- t(datamatrix)
 	}
 	#Linnorm transformation
-	datamatrix <- Linnorm(datamatrix, spikein=spikein, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
-	
+	datamatrix <- Linnorm(datamatrix, spikein=spikein, spikein_log2FC=spikein_log2FC, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
 	#Filter genes based on number of non-zero values
 	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= 3]
 	#Check available number of spike in genes.
 	spikein <- spikein[which(spikein %in% colnames(datamatrix))]
 	if (length(spikein) != 0 && length(spikein) < 10) {
 		spikein = NULL
+		warning("Too many Spikein are filtered. They will not be utilized.")
 	}
 	#Get mean and SD
 	MeanSD <- NZcolMeanSD_acc(datamatrix)
 	datamean <- MeanSD[1,]
 	dataSD <- MeanSD[2,]
-	
 	#Loess Fit
 	logitit <- loessFit(dataSD,datamean, weights=exp(datamean))
-	
 	#In case of negative fit, where negative stdev is impossible in our case, change them into the smallest stdev in the dataset
 	logitit$fitted[which(logitit$fitted <= 0)] <- min(logitit$fitted[which(logitit$fitted > 0)])
 	
 	#Obtain Stdev ratios to adjust for technical noise.
 	SDRatio <- as.numeric(log(dataSD/logitit$fitted,2))
-
 	#normalize SDRatio
 	LR <- LinearRegression(datamean,SDRatio)
 	Residual <- (SDRatio - (LR$coefficients[[2]] * datamean + LR$coefficients[[1]]))
 	LR2 <- LinearRegression(datamean,abs(Residual))
 	SDRatio <- SDRatio * (LR2$coefficients[[2]] * datamean[1] + LR2$coefficients[[1]])/(LR2$coefficients[[2]] * datamean + LR2$coefficients[[1]])
-	
 	LR <- LinearRegression(datamean,SDRatio)
 	Residual <- (SDRatio - (LR$coefficients[[2]] * datamean + LR$coefficients[[1]]))
-	
 	#Calculate p values
 	pvalues <- 0
 	spikes <- 0
@@ -99,7 +98,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
 		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
 	} else {
-		spikes <- which(rownames(datamatrix) %in% spikein)
+		spikes <- which(colnames(datamatrix) %in% spikein)
 		SDRatio2 <- SDRatio[spikes]
 		TheMean <- mean(SDRatio2)
 		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
@@ -123,7 +122,6 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		results[,4] <- epvalues
 		results[,5] <- qvalues
 	}
-	
 	#Plot Mean vs stdev
 	groups <- rep("non-sig", length(SDRatio))
 	if (sig.value == "p") {
@@ -132,10 +130,15 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 	if (sig.value == "q") {
 		groups[which(qvalues <= sig)] <- "Significant"
 	}
-	myColors <- c("blue","red")
-	names(myColors) <- levels(groups)
+	if (spikes != 0) {
+		groups[spikes] <- "Spike in"
+		myColors <- c("blue","green","red")
+		names(myColors) <- levels(groups)
+	} else {
+		myColors <- c("blue","red")
+		names(myColors) <- levels(groups)
+	}
 	
-	groups[spikes] <- "Spike in"
 	plotdata <- data.frame(mean=datamean,SD=dataSD,group=groups)
 	render_plot <- ggplot_build(ggplot(plotdata, aes(x=mean, y=SD, color=group)) + geom_point(size = 1) + scale_x_continuous("Transformed Mean") + scale_y_continuous("Transformed Standard Deviation") + scale_colour_manual(name = "Sig",values = myColors) + ggtitle(plot.title) + theme(aspect.ratio=3/4))
 	if (!RowSamples) {
