@@ -40,11 +40,11 @@ NZcolMeanSD_acc <- function(x) {
 	return(answer)
 }
 
-colLog1pMeanSD <- function(x,y) {
-    .Call(colLog1pMeanSDCpp, x,y)
+NZcolLog1pMeanSD <- function(x,y) {
+    .Call(NZcolLog1pMeanSDCpp, x,y)
 }
-rowLog1pMeanSD <- function(x,y) {
-    .Call(colLog1pMeanSDCpp, t(x),y)
+NZrowLog1pMeanSD <- function(x,y) {
+    .Call(NZcolLog1pMeanSDCpp, t(x),y)
 }
 
 NZcolLogMeanSDSkew <- function(x) {

@@ -86,13 +86,15 @@ static double SkewVar (const arma::mat& GeneExp, const double& lambda2) {
 		M3 = 0;
 		numData = 0;
 		for (int_fast32_t n = 0; n < int_fast32_t(GeneExp.n_cols); n++) {
-			delta = log1p(GeneExp.at(i,n) * lambda2) - mean;
-			delta_n = delta / (numData + 1);
-			term1 = delta * delta_n * numData;
-			mean = mean + delta_n;
-			M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
-			M2 = M2 + term1;
-			numData++;
+			if (GeneExp.at(i,n) != 0) {
+				delta = log1p(GeneExp.at(i,n) * lambda2) - mean;
+				delta_n = delta / (numData + 1);
+				term1 = delta * delta_n * numData;
+				mean = mean + delta_n;
+				M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
+				M2 = M2 + term1;
+				numData++;
+			}
 		}
 		//Here, calculate skewness and SD using 3rd and 2nd moments.
 		thisSkew =  (sqrt(numData) * M3) / pow(M2,1.5);
@@ -155,15 +157,16 @@ static double SkewVar1 (arma::mat& GeneExp, const double& lambda2) {
 	//One pass linear regression with one pass variance, skewness
 	for (arma::mat::iterator it = GeneExp.begin(); it != it_end; ++it) {
 		//std::cout << (*it) << std::endl;
-		delta = log1p(*it * lambda2) - mean;
-		delta_n = delta / (numData + 1);
-		term1 = delta * delta_n * numData;
-		mean = mean + delta_n;
-		M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
-		M2 = M2 + term1;
-		
-		numData++;
-		
+		if (*it != 0) {
+			delta = log1p(*it * lambda2) - mean;
+			delta_n = delta / (numData + 1);
+			term1 = delta * delta_n * numData;
+			mean = mean + delta_n;
+			M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
+			M2 = M2 + term1;
+			
+			numData++;
+		}
 		n++;
 		if (n == int(GeneExp.n_rows)) {
 			//Here, calculate skewness and SD using 3rd and 2nd moments.
@@ -247,21 +250,22 @@ static vector< double > SkewVar2 (arma::mat& GeneExp, const double& lambda2, dou
 	//One pass linear regression with one pass variance, skewness
 	for (arma::mat::iterator it = GeneExp.begin(); it != it_end; ++it) {
 		//std::cout << (*it) << std::endl;
-		delta = log1p(*it * (lambda2 - extra + 1) ) - mean;
-		delta_n = delta / (numData + 1);
-		term1 = delta * delta_n * numData;
-		mean = mean + delta_n;
-		M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
-		M2 = M2 + term1;
-		
-		delta_2 = log1p(*it * (lambda2 + extra) )- mean_2;
-		delta_n_2 = delta_2 / (numData + 1);
-		term1_2 = delta_2 * delta_n_2 * numData;
-		mean_2 = mean_2 + delta_n_2;
-		M3_2 = M3_2 + term1_2 * delta_n_2 * (numData - 1) - 3 * delta_n_2 * M2_2;
-		M2_2 = M2_2 + term1_2;
-		numData++;
-		
+		if (*it != 0) {
+			delta = log1p(*it * (lambda2 - extra + 1) ) - mean;
+			delta_n = delta / (numData + 1);
+			term1 = delta * delta_n * numData;
+			mean = mean + delta_n;
+			M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
+			M2 = M2 + term1;
+			
+			delta_2 = log1p(*it * (lambda2 + extra) )- mean_2;
+			delta_n_2 = delta_2 / (numData + 1);
+			term1_2 = delta_2 * delta_n_2 * numData;
+			mean_2 = mean_2 + delta_n_2;
+			M3_2 = M3_2 + term1_2 * delta_n_2 * (numData - 1) - 3 * delta_n_2 * M2_2;
+			M2_2 = M2_2 + term1_2;
+			numData++;
+		}
 		n++;
 		if (n == int(GeneExp.n_rows)) {
 			//Here, calculate skewness and SD using 3rd and 2nd moments.
@@ -371,13 +375,15 @@ static arma::vec SkewAVar (const arma::mat& GeneExp, const double& lambda2) {
 		M3 = 0;
 		numData = 0;
 		for (int_fast32_t n = 0; n < int_fast32_t(GeneExp.n_cols); n++) {
-			delta = log1p(GeneExp.at(i,n) * lambda) - mean;
-			delta_n = delta / (numData + 1);
-			term1 = delta * delta_n * numData;
-			mean = mean + delta_n;
-			M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
-			M2 = M2 + term1;
-			numData++;
+			if (GeneExp.at(i,n) != 0) {
+				delta = log1p(GeneExp.at(i,n) * lambda) - mean;
+				delta_n = delta / (numData + 1);
+				term1 = delta * delta_n * numData;
+				mean = mean + delta_n;
+				M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
+				M2 = M2 + term1;
+				numData++;
+			}
 		}
 		//Here, calculate skewness and SD using 3rd and 2nd moments.
 		thisSkew =  (sqrt(numData) * M3) / pow(M2,1.5);
@@ -568,7 +574,7 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 	double newminIntegral;
 	double finallocalmin = localmin + 1;
 	int_fast32_t numMaxBoundIncrease = 0;
-	while ((finallocalmin != localmin || maxBound - 1 <= localmin || minBound + 1 >= localmin) && numMaxBoundIncrease <= 5) {
+	while ((finallocalmin != localmin || maxBound - 1 <= localmin || minBound + 1 >= localmin) && numMaxBoundIncrease <= 3) {
 		if ((minBound + 1 >= localmin || maxBound - 1 <= localmin) && newminBound < minBound) {
 			//enlarge maxBound if global minimum is found near the boundaries.
 			maxBound = maxBound * 10;
@@ -673,7 +679,7 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 			}
 		}
 	}
-	if (numMaxBoundIncrease == 6 && (maxBound - 1 <= localmin || minBound + 1 >= localmin)) {
+	if (numMaxBoundIncrease == 4 && (maxBound - 1 <= localmin || minBound + 1 >= localmin)) {
 		localmin = OriginalmaxBound;
 	}
 	//cout << "LMI " << localminIntegral << endl;
@@ -1109,7 +1115,7 @@ SEXP colMeanSDCpp(SEXP xSEXP) {
 	return Rcpp::wrap(Answer);
 }
 
-SEXP colLog1pMeanSDCpp (SEXP xSEXP, SEXP ySEXP) {
+SEXP NZcolLog1pMeanSDCpp (SEXP xSEXP, SEXP ySEXP) {
 	arma::mat GeneExp = Rcpp::as<arma::mat>(xSEXP);
 	double lambda = Rcpp::as<double>(ySEXP);
 	//vectors to store skewness, standard deviation, kurtosis and mean of each gene/feature.
@@ -1120,19 +1126,23 @@ SEXP colLog1pMeanSDCpp (SEXP xSEXP, SEXP ySEXP) {
 	double mean = 0;
 	double M2 = 0;
 	double delta, delta_n, term1;
+	int numdata = 0;
 	//One pass
 	for (arma::mat::iterator it = GeneExp.begin(); it != it_end; ++it) {
 		//std::cout << (*it) << std::endl;
-		delta = log1p(*it * lambda) - mean;
-		delta_n = delta / (n + 1);
-		term1 = delta * delta_n * n;
-		mean = mean + delta_n;
-		M2 = M2 + term1;
+		if (*it != 0) {
+			delta = log1p(*it * lambda) - mean;
+			delta_n = delta / (n + 1);
+			term1 = delta * delta_n * n;
+			mean = mean + delta_n;
+			M2 = M2 + term1;
+			numdata++;
+		}
 		n++;
 		if (n == int(GeneExp.n_rows)) {
-			Answer.at(1,i) = sqrt(M2/(GeneExp.n_rows - 1));
+			Answer.at(1,i) = sqrt(M2/(numdata - 1));
 			Answer.at(0,i) = mean;
-			
+			numdata = 0;
 			M2 = 0;
 			mean = 0;
 			n=0;
@@ -1378,7 +1388,7 @@ static const R_CallMethodDef callMethods[] = {
 	{"colSDsCpp", (DL_FUNC) &colSDsCpp, 1},
 	{"colMeanSDCpp", (DL_FUNC) &colMeanSDCpp, 1},
 	
-	{"colLog1pMeanSDCpp", (DL_FUNC) &colLog1pMeanSDCpp, 2},
+	{"NZcolLog1pMeanSDCpp", (DL_FUNC) &NZcolLog1pMeanSDCpp, 2},
 	{"NZcolLogMeanSDSkewCpp", (DL_FUNC) &NZcolLogMeanSDSkewCpp, 1},	
 	{"NZcolMeansCpp", (DL_FUNC) &NZcolMeansCpp, 1},
 	{"NZcolMeanSDCpp", (DL_FUNC) &NZcolMeanSDCpp, 1},
