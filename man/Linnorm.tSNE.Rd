@@ -77,4 +77,3 @@ tSNE.results <- Linnorm.tSNE(Islam2011)
 \keyword{t-SNE}
 \keyword{t-distributed}
 \keyword{transformation}
-

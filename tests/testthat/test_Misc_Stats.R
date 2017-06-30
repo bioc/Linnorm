@@ -189,21 +189,6 @@ test_that("NZcolLogMeanSDSkew LIHC skew test", {
 })
 
 
-#colLog1pMeanSD
-colLog1pMeanSD2 <- function(x,y) {
-	answer <- matrix(nrow=2, ncol=ncol(x))
-	for (i in 1:ncol(x)) {
-		answer[1,i] <- mean(log1p(x[,i] * y))
-		answer[2,i] <- sd(log1p(x[,i] * y))
-	}
-	return(answer)
-}
-
-AnswerLIHC <- colLog1pMeanSD2(LIHC,1000000)
-AnswerSEQC <- colLog1pMeanSD2(SEQC,1000000)
-LinnormAnswerLIHC <- colLog1pMeanSD(LIHC,1000000)
-LinnormAnswerSEQC <- colLog1pMeanSD(SEQC,1000000)
-
 AcceptableMean <- 0
 AcceptableSD <- 0
 for (i in 1:ncol(SEQC)) {

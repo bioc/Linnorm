@@ -77,4 +77,3 @@ PCA.results <- Linnorm.PCA(Islam2011)
 \keyword{kmeans}
 \keyword{normalization}
 \keyword{transformation}
-

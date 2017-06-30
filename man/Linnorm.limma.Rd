@@ -71,4 +71,3 @@ DEGResults <- Linnorm.limma(LIHC, designmatrix)
 \keyword{limma}
 \keyword{normalization}
 \keyword{transformation}
-

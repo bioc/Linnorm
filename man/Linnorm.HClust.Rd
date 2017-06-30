@@ -77,4 +77,3 @@ HClust.results <- Linnorm.HClust(Islam2011, Group=c(rep("ESC",48), rep("EF",44),
 \keyword{hierarchical}
 \keyword{normalization}
 \keyword{transformation}
-

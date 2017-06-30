@@ -12,20 +12,27 @@ FindLCT <- function(datamatrix, Multy,showinfo) {
 	#Find low count gene filtering threshold
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	#Obtain mean and stdev for log(Relative Expression * estimated total count + 1) dataset
-	MeanSD <- colLog1pMeanSD(datamatrix,Multy)
+	MeanSD <- NZcolLog1pMeanSD(datamatrix,Multy)
 	LC_Threshold <- 0
 	MeanSD <- MeanSD[,which(!is.nan(MeanSD[2,]))]
 	#Lowest expressing 1/3 of the genes will be used for the calculation of slope
 	Portion <- 1/3
 	MeanOrder <- order(MeanSD[1,])
 	Slope <- 1
-	#Loop until Slope is negative or thersohld is too big
-	while(Slope > 0 && LC_Threshold < 1) {
+	#Loop until Slope is negative for 3 times in a roll or thersohld is too big
+	numNegative <- 0
+	while(numNegative < 3 && LC_Threshold < 0.99) {
 		LC_Threshold <- LC_Threshold + 0.01
 		Range <- floor(ncol(MeanSD) * LC_Threshold + 1):ncol(MeanSD)
 		Range <- Range[1:floor(length(Range) * Portion + 1)]
 		Slope <- getSlope(MeanSD[1,MeanOrder[Range]],MeanSD[2,MeanOrder[Range]])
+		if (Slope < 0) {
+			numNegative <- numNegative + 1
+		} else {
+			numNegative <- 0
+		}
 	}
+	LC_Threshold <- LC_Threshold - ((numNegative - 1)/100)
 	return (round(LC_Threshold,2))
 }
 FindLCT_DI <- function(datamatrix, showinfo) {

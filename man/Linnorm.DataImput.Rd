@@ -54,4 +54,3 @@ DataImput <- Linnorm.DataImput(Transformed)
 \keyword{missing}
 \keyword{single}
 \keyword{value}
-

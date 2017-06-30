@@ -57,4 +57,3 @@ simulateddata <- RnaXSim(expMatrix, distribution="Gamma", NumRep=5, NumDiff = 20
 \keyword{Simulate}
 \keyword{Simulation}
 \keyword{distribution}
-

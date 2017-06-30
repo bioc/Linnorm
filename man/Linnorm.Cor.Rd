@@ -99,4 +99,3 @@ results <- Linnorm.Cor(Islam2011[,1:48])
 \keyword{pearson}
 \keyword{spearman}
 \keyword{transformation}
-
