@@ -219,17 +219,3 @@ test_that("colLog1pMeanSD SEQC sd test", {
 	expect_true(Acceptable)
 })
 
-AcceptableMean <- 0
-AcceptableSD <- 0
-for (i in 1:ncol(LIHC)) {
-	AcceptableMean <- AcceptableMean + (abs((AnswerLIHC[1,i] - LinnormAnswerLIHC[1,i])/mean(c(LinnormAnswerLIHC[1,i],AnswerLIHC[1,i]))) * 100)
-	AcceptableSD <- AcceptableSD + (abs((AnswerLIHC[2,i] - LinnormAnswerLIHC[2,i])/mean(c(LinnormAnswerLIHC[2,i],AnswerLIHC[2,i]))) * 100)
-}
-Acceptable <- AcceptableMean/ncol(LIHC) < 5
-test_that("colLog1pMeanSD LIHC mean test", {
-	expect_true(Acceptable)
-})
-Acceptable <- AcceptableSD/ncol(LIHC) < 5
-test_that("colLog1pMeanSD LIHC sd test", {
-	expect_true(Acceptable)
-})
