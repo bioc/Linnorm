@@ -188,34 +188,3 @@ test_that("NZcolLogMeanSDSkew LIHC skew test", {
 	expect_true(Acceptable)
 })
 
-
-#colLog1pMeanSD
-colLog1pMeanSD2 <- function(x,y) {
-	answer <- matrix(nrow=2, ncol=ncol(x))
-	for (i in 1:ncol(x)) {
-		answer[1,i] <- mean(log1p(x[,i] * y))
-		answer[2,i] <- sd(log1p(x[,i] * y))
-	}
-	return(answer)
-}
-
-AnswerLIHC <- colLog1pMeanSD2(LIHC,1000000)
-AnswerSEQC <- colLog1pMeanSD2(SEQC,1000000)
-LinnormAnswerLIHC <- colLog1pMeanSD(LIHC,1000000)
-LinnormAnswerSEQC <- colLog1pMeanSD(SEQC,1000000)
-
-AcceptableMean <- 0
-AcceptableSD <- 0
-for (i in 1:ncol(SEQC)) {
-	AcceptableMean <- AcceptableMean + (abs((AnswerSEQC[1,i] - LinnormAnswerSEQC[1,i])/mean(c(LinnormAnswerSEQC[1,i],AnswerSEQC[1,i]))) * 100)
-	AcceptableSD <- AcceptableSD + (abs((AnswerSEQC[2,i] - LinnormAnswerSEQC[2,i])/mean(c(LinnormAnswerSEQC[2,i],AnswerSEQC[2,i]))) * 100)
-}
-Acceptable <- AcceptableMean/ncol(SEQC) < 5
-test_that("colLog1pMeanSD SEQC mean test", {
-	expect_true(Acceptable)
-})
-Acceptable <- AcceptableSD/ncol(SEQC) < 5
-test_that("colLog1pMeanSD SEQC sd test", {
-	expect_true(Acceptable)
-})
-
