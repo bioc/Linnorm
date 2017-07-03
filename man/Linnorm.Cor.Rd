@@ -80,7 +80,7 @@ This function performed gene correlated study in the dataset by using Linnorm tr
 \examples{
 data(Islam2011)
 #Analysis on Islam2011 embryonic stem cells
-results <- Linnorm.Cor(Islam2011[,1:48])
+results <- Linnorm.Cor(Islam2011[,1:48], plotNetwork=FALSE)
 }
 \keyword{CPM}
 \keyword{Count}

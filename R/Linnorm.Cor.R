@@ -43,7 +43,7 @@
 #' @examples
 #' data(Islam2011)
 #' #Analysis on Islam2011 embryonic stem cells
-#' results <- Linnorm.Cor(Islam2011[,1:48])
+#' results <- Linnorm.Cor(Islam2011[,1:48], plotNetwork=FALSE)
 Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pearson", MZP=0.5, sig.q=0.05, plotNetwork=TRUE, plotNumPairs=5000, plotdegree=0, plotname="networkplot", plotformat = "png", plotVertexSize=1, plotFontSize=1, plot.Pos.cor.col="red", plot.Neg.cor.col="green", vertex.col="cluster", plotlayout="kk", clusterMethod = "cluster_edge_betweenness", ...) {
 	#Correlation network analysis by using Linnorm transformed data
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>

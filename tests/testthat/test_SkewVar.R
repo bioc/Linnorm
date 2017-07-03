@@ -46,12 +46,12 @@ SkewVar_Raw2 <- function(GeneExp, lambda) {
 
 data(LIHC)
 LIHC <- LIHC/1000000
-LIHC <- LIHC[rowSums(LIHC != 0) > 4, ]
+LIHC <- LIHC[rowSums(LIHC != 0) == ncol(LIHC), ]
 LIHC <- LIHC[order(rowMeans(LIHC)),]
 
 data(SEQC)
 SEQC <- t(tXPM(SEQC))
-SEQC <- SEQC[rowSums(SEQC != 0) > 4, ]
+SEQC <- SEQC[rowSums(SEQC != 0) == ncol(SEQC), ]
 SEQC <- SEQC[order(rowMeans(SEQC)),]
 
 LIHC2Raw2 <- SkewVar_Raw2(LIHC,1000000)

@@ -6,7 +6,7 @@
 \usage{
 Linnorm.Norm(datamatrix, RowSamples = FALSE, spikein = NULL,
   spikein_log2FC = NULL, showinfo = FALSE, output = "XPM",
-  minNonZeroPortion = 0.6, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto",
+  minNonZeroPortion = 0.75, BE_F_p = 0.3173, BE_F_LC_Genes = "Auto",
   BE_F_HC_Genes = 0.01, BE_strength = 0.5, max_F_LC = 0.75)
 }
 \arguments{
@@ -22,7 +22,7 @@ Linnorm.Norm(datamatrix, RowSamples = FALSE, spikein = NULL,
 
 \item{output}{character. "Raw" or "XPM". Output's total count will be approximately the median of the inputs' when set to "Raw". Output CPM (if input is raw counts or CPM) or TPM (if input is RPKM FPKM or TPM) when set to "XPM".}
 
-\item{minNonZeroPortion}{Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.6.}
+\item{minNonZeroPortion}{Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.75.}
 
 \item{BE_F_p}{Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm's batch effect normalization algorithm. Defaults to 0.3173.}
 
