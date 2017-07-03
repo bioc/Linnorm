@@ -21,7 +21,7 @@ FindLCT <- function(datamatrix, Multy,showinfo) {
 	Slope <- 1
 	#Loop until Slope is negative for 3 times in a roll or thersohld is too big
 	numNegative <- 0
-	while(numNegative < 3 && LC_Threshold < 0.99) {
+	while(numNegative < 3 && LC_Threshold < 0.98) {
 		LC_Threshold <- LC_Threshold + 0.01
 		Range <- floor(ncol(MeanSD) * LC_Threshold + 1):ncol(MeanSD)
 		Range <- Range[1:floor(length(Range) * Portion + 1)]

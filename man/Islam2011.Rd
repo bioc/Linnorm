@@ -15,4 +15,3 @@ GEO accession GSE29087:
 \references{
 Islam et al. (2011) Genome Res 2011 Jul;21(7):1160-7. PMID: 21543516
 }
-

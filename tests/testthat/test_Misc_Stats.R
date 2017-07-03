@@ -9,14 +9,14 @@ context("Moment calculation check")
 #Initialize datasets
 data(LIHC)
 LIHC <- LIHC/1000000
-LIHC <- LIHC[rowSums(LIHC != 0) > 5, ]
+LIHC <- LIHC[rowSums(LIHC != 0) == ncol(LIHC), ]
 LIHC <- t(LIHC[order(rowMeans(LIHC)),])
 set.seed(123456)
 LIHCTested <- sample(1:ncol(LIHC),10)
 
 data(SEQC)
 SEQC <- tXPM(as.matrix(SEQC))
-SEQC <- SEQC[,colSums(SEQC != 0) > 5]
+SEQC <- SEQC[,colSums(SEQC != 0) == nrow(SEQC)]
 SEQC <- SEQC[,order(colMeans(SEQC))]
 set.seed(123456)
 SEQCTested <- sample(1:ncol(SEQC),10)
@@ -187,4 +187,3 @@ Acceptable <- AcceptableSkew/ncol(LIHC) < 5
 test_that("NZcolLogMeanSDSkew LIHC skew test", {
 	expect_true(Acceptable)
 })
-

@@ -31,4 +31,3 @@ c <- results$coefficients[[1]]
 \keyword{Regression}
 \keyword{constant}
 \keyword{slope}
-

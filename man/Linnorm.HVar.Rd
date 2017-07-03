@@ -73,4 +73,3 @@ results <- Linnorm.HVar(Islam2011)
 \keyword{transformation}
 \keyword{variable}
 \keyword{variance}
-
