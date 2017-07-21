@@ -1,10 +1,11 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based transformation method (Linnorm)
-Version: 2.1.4
-Date: 2017-07-03
+Version: 2.1.5
+Date: 2017-07-21
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
-    Pak Chung Sham <pcsham@hku.hk>, Junwen Wang <junwen@uw.edu>
+    Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
+    Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
 Description: Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. It transforms such datasets for parametric tests.
     In addition to the transformtion function (Linnorm), the following pipelines are implemented:

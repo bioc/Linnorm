@@ -79,7 +79,7 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	#Check the number if spike in genes and whether they are provided
 	spikeino <- spikein
 	spikein <- spikein[which(spikein %in% colnames(x))]
-	if (length(spikein) < 10 && length(spikeino) != 0) {
+	if (length(spikein) < 3 && length(spikeino) != 0) {
 		spikein = NULL
 		warning("Too many Spikein are filtered. They will not be utilized.")
 	}
@@ -109,7 +109,7 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
 	
-	if (length(spikein) < 10) {
+	if (length(spikein) < 3) {
 	#degree of freedom is 2 (using loess() and predict() to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
 		TheMean <- mean(SDnoOutlier)
@@ -180,7 +180,7 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	#Check the number if spike in genes and whether they are provided
 	spikeino <- spikein
 	spikein <- spikein[which(spikein %in% colnames(x))]
-	if (length(spikein) < 10 && length(spikeino) != 0) {
+	if (length(spikein) < 3 && length(spikeino) != 0) {
 		spikein = NULL
 		warning("Too many Spikein are filtered. They will not be utilized.")
 	}
@@ -209,7 +209,7 @@ BatchEffectLinnorm1 <- function(x, minNonZeroPortion, BE_F_LC_Genes = 0.25,BE_F_
 	#Object for storing pvalues from stdev and skewness. Column 1: Stdev p values. Column 2: Skew p values.
 	pvalueMatrix <- matrix(nrow=ncol(MeanSDSkew), ncol=2)
 	
-	if (length(spikein) < 10) {
+	if (length(spikein) < 3) {
 	#degree of freedom is 2 (using loess and predict to estimate df is very slow. Here, we will just assume it to be n-2 to save time. Given hundreds to tens of thousands of features in RNA-seq dataset, this df should be a good enough estimate.)
 		SDnoOutlier <- SDRatio[!SDRatio %in% boxplot.stats(SDRatio)$out]
 		TheMean <- mean(SDnoOutlier)
