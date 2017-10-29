@@ -32,6 +32,9 @@
 Linnorm.PCA <- function(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0, DataImputation = TRUE, num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", pca.scale=FALSE, kmeans.iter=2000, plot.title="PCA K-means clustering",...) {
 	#PCA K-means clustering with Linnorm transformed dataset
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+	
+	message("To perform cell clustering, Linnorm.tSNE is strongly recommended. Linnorm.PCA is only provided as a reference." ,appendLF=TRUE)
+	
 	if (input != "Raw" && input != "Linnorm") {
 		stop("input argument is not recognized.")
 	}
