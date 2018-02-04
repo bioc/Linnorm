@@ -104,8 +104,8 @@ Linnorm.SGenes <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, minN
 		if (LC_Threshold > max_F_LC) {
 			if (showinfo) {
 				message(paste("Filter low count gene threshold is ", LC_Threshold, ". It is larger than max_F_LC, ", max_F_LC, ", which is now used.", sep=""))
-				LC_Threshold <- max_F_LC
 			}
+			LC_Threshold <- max_F_LC
 		}
 		F_LC_Genes <- LC_Threshold
 		

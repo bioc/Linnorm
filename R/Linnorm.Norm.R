@@ -123,8 +123,8 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, spikein = NULL, spikei
 		if (BE_F_LC_Genes > max_F_LC) {
 			if (showinfo) {
 				message(paste("Filter low count gene threshold is ", BE_F_LC_Genes, ". It is larger than max_F_LC, ", max_F_LC, ", which is now used.", sep=""))
-				BE_F_LC_Genes <- max_F_LC
 			}
+			BE_F_LC_Genes <- max_F_LC
 		}
 		if (showinfo) {
 			message(paste("Filter low count genes threshold is set to ", BE_F_LC_Genes, sep=""),appendLF=TRUE)
