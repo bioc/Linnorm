@@ -7,7 +7,7 @@
 #' @param spikein_log2FC	Numeric vector. Log 2 fold change of the spike-in genes. Defaults to NULL.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param output	character. "Raw" or "XPM". Output's total count will be approximately the median of the inputs' when set to "Raw". Output CPM (if input is raw counts or CPM) or TPM (if input is RPKM FPKM or TPM) when set to "XPM". 
-#' @param minNonZeroPortion Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.3.
+#' @param minNonZeroPortion Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.75, genes without at least 75 percent of the samples being non-zero will be removed. Defaults to 0.75.
 #' @param BE_F_p	Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm's batch effect normalization algorithm. Defaults to 0.3173.
 #' @param BE_F_LC_Genes	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes before applying Linnorm's batch effect normalization algorithm. It can be determined automatically by setting to "Auto". Defaults to "Auto".
 #' @param BE_F_HC_Genes	Double >=0, <= 1. Filter this portion of the highest expressing genes before applying Linnorm's batch effect normalization algorithm. Defaults to 0.01.
@@ -110,12 +110,28 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, spikein = NULL, spikei
 	}
 	#Filter zeroes based on minNonZeroPortion threshold
 	Keep <- 0
-	if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
-		Keep <- which(colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion)
+	if (nrow(datamatrix) * minNonZeroPortion < 3) {
+		Keep <- which(colSums(datamatrix != 0) >= 3)
 	} else {
-		Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
+		if (minNonZeroPortion == 0 || minNonZeroPortion == 1) {
+			Keep <- which(colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion)
+		} else {
+			Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
+		}
+		#Fail safe, if Keep < 200, auto-adjust minNonZeroPortion if possible to allow program to keep running.
+		if (length(Keep) < 200) {
+			while (minNonZeroPortion > 0 && length(Keep) < 200) {
+				minNonZeroPortion <- minNonZeroPortion - 0.01
+				Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
+			}
+			if (length(Keep) >= 200) {
+				message(paste("Given the current minNonZeroPortion threshold, the number of remaining feature (less than 200) is too small; minNonZeroPortion is now reset to ", minNonZeroPortion, ".", sep="") )
+			}
+		}
 	}
-	
+	if (length(Keep) < 200) {
+		stop("Given the current minNonZeroPortion threshold, the number of remaining feature (less than 200) is too small.")
+	}
 	
 	#Obtain low count gene filtering threshold
 	if (BE_F_LC_Genes == "Auto") {

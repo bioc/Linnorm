@@ -15,7 +15,7 @@ Linnorm.SGenes(datamatrix, RowSamples = FALSE, showinfo = FALSE,
 
 \item{showinfo}{Logical. Show algorithm running information. Defaults to FALSE.}
 
-\item{minNonZeroPortion}{Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.75.}
+\item{minNonZeroPortion}{Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.75, genes without at least 75 percent of the samples being non-zero will be removed. Defaults to 0.75.}
 
 \item{F_p}{Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value. Defaults to 0.3173.}
 

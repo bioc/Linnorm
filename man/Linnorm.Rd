@@ -26,7 +26,7 @@ Linnorm(datamatrix, RowSamples = FALSE, spikein = NULL,
 
 \item{Filter}{Logical. Should Linnorm filter the dataset in the end results? Defaults to FALSE.}
 
-\item{minNonZeroPortion}{Double >= 0.01, <= 0.95. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.75.}
+\item{minNonZeroPortion}{Double >= 0.01, <= 0.95. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.75, genes without at least 75 percent of the samples being non-zero will be removed. Defaults to 0.75.}
 
 \item{L_F_p}{Double >= 0, <= 1. Filter genes with standard deviation and skewness less than this p value before applying Linnorm algorithm. Defaults to 0.3173.}
 
