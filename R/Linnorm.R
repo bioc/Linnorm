@@ -130,7 +130,7 @@ Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, spikein_log2
 	fivepercent <- floor(0.05 * ncol(datamatrix)) + 1
 	nonZero <- datamatrix[,MeanOrder[numZero:(numZero +fivepercent)]][which(datamatrix[,MeanOrder[numZero:(numZero +fivepercent)]] != 0)]
 	maxBound <- length(nonZero)/sum(nonZero)
-	#Get filter low count genes threhsold
+	#Get filter low count genes threshold
 	Keep <- 0
 	if (nrow(datamatrix) * minNonZeroPortion < 3) {
 		Keep <- which(colSums(datamatrix != 0) >= 3)
@@ -142,12 +142,14 @@ Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, spikein_log2
 		}
 		#Fail safe, if Keep < 200, auto-adjust minNonZeroPortion if possible to allow program to keep running.
 		if (length(Keep) < 200) {
-			while (minNonZeroPortion > 0 && length(Keep) < 200) {
-				minNonZeroPortion <- minNonZeroPortion - 0.01
+			minNonZeroPortion <- minNonZeroPortion - 0.01
+			while (minNonZeroPortion >= 0 && length(Keep) < 200) {
 				Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
+				minNonZeroPortion <- minNonZeroPortion - 0.01
 			}
+			minNonZeroPortion <- minNonZeroPortion + 0.01
 			if (length(Keep) >= 200) {
-				message(paste("Given the current minNonZeroPortion threshold, the number of remaining feature (less than 200) is too small; minNonZeroPortion is now reset to ", minNonZeroPortion, ".", sep="") )
+				message(paste("Given the current minNonZeroPortion threshold, the number of remaining feature (less than 200) is too small; minNonZeroPortion is now set to ", minNonZeroPortion, ".", sep="") )
 			}
 		}
 	}
