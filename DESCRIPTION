@@ -1,23 +1,21 @@
 Package: Linnorm
 Type: Package
-Title: Linear model and normality based transformation method (Linnorm)
+Title: Linear model and normality based normalization and transformation method (Linnorm)
 Version: 2.9.3
 Date: 2019-09-28
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
     Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
     Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
-Description: Linnorm is an R package for the analysis of RNA-seq, scRNA-seq, ChIP-seq count data or any large scale count data. It normalizes and performs variance-stabilizing transformation on such datasets.
-    In addition to the transformtion function (Linnorm), the following pipelines are implemented:
+Description: Linnorm normalizes and performs variance-stabilizing transformation on RNA-seq, single cell RNA-seq, ChIP-seq count data or any large scale count data.
+    In addition to the main normalization/transformtion function (Linnorm), the following functions are implemented:
         1. Library size/Batch effect normalization (Linnorm.Norm),
         2. Cell subpopluation analysis and visualization using t-SNE or PCA K-means clustering or Hierarchical clustering (Linnorm.tSNE, Linnorm.HClust),
         3. Differential expression analysis or differential peak detection using limma (Linnorm.limma),
         4. Highly variable gene discovery and visualization (Linnorm.HVar),
         5. Gene correlation network analysis and visualization (Linnorm.Cor),
         6. Stable gene selection for scRNA-seq data; for users without or do not want to rely on spike-in genes (Linnorm.SGenes).
-        7. Data imputation. (deprecated) (Linnorm.DataImput).
     Linnorm can work with raw count, CPM, RPKM, FPKM and TPM.
-    Additionally, the RnaXSim function is included for simulating RNA-seq data for the evaluation of DEG analysis methods.
 Depends: R(>= 3.4)
 License: MIT + file LICENSE
 Imports: Rcpp (>= 0.12.2), RcppArmadillo (>= 0.8.100.1.0), fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, utils, statmod, MASS, igraph, grDevices, graphics, fastcluster, ggdendro, zoo, stats, amap, Rtsne, gmodels

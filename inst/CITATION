@@ -1,0 +1,20 @@
+citHeader("Linnorm's algorithm is explained in the paper below. Please cite the paper when you use Linnorm")
+
+citEntry(entry="article",
+	author = c(person(c("Shun","Hang"),"Yip"),
+	           person("Panwen","Wang"),
+	           person(c("Jean-Pierre", "A"),"Kocher"),
+	           person(c("Pak", "Chung"),"Sham"),
+	           person("Junwen","Wang")
+             ),
+	title = "{Linnorm}: improved statistical analysis for single cell RNA-seq expression data,
+	journal = "Nucleic Acids Research",
+	year = 2017,
+	volume = 45,
+	number = 22,
+	pages = "e179",
+	doi = "10.1093/nar/gkx828",
+
+	textVersion = 
+	"Yip, S. H., Wang, P., Kocher, J. P. A., Sham, P. C., & Wang, J. (2017). Linnorm: improved statistical analysis for single cell RNA-seq expression data. Nucleic acids research, 45(22), e179-e179."
+)
