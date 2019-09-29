@@ -1,8 +1,8 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based normalization and transformation method (Linnorm)
-Version: 2.9.3
-Date: 2019-09-28
+Version: 2.9.1
+Date: 2019-09-29
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
     Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
     Junwen Wang <junwen@uw.edu>
@@ -28,5 +28,5 @@ biocViews: ImmunoOncology, Sequencing, ChIPSeq, RNASeq, DifferentialExpression,
         Network, SingleCell
 NeedsCompilation: yes
 LazyData: false
-URL: http://www.jjwanglab.org/Linnorm/
+URL: https://doi.org/10.1093/nar/gkx828
 RoxygenNote: 6.0.1
