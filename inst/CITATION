@@ -1,13 +1,13 @@
 citHeader("Linnorm's algorithm is explained in the paper below. Please cite the paper when you use Linnorm")
 
 citEntry(entry="article",
-	author = c(person(c("Shun","Hang"),"Yip"),
+	author = c(person(c("Shun","H"),"Yip"),
 	           person("Panwen","Wang"),
 	           person(c("Jean-Pierre", "A"),"Kocher"),
 	           person(c("Pak", "Chung"),"Sham"),
 	           person("Junwen","Wang")
              ),
-	title = "{Linnorm}: improved statistical analysis for single cell RNA-seq expression data,
+	title = "{Linnorm}: improved statistical analysis for single cell RNA-seq expression data",
 	journal = "Nucleic Acids Research",
 	year = 2017,
 	volume = 45,
