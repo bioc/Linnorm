@@ -1,13 +1,13 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based normalization and transformation method (Linnorm)
-Version: 2.9.4
-Date: 2019-10-01
+Version: 2.9.5
+Date: 2019-10-15
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
     Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
     Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
-Description: Linnorm normalizes and performs variance-stabilizing transformation on RNA-seq, single cell RNA-seq, ChIP-seq count data or any large scale count data.
+Description: Linnorm normalizes and performs variance-stabilizing transformation on RNA-seq, single cell RNA-seq, ChIP-seq count data or any large scale count data. It was reviewed by Tian et al. on Nature Methods (https://doi.org/10.1038/s41592-019-0425-8).
     In addition to the main normalization/transformtion function (Linnorm), the following functions are implemented:
         1. Library size/Batch effect normalization (Linnorm.Norm),
         2. Cell subpopluation analysis and visualization using t-SNE or PCA K-means clustering or Hierarchical clustering (Linnorm.tSNE, Linnorm.HClust),

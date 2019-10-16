@@ -120,12 +120,22 @@ Linnorm.Norm <- function (datamatrix, RowSamples = FALSE, spikein = NULL, spikei
 		}
 		#Fail safe, if Keep < 200, auto-adjust minNonZeroPortion if possible to allow program to keep running.
 		if (length(Keep) < 200) {
-			minNonZeroPortion <- minNonZeroPortion - 0.01
-			while (minNonZeroPortion >= 0 && length(Keep) < 200) {
-				Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
-				minNonZeroPortion <- minNonZeroPortion - 0.01
+			minBound <- 0.0
+			maxBound <- round(minNonZeroPortion - 0.01,2)
+			midBound <- round((minBound + maxBound)/2,2)
+			
+			while (midBound != minBound && midBound != maxBound) {
+				Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * midBound)
+				if (length(Keep) < 200) {
+					maxBound <- midBound
+					midBound <- round((minBound + maxBound)/2,2)
+				} else {
+					minBound <- midBound
+					midBound <- round((minBound + maxBound)/2,2)
+				}
 			}
-			minNonZeroPortion <- minNonZeroPortion + 0.01
+			minNonZeroPortion <- minBound
+			Keep <- which(colSums(datamatrix != 0) > nrow(datamatrix) * minNonZeroPortion)
 			if (length(Keep) >= 200) {
 				message(paste("Given the current minNonZeroPortion threshold, the number of remaining feature (less than 200) is too small; minNonZeroPortion is now set to ", minNonZeroPortion, ".", sep="") )
 			}
