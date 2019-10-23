@@ -1,20 +1,13 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based normalization and transformation method (Linnorm)
-Version: 2.9.5
-Date: 2019-10-15
+Version: 2.9.6
+Date: 2019-10-22
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
     Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
     Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
-Description: Linnorm normalizes and performs variance-stabilizing transformation on RNA-seq, single cell RNA-seq, ChIP-seq count data or any large scale count data. It was reviewed by Tian et al. on Nature Methods (https://doi.org/10.1038/s41592-019-0425-8).
-    In addition to the main normalization/transformtion function (Linnorm), the following functions are implemented:
-        1. Library size/Batch effect normalization (Linnorm.Norm),
-        2. Cell subpopluation analysis and visualization using t-SNE or PCA K-means clustering or Hierarchical clustering (Linnorm.tSNE, Linnorm.HClust),
-        3. Differential expression analysis or differential peak detection using limma (Linnorm.limma),
-        4. Highly variable gene discovery and visualization (Linnorm.HVar),
-        5. Gene correlation network analysis and visualization (Linnorm.Cor),
-        6. Stable gene selection for scRNA-seq data; for users without or do not want to rely on spike-in genes (Linnorm.SGenes).
+Description: Linnorm is an algorithm for normalizing and transforming RNA-seq, single cell RNA-seq, ChIP-seq count data or any large scale count data. It has been independently reviewed by Tian et al. on Nature Methods (https://doi.org/10.1038/s41592-019-0425-8). 
     Linnorm can work with raw count, CPM, RPKM, FPKM and TPM.
 Depends: R(>= 3.4)
 License: MIT + file LICENSE
