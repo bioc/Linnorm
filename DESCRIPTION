@@ -1,7 +1,7 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based normalization and transformation method (Linnorm)
-Version: 2.11.0
+Version: 2.12.0
 Date: 2019-10-22
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
     Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
