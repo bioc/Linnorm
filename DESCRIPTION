@@ -1,19 +1,19 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based normalization and transformation method (Linnorm)
-Version: 2.17.0
-Date: 2019-10-22
+Version: 2.17.1
+Date: 2021-08-15
 Author: Shun Hang Yip <shunyip@bu.edu>, Panwen Wang <pwwang@pwwang.com>,
     Jean-Pierre Kocher <Kocher.JeanPierre@mayo.edu>, Pak Chung Sham <pcsham@hku.hk>,
     Junwen Wang <junwen@uw.edu>
 Maintainer: Ken Shun Hang Yip <shunyip@bu.edu>
 Description: Linnorm is an algorithm for normalizing and transforming RNA-seq, single cell RNA-seq, ChIP-seq count data or any large scale count data. It has been independently reviewed by Tian et al. on Nature Methods (https://doi.org/10.1038/s41592-019-0425-8). 
     Linnorm can work with raw count, CPM, RPKM, FPKM and TPM.
-Depends: R(>= 3.4)
+Depends: R(>= 4.1.0)
 License: MIT + file LICENSE
 Imports: Rcpp (>= 0.12.2), RcppArmadillo (>= 0.8.100.1.0), fpc, vegan, mclust, apcluster, ggplot2, ellipse, limma, utils, statmod, MASS, igraph, grDevices, graphics, fastcluster, ggdendro, zoo, stats, amap, Rtsne, gmodels
 LinkingTo: Rcpp, RcppArmadillo
-Suggests: BiocStyle, knitr, rmarkdown, gplots, RColorBrewer, moments, testthat
+Suggests: BiocStyle, knitr, rmarkdown, markdown, gplots, RColorBrewer, moments, testthat
 VignetteBuilder: knitr
 biocViews: ImmunoOncology, Sequencing, ChIPSeq, RNASeq, DifferentialExpression,
         GeneExpression, Genetics, Normalization, Software,

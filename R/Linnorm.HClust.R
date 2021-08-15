@@ -89,7 +89,7 @@ Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputati
 	}
 	if (length(Color) == 1) {
 		if (Color != "Auto") {
-			if (!areColors(Color)) {
+			if (sum(unlist(lapply(Color, areColors))) != length(Color)) {
 				stop("Invalid Color.")
 			}
 			if (length(unique(Group)) > 1) {
@@ -108,7 +108,7 @@ Linnorm.HClust <- function(datamatrix, RowSamples = FALSE, MZP = 0, DataImputati
 			}
 		}
 	} else {
-		if (!areColors(Color)) {
+		if (sum(unlist(lapply(Color, areColors))) != length(Color)) {
 			stop("Invalid Color.")
 		}
 		if (length(unique(Group)) > num_Clust) {
