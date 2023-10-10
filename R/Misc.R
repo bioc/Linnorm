@@ -74,6 +74,9 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	Keep <- Keep[Start:End]
 	
 	x <- x[,Keep]
+        if (anyNA(x)) {
+                stop("x1 contains NA.")
+        }
 	MeanSDSkew <- MeanSDSkew[,Keep]
 	
 	#Check the number if spike in genes and whether they are provided
@@ -92,6 +95,9 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	Keep <- which(logitit$fitted > 0)
 	LogFit <- logitit$fitted[Keep]
 	x <- x[,Keep]
+        if (anyNA(x)) {
+                stop("x2 contains NA.")
+        }
 	MeanSDSkew <- MeanSDSkew[,Keep]
 	SDRatio <- log(as.numeric(MeanSDSkew[2,]/LogFit))
 	
@@ -141,9 +147,13 @@ FirstFilter <- function(x, minNonZeroPortion, L_F_p = 0.25, L_F_LC_Genes = 0.01,
 	allStableGenes <- which(combinedPvalues > L_F_p)
 	
 	#Safety, need 100 genes at least
-	while (length(allStableGenes) < 100) {
+	if (length(allStableGenes) < 100) {
 		porder <- order(combinedPvalues, decreasing=TRUE)
-		allStableGenes <- porder[1:100]
+		if (length(combinedPvalues) >= 100){
+        		allStableGenes <- porder[1:100]
+		} else {
+			allStableGenes <- porder[1:length(combinedPvalues)]
+		}
 	}
 	#Output
 	return (x[,allStableGenes])

@@ -1,6 +1,8 @@
 10th, Octorber, 2023
+  o 2.25.3
+    Fixed a bug that causes time out with some data sets reported on the literature. 
   o 2.25.2
-    Fix build error on Bioconductor
+    Fixed build error on Bioconductor
 
 28th, September, 2019
   o 2.9.1

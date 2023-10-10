@@ -261,7 +261,7 @@ static vector< double > SkewVar2 (arma::mat& GeneExp, const double& lambda2, dou
 			M3 = M3 + term1 * delta_n * (numData - 1) - 3 * delta_n * M2;
 			M2 = M2 + term1;
 			
-			delta_2 = log1p(*it * (lambda2 + extra) )- mean_2;
+			delta_2 = log1p(*it * (lambda2 + extra) ) - mean_2;
 			delta_n_2 = delta_2 / (numData + 1);
 			term1_2 = delta_2 * delta_n_2 * numData;
 			mean_2 = mean_2 + delta_n_2;
@@ -283,7 +283,7 @@ static vector< double > SkewVar2 (arma::mat& GeneExp, const double& lambda2, dou
 			SumSkewMean += thisSkew * mean;
 			SumSDMean += thisSD * mean;
 			SumMeanSq += pow(mean,2);
-			
+
 			//Here, calculate skewness and SD using 3rd and 2nd moments.
 			thisSkew_2 =  (sqrt(numData) * M3_2) / pow(M2_2,1.5);
 			thisSD_2 =  sqrt(M2_2/(numData - 1));
@@ -317,7 +317,6 @@ static vector< double > SkewVar2 (arma::mat& GeneExp, const double& lambda2, dou
 	double skewM_2 = (SumSkewMean_2 * GeneExp.n_cols - SumSkew_2 * SumMean_2)/(SumMeanSq_2 * GeneExp.n_cols - pow(SumMean_2,2) ) ;
 	double skewC_2 = (SumSkew_2 - skewM_2 * SumMean_2)/(GeneExp.n_cols);
 	double SDevM_2 = (SumSDMean_2 * GeneExp.n_cols - SumSD_2 * SumMean_2)/(SumMeanSq_2 * GeneExp.n_cols - pow(SumMean_2,2) );
-	
 	
 	//integral of the linear equation of skewness
 	double Skewzerointercept = -skewC/skewM;
@@ -430,11 +429,11 @@ SEXP SkewAVarCpp(SEXP xSEXP,SEXP ySEXP) {
 static double LocalSearch(arma::mat& GeneExp, double minBound, double maxBound, double& smallest, double search_exponent) {
 	minBound = round(minBound);
 	maxBound = round(maxBound);
-	//cout << "here1 " << minBound<<   " " << maxBound << endl;
+	if (maxBound - minBound < 2) return maxBound;
 	double GminBound = minBound, GmaxBound = maxBound;
 	double midBound = round((minBound + maxBound)/2);
 	
-	//Initialize smallestBound. This object is for the program to remember the smallest F(lambda) ever calculated. If the local minimal found is larger that this smallestBound, the boundaries will be reset and binary search will be rerun using a smaller boundary, with the smallestBound as center.
+	//Initialize smallestBound. This object is for the program to remember the smallest F(lambda) ever calculated. If the local minimal found is larger than this smallestBound, the boundaries will be reset and binary search will be rerun using a smaller boundary, with the smallestBound as center.
 	double smallestBound;
 	double extra = 1;
 	vector< double > om;
@@ -456,7 +455,6 @@ static double LocalSearch(arma::mat& GeneExp, double minBound, double maxBound, 
 	midBound = round((minBound + maxBound)/2);
 	int_fast32_t index = 0;
 	while (smallestBound != midBound) {
-		//cout << "here1 " << smallestBound<<   " " << midBound << endl;
 		if (index > 0) {
 			//Reset boundary to center at smallestBound
 			minBound = round(smallestBound - (smallestBound - GminBound)/pow(search_exponent,index));
@@ -563,7 +561,6 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 	double localminIntegral;
 	//Intital minimal
 	double localmin = LocalSearch(GeneExp, minBound, maxBound,localminIntegral,search_exponent);
-	
 	//First, iterated local search starting on the left hand side of the local minima.  
 	//LHS search
 	int_fast32_t searchIndex = 2;
@@ -602,7 +599,6 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 		finallocalmin = localmin;
 		//Note: instead of randomly choosing a new range to search, we perturb from the local minimal by increasing the range exponentially. We first search through left hand side(LHS), then search through right hand side(RHS) of the local minimal. The stop condition is that no new local minimal is found after a full LHS and RHS search. This allow us to keep the running time around mlog(n). We use a history recording binary search algorithm to find local minimum within a range.
 		while (newminBound >= minBound) {
-			//cout << "LHS " << searchIndex <<  " " << newmin <<endl;
 			//2.applying local search after starting from the modified solution.
 			newmin = LocalSearch(GeneExp, newminBound, lastnewminBound, newminIntegral,search_exponent);
 			//If new minimum is smaller than the local minimal, reset local minimal and searchIndex.
@@ -648,7 +644,6 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 		double newmax;
 		double newmaxIntegral;
 		while (newmaxBound <= maxBound) {
-			//cout << "RHS " << searchIndex <<  " " << newmax <<endl;
 			//2.applying local search after starting from the modified solution.
 			newmax = LocalSearch(GeneExp, lastnewmaxBound, newmaxBound, newmaxIntegral,search_exponent);
 			//If new maximum is smaller than the local maximal, reset local maximal and searchIndex.
@@ -685,7 +680,6 @@ SEXP LocateLambdaCpp(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 	if (numMaxBoundIncrease == 4 && (maxBound - 1 <= localmin || minBound + 1 >= localmin)) {
 		localmin = OriginalmaxBound;
 	}
-	//cout << "LMI " << localminIntegral << endl;
 	return Rcpp::wrap(localmin);
 }
 SEXP LocateLambdaCpp_legacy(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
@@ -727,7 +721,6 @@ SEXP LocateLambdaCpp_legacy(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 				newminBound = minBound;
 			}
 			numMaxBoundIncrease++;
-			//cout << "maxBound enlarged to " << maxBound << endl;
 		} else if (newminBound < minBound) {
 			searchIndex = 2;
 			newminBound = localmin -  10 * pow(search_exponent,searchIndex);
@@ -739,7 +732,6 @@ SEXP LocateLambdaCpp_legacy(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 		finallocalmin = localmin;
 		//Note: instead of randomly choosing a new range to search, we perturb from the local minimal by increasing the range exponentially. We first search through left hand side(LHS), then search through right hand side(RHS) of the local minimal. The stop condition is that no new local minimal is found after a full LHS and RHS search. This allow us to keep the running time around mlog(n). We use a history recording binary search algorithm to find local minimum within a range.
 		while (newminBound >= minBound) {
-			//cout << "LHS " << searchIndex <<  " " << newmin <<endl;
 			//2.applying local search after starting from the modified solution.
 			newmin = LocalSearch_legacy(GeneExp, newminBound, lastnewminBound, newminIntegral,search_exponent);
 			//If new minimum is smaller than the local minimal, reset local minimal and searchIndex.
@@ -785,7 +777,6 @@ SEXP LocateLambdaCpp_legacy(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 		double newmax;
 		double newmaxIntegral;
 		while (newmaxBound <= maxBound) {
-			//cout << "RHS " << searchIndex <<  " " << newmax <<endl;
 			//2.applying local search after starting from the modified solution.
 			newmax = LocalSearch_legacy(GeneExp, lastnewmaxBound, newmaxBound, newmaxIntegral,search_exponent);
 			//If new maximum is smaller than the local maximal, reset local maximal and searchIndex.
@@ -822,7 +813,6 @@ SEXP LocateLambdaCpp_legacy(SEXP xSEXP,SEXP ySEXP, SEXP zSEXP) {
 	if (numMaxBoundIncrease == 6 && (maxBound - 1 <= localmin || minBound + 1 >= localmin)) {
 		localmin = OriginalmaxBound;
 	}
-	//cout << "LMI " << localminIntegral << endl;
 	return Rcpp::wrap(localmin);
 }
 
