@@ -4,14 +4,24 @@
 \alias{Linnorm.HVar}
 \title{Linnorm-Hvar pipeline for highly variable gene discovery.}
 \usage{
-Linnorm.HVar(datamatrix, RowSamples = FALSE, spikein = NULL,
-  spikein_log2FC = NULL, log.p = FALSE, sig.value = "p", sig = 0.05,
-  MZP = 0.25, FG_Recov = 0.5, plot.title = "Mean vs SD plot", ...)
+Linnorm.HVar(
+  datamatrix,
+  RowSamples = FALSE,
+  spikein = NULL,
+  spikein_log2FC = NULL,
+  log.p = FALSE,
+  sig.value = "p",
+  sig = 0.05,
+  MZP = 0.25,
+  FG_Recov = 0.5,
+  plot.title = "Mean vs SD plot",
+  ...
+)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
-\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{spikein}{character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.}
 
@@ -36,7 +46,7 @@ This function will output a list with the following objects:
 \itemize{
  \item{Results:}{ A matrix with the results.}
  \item{plot:}{ Mean vs Standard Deviation Plot which highlights significant genes.}
- \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+ \item{Linnorm:}{ Linnorm transformed data matrix.}
 }
 
 The Results matrix has the following columns:

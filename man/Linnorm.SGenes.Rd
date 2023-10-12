@@ -4,14 +4,21 @@
 \alias{Linnorm.SGenes}
 \title{Linnorm model stable gene selection tool.}
 \usage{
-Linnorm.SGenes(datamatrix, RowSamples = FALSE, showinfo = FALSE,
-  minNonZeroPortion = 0.75, F_p = 0.3173, F_LC_Genes = "Auto",
-  F_HC_Genes = 0.01, max_F_LC = 0.75)
+Linnorm.SGenes(
+  datamatrix,
+  RowSamples = FALSE,
+  showinfo = FALSE,
+  minNonZeroPortion = 0.75,
+  F_p = 0.3173,
+  F_LC_Genes = "Auto",
+  F_HC_Genes = 0.01,
+  max_F_LC = 0.75
+)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
-\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{showinfo}{Logical. Show algorithm running information. Defaults to FALSE.}
 

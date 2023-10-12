@@ -4,19 +4,33 @@
 \alias{Linnorm.PCA}
 \title{Linnorm-PCA Clustering pipeline for subpopulation Analysis}
 \usage{
-Linnorm.PCA(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0,
-  DataImputation = TRUE, num_PC = 3, num_center = c(1:20), Group = NULL,
-  Coloring = "kmeans", pca.scale = FALSE, kmeans.iter = 2000,
-  plot.title = "PCA K-means clustering", ...)
+Linnorm.PCA(
+  datamatrix,
+  RowSamples = FALSE,
+  input = "Raw",
+  MZP = 0,
+  HVar_p_value = 0.5,
+  DataImputation = TRUE,
+  num_PC = 3,
+  num_center = c(1:20),
+  Group = NULL,
+  Coloring = "kmeans",
+  pca.scale = FALSE,
+  kmeans.iter = 2000,
+  plot.title = "PCA K-means clustering",
+  ...
+)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
-\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 
 \item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from the analysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.}
+
+\item{HVar_p_value}{Double >=0, <= 1. Highly variable feature p value threshold to be used for tSNE. Defaults to 0.5.}
 
 \item{DataImputation}{Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.}
 

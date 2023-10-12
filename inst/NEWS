@@ -1,4 +1,9 @@
-10th, Octorber, 2023
+12th, October, 2023
+  o 2.25.4
+    Edited t-SNE and PCA to use highly variable genes only, which greatly improves cell clustering performance.
+    Fixed typos in manual.
+
+10th, October, 2023
   o 2.25.3
     Fixed a bug that causes time out with some data sets reported on the literature. 
   o 2.25.2

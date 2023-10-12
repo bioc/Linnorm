@@ -4,16 +4,29 @@
 \alias{Linnorm.HClust}
 \title{Linnorm-hierarchical clustering analysis.}
 \usage{
-Linnorm.HClust(datamatrix, RowSamples = FALSE, MZP = 0,
-  DataImputation = TRUE, input = "Raw", method_hclust = "ward.D",
-  method_dist = "pearson", Group = NULL, num_Clust = 0, Color = "Auto",
-  ClustRect = TRUE, RectColor = "red", fontsize = 0.5,
-  linethickness = 0.5, plot.title = "Hierarchical clustering", ...)
+Linnorm.HClust(
+  datamatrix,
+  RowSamples = FALSE,
+  MZP = 0,
+  DataImputation = TRUE,
+  input = "Raw",
+  method_hclust = "ward.D",
+  method_dist = "pearson",
+  Group = NULL,
+  num_Clust = 0,
+  Color = "Auto",
+  ClustRect = TRUE,
+  RectColor = "red",
+  fontsize = 0.5,
+  linethickness = 0.5,
+  plot.title = "Hierarchical clustering",
+  ...
+)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM, TPM or Linnorm transformed data are supported. Undefined values such as NA are not supported.}
 
-\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{MZP}{Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.}
 

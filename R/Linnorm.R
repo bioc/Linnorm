@@ -1,8 +1,8 @@
 #' Linnorm Normalizing Transformation Function
 #'
 #' This function performs the Linear model and normality based transformation method (Linnorm) for (sc)RNA-seq expression data or large scale count data.
-#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
-#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
+#' @param datamatrix	The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to FALSE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
 #' @param spikein_log2FC	Numeric vector. Log 2 fold change of the spike-in genes. Defaults to NULL.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
@@ -21,6 +21,11 @@
 #' @param ... place holder for any new arguments.
 #' @details  This function normalizes and transforms the input dataset using the Linnorm algorithm.
 #' @return This function returns a transformed data matrix.
+#' @return If Filter is set to True, this function will output a list with the following objects:
+##' \itemize{
+##'  \item{Linnorm:}{ The full non-filtered transformed data matrix. }
+##'  \item{Keep_Features:}{ The features that survived filtering, users may use it to filter the data. }
+##' }
 #' @keywords Linnorm RNA-seq Raw Count Expression RPKM FPKM TPM CPM normalization transformation Parametric
 #' @export
 #' @examples
@@ -236,8 +241,7 @@ Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, spikein_log2
 			datamatrix <- datamatrix[,colSums(datamatrix != 0) >= nrow(datamatrix) * minNonZeroPortion]
 			Start <- floor(ncol(datamatrix) * LC_Threshold + 1)
 			End <- ncol(datamatrix)
-			Keep <- Start:End
-			datamatrix <- datamatrix[,Keep]
+			Keep_Features <- Start:End
 		}
 		if (DataImputation) {
 			datamatrix <- Linnorm.DataImput(datamatrix, RowSamples=TRUE,showinfo=showinfo, ...)
@@ -248,10 +252,15 @@ Linnorm <- function(datamatrix, RowSamples = FALSE, spikein = NULL, spikein_log2
 		message("perturbation is ", perturbation,".",appendLF=TRUE)
 		flush.console()
 	}
-	if (RowSamples) {
-		return (datamatrix)
-	} else {
-		return (t(datamatrix))
+	if (!RowSamples) {
+		datamatrix <- t(datamatrix)
 	}
+        #Results for output
+	if (Filter) {
+                listing <- list(datamatrix, Keep_Features)
+	        result <- setNames(listing, c("Linnorm", "Keep_Features"))
+	        return (result)
+	}
+	return (datamatrix)
 	
 }

@@ -1,9 +1,9 @@
 #' Linnorm-limma pipeline for Differentially Expression Analysis
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform limma for DEG analysis. Please cite both Linnorm and limma when you use this function for publications.
-#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param datamatrix	The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
 #' @param design	A design matrix required for limma. Please see limma's documentation or our vignettes for more detail.
-#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from HVG anlaysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
 #' @param output	Character. "DEResults" or "Both". Set to "DEResults" to output a matrix that contains Differential Expression Analysis Results. Set to "Both" to output a list that contains both Differential Expression Analysis Results and the transformed data matrix.
 #' @param noINF	Logical. Prevent generating INF in the fold change column by adding the estimated count of one. If it is set to FALSE, zero or INF will be generated if one of the conditions has zero expression. Defaults to TRUE.
@@ -40,6 +40,8 @@
 Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, output="DEResults", noINF=TRUE, robust=FALSE, ...) {
 	#Differential expression analysis with Linnorm transformed dataset using limma
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+        message("Please note that this funciton can only work on raw pre-Linnorm transformed data.",appendLF=TRUE)
+        flush.console()
 	datamatrix <- as.matrix(datamatrix)
 	if (is.null(design)) {
 		stop("design is null.")
@@ -73,8 +75,17 @@ Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, 
 	rownames(expdata) <- RN
 	
 	#Linnorm transformation
-	datamatrix <- Linnorm(expdata, RowSamples = TRUE, ...)
-	
+	x <- list(...)
+        if (!is.null(x[['Filter']])) {
+        	if (x[['Filter']] == TRUE) {
+	        	result <- Linnorm(expdata, RowSamples = TRUE, ...)
+        		datamatrix <- result[["Linnorm"]][,result[['Keep_Features']]]
+              	} else {
+                	datamatrix <- Linnorm(expdata, RowSamples = TRUE, ...)
+        	}
+	} else {
+                	datamatrix <- Linnorm(expdata, RowSamples = TRUE, ...)
+	}
 	#limma analysis:
 	#limma has a lot of warnings, lets turn them off.
 	options(warn=-1)

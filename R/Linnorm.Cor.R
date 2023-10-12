@@ -1,8 +1,8 @@
 #' Linnorm-gene correlation network analysis.
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform correlation network analysis on the dataset.
-#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
-#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
+#' @param datamatrix	The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM, TPM or Linnorm transformed data are supported. Undefined values such as NA are not supported.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param method	Character. "pearson", "kendall" or "spearman". Method for the calculation of correlation coefficients. Defaults to "pearson".
 #' @param MZP	Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed for correlation calculation. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be considered for this study. Defaults to 0.5.
@@ -92,9 +92,19 @@ Linnorm.Cor <- function(datamatrix,RowSamples = FALSE, input="Raw", method = "pe
 		datamatrix <- t(datamatrix)
 	}
 	#Linnorm transformation
-	if (input == "Raw") {
-		datamatrix <- Linnorm(datamatrix, RowSamples = TRUE, ...)
-	}
+	x <- list(...)
+        if (input == "Raw") {
+            if (!is.null(x[['Filter']])) {
+                if (x[['Filter']] == TRUE) {
+                    result <- Linnorm(datamatrix, RowSamples = TRUE,...)
+                    datamatrix <- result[["Linnorm"]][,result[['Keep_Features']]]
+                } else {
+                    datamatrix <- Linnorm(datamatrix, RowSamples = TRUE,...)
+                }
+	    } else {
+	        datamatrix <- Linnorm(datamatrix, RowSamples = TRUE,...)
+            }
+        }
 	#Backup data that will be filtered, so that we can include them in the output
 	Backup <- colSums(datamatrix != 0) < nrow(datamatrix) * MZP
 	Backup2 <- 0

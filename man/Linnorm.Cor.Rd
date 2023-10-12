@@ -4,18 +4,32 @@
 \alias{Linnorm.Cor}
 \title{Linnorm-gene correlation network analysis.}
 \usage{
-Linnorm.Cor(datamatrix, RowSamples = FALSE, input = "Raw",
-  method = "pearson", MZP = 0.5, sig.q = 0.05, plotNetwork = TRUE,
-  plotNumPairs = 5000, plotdegree = 0, plotname = "networkplot",
-  plotformat = "png", plotVertexSize = 1, plotFontSize = 1,
-  plot.Pos.cor.col = "red", plot.Neg.cor.col = "green",
-  vertex.col = "cluster", plotlayout = "kk",
-  clusterMethod = "cluster_edge_betweenness", ...)
+Linnorm.Cor(
+  datamatrix,
+  RowSamples = FALSE,
+  input = "Raw",
+  method = "pearson",
+  MZP = 0.5,
+  sig.q = 0.05,
+  plotNetwork = TRUE,
+  plotNumPairs = 5000,
+  plotdegree = 0,
+  plotname = "networkplot",
+  plotformat = "png",
+  plotVertexSize = 1,
+  plotFontSize = 1,
+  plot.Pos.cor.col = "red",
+  plot.Neg.cor.col = "green",
+  vertex.col = "cluster",
+  plotlayout = "kk",
+  clusterMethod = "cluster_edge_betweenness",
+  ...
+)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM, TPM or Linnorm transformed data are supported. Undefined values such as NA are not supported.}
 
-\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{input}{Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".}
 

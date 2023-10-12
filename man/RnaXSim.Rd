@@ -4,9 +4,16 @@
 \alias{RnaXSim}
 \title{This function simulates an RNA-seq dataset based on a given distribution.}
 \usage{
-RnaXSim(datamatrix, distribution = "NB", NumRep = 5, NumDiff = 2000,
-  NumFea = 20000, showinfo = FALSE, DEGlog2FC = "Auto",
-  MaxLibSizelog2FC = 0.5)
+RnaXSim(
+  datamatrix,
+  distribution = "NB",
+  NumRep = 5,
+  NumDiff = 2000,
+  NumFea = 20000,
+  showinfo = FALSE,
+  DEGlog2FC = "Auto",
+  MaxLibSizelog2FC = 0.5
+)
 }
 \arguments{
 \item{datamatrix}{Matrix. The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.This program assumes that all columns are replicates of the same sample.}

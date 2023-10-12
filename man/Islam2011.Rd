@@ -4,7 +4,9 @@
 \name{Islam2011}
 \alias{Islam2011}
 \title{scRNA-seq data from Islam et al. 2011}
-\format{A matrix with 22936 rows (genes) and 96 columns (samples). The first 48 columns are ES cells, the following 44 columns are mouse embryonic fibroblasts and the remaining 4 columns and negative controls. Data is in raw counts format.}
+\format{
+A matrix with 22936 rows (genes) and 96 columns (samples). The first 48 columns are ES cells, the following 44 columns are mouse embryonic fibroblasts and the remaining 4 columns and negative controls. Data is in raw counts format.
+}
 \usage{
 data(Islam2011)
 }

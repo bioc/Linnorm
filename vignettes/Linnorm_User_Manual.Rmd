@@ -125,7 +125,7 @@ Instructions can be found on Linnorm's \href{https://bioconductor.org/packages/r
 
 ## Data Normalization/Transformation/Imputation
 
-## # Normalizing Transformation  
+### Normalizing Transformation  
 
 Here, we will demonstrate how to generate and ouput Linnorm Transformed dataset into a tab delimited file.
 
@@ -141,7 +141,8 @@ data(Islam2011)
 Transformed <- Linnorm(Islam2011)
 
 # Filter low count genes
-FTransformed <- Linnorm(Islam2011, Filter=TRUE)
+result <- Linnorm(Islam2011, Filter=TRUE)
+FTransformed <- result[["Linnorm"]]
 ```
 
 
@@ -157,9 +158,9 @@ write.table(FTransformed, "Transformed.txt",
 quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 ```
 
-## # Normalization  
+### Normalization  
 
-## ## Procedure
+#### Procedure
 Here, we will demonstrate how to generate and ouput Linnorm normalized dataset into a tab delimited file.
 
 
@@ -181,9 +182,9 @@ Normalized <- Linnorm.Norm(Islam2011)
 write.table(Normalized, "Normalized.txt",
 quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 ```
-## ## Calculating Fold Change and the effects of normalization strength
+#### Calculating Fold Change and the effects of normalization strength
 
-## ## # Calculate fold change
+##### Calculate fold change
 Fold change can be calculated by the Linnorm.limma function. It is included in differential expression analysis results. However, for users who would like to calculate fold change from Linnorm transformed dataset and analyze it. Here is an example.
 
 
@@ -242,7 +243,7 @@ round(mean(FCMatrix[,1]),2),
 "\nStdev = ", round(sd(FCMatrix[,1]),2)))
 ```
 
-## ## #  Effects of normalization strength
+#####  Effects of normalization strength
 
 4. Using a higher normalization strength in Linnorm.Norm
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
@@ -275,7 +276,7 @@ round(mean(FCMatrix[,1]),2),
 We can see that using a stronger normalization strength can decrease the amount of differences between the two conditions; this causes the mean of fold change to decrease. By default, BE_strength is set to 0.5 to prevent overfitting. However, user can adjust it based on the dataset. Please note that the Linnorm() function for normalizing transformation also allows users to control normalization strength.
     
 
-## # Data Imputation  
+### Data Imputation  
 
 By default, Linnorm's data imputation function replaces zerores in the dataset.    
     
@@ -327,8 +328,8 @@ quote=FALSE, sep="\t", col.names=TRUE, row.names=TRUE)
 * limma package
 	- \Biocpkg{limma} is imported with Linnorm. Please cite both Linnorm and limma if you use the Linnorm.limma function for differential expression analysis for publication.
 
-## # RNA-seq data
-## ## Analysis procedure    
+### RNA-seq data
+#### Analysis procedure    
     
 We use 10 samples of RNA-seq data. These 10 samples are paired tumor and adjacent normal tissue samples from 5 individuals from the TCGA LIHC dataset.
 
@@ -380,7 +381,7 @@ TransformedMatrix <- BothResults$Linnorm
 
 
 
-## ## Print out the most significant genes  
+#### Print out the most significant genes  
 
 1. Write out the results to a tab delimited file.
 ```{r}
@@ -410,8 +411,8 @@ kable(Genes10[,c(1:5)], digits=4)
 ```
 
 
-## ##  Volcano Plot
-## ## # Procedure
+####  Volcano Plot
+##### Procedure
 1. Record significant genes for coloring
 ```{r, echo=TRUE}
 SignificantGenes <- DEG_Results[DEG_Results[,5] <= 0.05,1]
@@ -427,7 +428,7 @@ xlab="log2 Fold Change", ylab="q values", cex = 0.5)
 ```
 
 
-## # Single cell RNA-seq DEG Analysis  
+### Single cell RNA-seq DEG Analysis  
   
 In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform DEG analysis. In this analysis, we are using 48 mouse embryonic stem cells and 44 mouse embryonic fibroblasts.    
   
@@ -462,7 +463,7 @@ scRNAseqResults <- Linnorm.limma(IslamData,design)
 
 
 ## Gene Co-expression Network Analysis  
-## # Analysis Procedure
+### Analysis Procedure
 In this section, we are going to use Islam2011 single cell RNA-seq embryonic stem cell data and perform Gene Correlation Analysis.
 
 1. Obtain data.
@@ -498,7 +499,7 @@ kable(Genes10, digits=4, row.names=FALSE)
 ```
 
 
-## # Plot a co-expression network  
+### Plot a co-expression network  
 
 We will demonstrate how to plot the figure "networkplot.png" here.
 
@@ -525,7 +526,7 @@ layout=Thislayout
 )
 ```
 
-## ## Identify genes that belong to a cluster  
+#### Identify genes that belong to a cluster  
     
 For example, what are the genes that belong to the same cluster as the Mmp2 gene?  
     
@@ -545,7 +546,7 @@ GeneNames <- results$Cluster[ListOfGenes,1]
 # Users can write these genes into a file for further analysis.
 ```
 
-## ## Draw a correlation heatmap  
+#### Draw a correlation heatmap  
 
 1. Choose 100 most significant genes from clustering results
 ```{r, echo=TRUE}
@@ -583,7 +584,7 @@ margins = c(8, 8)
 ```
 
 ## Highly variable gene analysis  
-## # Analysis Procedure
+### Analysis Procedure
 
 In this section, we will perform highly variable gene discovery on the embryonic stem cells from Islam(2011).
 
@@ -611,7 +612,7 @@ library(knitr)
 kable(Genes10, digits=4)
 ```
 
-## # Mean vs SD plot highlighting significant genes  
+### Mean vs SD plot highlighting significant genes  
 1. Simply print the plot from results.
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
 print(results$plot$plot)
@@ -621,7 +622,7 @@ print(results$plot$plot)
 
 ## Cell subpopulation analysis  
 
-## # t-SNE K-means Clustering
+### t-SNE K-means Clustering
 
 In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform subpopluation analysis. The 96 samples are consisted of 48 mouse embryonic stem cells, 44 mouse embryonic fibroblasts and 4 negative controls. We do not use the negative controls here.
 
@@ -631,7 +632,7 @@ library(Linnorm)
 data(Islam2011)
 ```
 
-## ## Simple subpopulation analysis  
+#### Simple subpopulation analysis  
 1. Perform t-SNE analysis using default configurations. This also automiatically determines the number of cell subpopulations.
 ```{r, echo=TRUE}
 tSNE.results <- Linnorm.tSNE(Islam2011[,1:92])
@@ -644,7 +645,7 @@ print(tSNE.results$plot$plot)
 ```
 
 
-## ## Analysis with known subpopulations  
+#### Analysis with known subpopulations  
 1. Assign known groups to samples.
 ```{r, echo=TRUE}
 # The first 48 samples belong to mouse embryonic stem cells.
@@ -675,7 +676,7 @@ print(tSNE.results$plot$plot)
 ```
 
 
-## # PCA K-means Clustering.
+### PCA K-means Clustering.
 
 In this section, we use Islam et al. (2011)'s single cell RNA-seq dataset to perform subpopluation analysis. The 96 samples are consisted of 48 mouse embryonic stem cells, 44 mouse embryonic fibroblasts and 4 negative controls. We do not use the negative controls here. This section is basically identical to the t-SNE K-means Clustering section above.
 
@@ -685,7 +686,7 @@ library(Linnorm)
 data(Islam2011)
 ```
 
-## ## Simple subpopulation analysis  
+#### Simple subpopulation analysis  
 
 1. Perform PCA analysis using default configurations.
 ```{r, echo=TRUE}
@@ -699,7 +700,7 @@ print(PCA.results$plot$plot)
 ```
 
 
-## ## Analysis with known subpopulations  
+#### Analysis with known subpopulations  
 
 1. Assign known groups to samples.
 ```{r, echo=TRUE}
@@ -730,8 +731,8 @@ Group=Groups, num_center=2, num_PC=3)
 print(PCA.results$plot$plot)
 ```
 
-## # Hierarchical Clustering  
-## ## Analysis Procedure
+### Hierarchical Clustering  
+#### Analysis Procedure
 In this section, we will perform hierarchical clustering on Islam2011 data.
 
 1. Obtain data.
@@ -754,7 +755,7 @@ HClust.Results <- Linnorm.HClust(Islam,Group=Group,
 num_Clust=2, fontsize=1.5, Color = c("Red","Blue"), RectColor="Green")
 ```
 
-## ## Hierarchical Clustering plot  
+#### Hierarchical Clustering plot  
 We can simply print the plot out.
 ```{r, echo=TRUE, fig.height=6, fig.width=6}
 print(HClust.Results$plot$plot)
@@ -763,8 +764,8 @@ print(HClust.Results$plot$plot)
 
 ## RnaXSim
 
-## # RNA-seq Expression Data Simulation
-## ## Default  
+### RNA-seq Expression Data Simulation
+#### Default  
 
 In this section, we will run RnaXSim with default settings as a demonstration.
 
@@ -799,7 +800,7 @@ Sample2 <- ExpMatrix[,4:6]
 ```
 
 
-## ## Advanced  
+#### Advanced  
 
 In this section, we will show an example where RnaXSim is run with customized settings.
 

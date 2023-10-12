@@ -4,7 +4,9 @@
 \name{LIHC}
 \alias{LIHC}
 \title{Partial RNA-seq data from TCGA LIHC (Liver Hepatocellular Carcinoma)}
-\format{A matrix with 25914 rows (genes) and 10 columns (samples). The first 5 columns are Tumor samples, the remaining 5 columns are adjacent Normal samples. They are paired samples from 5 individuals. Data is in TPM format.}
+\format{
+A matrix with 25914 rows (genes) and 10 columns (samples). The first 5 columns are Tumor samples, the remaining 5 columns are adjacent Normal samples. They are paired samples from 5 individuals. Data is in TPM format.
+}
 \usage{
 data(LIHC)
 }

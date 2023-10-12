@@ -1,8 +1,8 @@
 #' Linnorm model stable gene selection tool.
 #'
 #' For datasets without spike-ins and for users who do not wish to rely on spike-ins, we provide this model stable gene selection tool.
-#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
-#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
+#' @param datamatrix	The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param minNonZeroPortion Double >=0, <= 1. Minimum non-Zero Portion Threshold. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.75, genes without at least 75 percent of the samples being non-zero will be removed. Defaults to 0.75.
 #' @param F_p	Double >=0, <= 1. Filter genes with standard deviation and skewness less than this p value. Defaults to 0.3173.
@@ -24,7 +24,8 @@
 Linnorm.SGenes <- function (datamatrix, RowSamples = FALSE, showinfo=FALSE, minNonZeroPortion = 0.75, F_p = 0.3173, F_LC_Genes = "Auto", F_HC_Genes = 0.01, max_F_LC = 0.75) {
 	#Model stable gene selection
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
-	
+        message("Please note that this funciton can only work on raw pre-Linnorm transformed data.",appendLF=TRUE)
+        flush.console()	
 	#data checking
 	datamatrix <- as.matrix(datamatrix)
 	RN <- 0

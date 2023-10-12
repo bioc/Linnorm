@@ -2,7 +2,7 @@
 #'
 #' This function performs data imputation for (sc)RNA-seq expression data or large scale count data. It will treat every zero count in the dataset as missing data and replace them with predicted values.
 #' @param datamatrix	The matrix or data frame that contains your dataset. It is only compatible with log transformed datasets.
-#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Defaults to FALSE.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Defaults to FALSE.
 #' @param showinfo	Logical. Show algorithm running information. Defaults to FALSE.
 #' @param MZP	Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.25.
 #' @param LC_F	Double >= 0.01, <= 0.95 or Character "Auto". Filter this portion of the lowest expressing genes. It can be determined automatically by setting to "Auto". Defaults to "Auto".
@@ -29,6 +29,8 @@
 Linnorm.DataImput <- function(datamatrix, RowSamples = FALSE, showinfo = FALSE, MZP=0.25, LC_F = "Auto", max_LC_F = 0.75, FG_Recov = 0.5, method="euclidean", VarPortion = 0.75,  ...) {
 	#Data imputation function
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
+        message("Please note that this funciton can only work on Linnorm transformed data.",appendLF=TRUE)
+        flush.console()
 	if (MZP > 1 || MZP < 0) {
 		stop("Invalid MZP.")
 	}

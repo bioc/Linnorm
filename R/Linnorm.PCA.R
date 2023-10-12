@@ -1,10 +1,11 @@
 #' Linnorm-PCA Clustering pipeline for subpopulation Analysis
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform Principal component analysis on the dataset and use k-means clustering to identify subpopulations of cells.
-#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
-#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
+#' @param datamatrix	The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param input	Character. "Raw" or "Linnorm". In case you have already transformed your dataset with Linnorm, set input into "Linnorm" so that you can put the Linnorm transformed dataset into the "datamatrix" argument. Defaults to "Raw".
 #' @param MZP Double >=0, <= 1. Minimum non-Zero Portion Threshold for this function. Genes not satisfying this threshold will be removed from the analysis. For exmaple, if set to 0.3, genes without at least 30 percent of the samples being non-zero will be removed. Defaults to 0.
+#' @param HVar_p_value Double >=0, <= 1. Highly variable feature p value threshold to be used for tSNE. Defaults to 0.5.
 #' @param DataImputation	Logical. Perform data imputation on the dataset after transformation. Defaults to TRUE.
 #' @param num_PC	Integer >= 2. Number of principal componenets to be used in K-means clustering. Defaults to 3.
 #' @param  num_center	Numeric vector. Number of clusters to be tested for k-means clustering. fpc, vegan, mclust and apcluster packages are used to determine the number of clusters needed. If only one number is supplied, it will be used and this test will be skipped. Defaults to c(1:20).
@@ -29,18 +30,23 @@
 #' data(Islam2011)
 #' #Example:
 #' PCA.results <- Linnorm.PCA(Islam2011)
-Linnorm.PCA <- function(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0, DataImputation = TRUE, num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", pca.scale=FALSE, kmeans.iter=2000, plot.title="PCA K-means clustering",...) {
+Linnorm.PCA <- function(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0, HVar_p_value = 0.5, DataImputation = TRUE, num_PC=3, num_center=c(1:20), Group=NULL, Coloring="kmeans", pca.scale=FALSE, kmeans.iter=2000, plot.title="PCA K-means clustering",...) {
 	#PCA K-means clustering with Linnorm transformed dataset
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	
 	message("To perform cell clustering, Linnorm.tSNE is strongly recommended. Linnorm.PCA is only provided as a reference." ,appendLF=TRUE)
-	
-	if (input != "Raw" && input != "Linnorm") {
-		stop("input argument is not recognized.")
-	}
-	if (MZP > 1 || MZP < 0) {
-		stop("Invalid MZP.")
-	}
+        if (input != "Raw" && input != "Linnorm") {
+                stop("input argument is not recognized.")
+        }
+        if (input == "Linnorm") {
+                stop("This function can only accept pre-Linnorm raw data.")
+        }
+        if (MZP > 1 || MZP < 0) {
+                stop("Invalid MZP.")
+        }
+        if (HVar_p_value > 1 || HVar_p_value < 0) {
+                stop("Invalid MZP.")
+        }	
 	if (Coloring != "Group" && Coloring != "kmeans") {
 		stop("Coloring argument is not recognized.")
 	}
@@ -64,23 +70,29 @@ Linnorm.PCA <- function(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0, 
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)
 	}
-	if (input == "Raw") {
-		#Linnorm transformation
-		datamatrix <- Linnorm(datamatrix, DataImputation=DataImputation, RowSamples = TRUE, ...)
-	}
-	#Backup data that will be filtered, so that we can include them in the output
-	Backup <- colSums(datamatrix != 0) < nrow(datamatrix) * MZP
-	Backup2 <- 0
-	if (sum(Backup) != 0) {
-		Backup2 <-  datamatrix[,Backup]
-	}
-	
-	#Filter zeroes based on MZP threshold
-	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= nrow(datamatrix) * MZP]
+        #Linnorm transformation
+        if (input == "Raw") {
+                result <- Linnorm.HVar(datamatrix, RowSamples = TRUE, ...)
+        }
+        datamatrix <- result[['Linnorm']]
+
+        # Select features passing highly variable gene p value threshold
+        selected_features <- rownames(result[['Results']])[which(result[['Results']][,'p.value'] <= HVar_p_value)]
+
+        #Show important note to user.
+        x <- list(...)
+        showinfo <- FALSE
+        if (!is.null(x[['showinfo']])) {
+                showinfo <- x$showinfo
+        }
+        if (showinfo) {
+                message("To enhance running time, we use the PCA function without checking for duplicate samples.\nPlease do not allow any samples to be duplicates of each other.",appendLF=TRUE)
+                flush.console()
+        }
 	
 	
 	#Principal Component Analysis
-	res.pca <- prcomp(datamatrix, scale = pca.scale)
+	res.pca <- prcomp(datamatrix[,selected_features], scale = pca.scale)
 	
 	#Extract Principal Components for k means clustering.
 	data <- res.pca$x[,1:floor(num_PC)]
@@ -188,10 +200,6 @@ Linnorm.PCA <- function(datamatrix, RowSamples = FALSE, input = "Raw", MZP = 0, 
 
 			render_plot <- ggplot_build(ggplot(plotdata, aes(x=PC1, y=PC2, color=Group)) + geom_point(aes(shape=Group), size = 2) + scale_shape_manual(values=shaping) + geom_path(data=df_ell, aes(x=x, y=y,colour=Group), size=0.5, linetype=2) + scale_x_continuous("PC1") + scale_y_continuous("PC2") + ggtitle(plot.title) + theme(aspect.ratio=1))
 		}
-	}
-	#Reconstruct Linnorm transformed matrix
-	if (sum(Backup) != 0) {
-		datamatrix <- cbind(datamatrix, Backup2)
 	}
 	if (!RowSamples) {
 		datamatrix <- t(datamatrix)

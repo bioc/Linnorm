@@ -1,8 +1,8 @@
 #' Linnorm-Hvar pipeline for highly variable gene discovery.
 #'
 #' This function first performs Linnorm transformation on the dataset. Then, it will perform highly variable gene discovery.
-#' @param datamatrix	The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
-#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
+#' @param datamatrix	The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.
+#' @param RowSamples	Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.
 #' @param spikein	character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.
 #' @param spikein_log2FC	Numeric vector. Log 2 fold change of the spike-in genes. Defaults to NULL.
 #' @param log.p	Logical. Output p/q values in log scale. Defaults to FALSE.
@@ -17,7 +17,7 @@
 ##' \itemize{
 ##'  \item{Results:}{ A matrix with the results.}
 ##'  \item{plot:}{ Mean vs Standard Deviation Plot which highlights significant genes.}
-##'  \item{Linnorm:}{ Linnorm transformed and filtered data matrix.}
+##'  \item{Linnorm:}{ Linnorm transformed data matrix.}
 ##' }
 #' @return The Results matrix has the following columns:
 ##' \itemize{
@@ -37,6 +37,8 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 	#Highly variable gene analysis with Linnorm transformed dataset
 	#Author: (Ken) Shun Hang Yip <shunyip@bu.edu>
 	datamatrix <- as.matrix(datamatrix)
+	message("Please note that this funciton can only work on raw pre-Linnorm transformed data.",appendLF=TRUE)
+        flush.console()
 	if (sig <= 0 || sig > 1) {
 		stop("Invalid sig value.")
 	}
@@ -60,17 +62,20 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		datamatrix <- t(datamatrix)
 	}
 	#Linnorm transformation
-	datamatrix <- Linnorm(datamatrix, spikein=spikein, spikein_log2FC=spikein_log2FC, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
+	results <- Linnorm(datamatrix, spikein=spikein, spikein_log2FC=spikein_log2FC, Internal=TRUE, MZP=MZP, FG_Recov=FG_Recov, RowSamples = TRUE, ...)
+	datamatrix <- results[["Linnorm"]]
+	Keep_Features <- results[["Keep_Features"]]
+
 	#Filter genes based on number of non-zero values
-	datamatrix <- datamatrix[,colSums(datamatrix != 0) >= 3]
+	Keep_Features <- Keep_Features[which(colSums(datamatrix[,Keep_Features] != 0) >= 3)]
 	#Check available number of spike in genes.
-	spikein <- spikein[which(spikein %in% colnames(datamatrix))]
+	spikein <- spikein[which(spikein %in% colnames(datamatrix[,Keep_Features]))]
 	if (length(spikein) != 0 && length(spikein) < 10) {
 		spikein = NULL
 		warning("Too many Spikein are filtered. They will not be utilized.")
 	}
 	#Get mean and SD
-	MeanSD <- NZcolMeanSD_acc(datamatrix)
+	MeanSD <- NZcolMeanSD_acc(datamatrix[,Keep_Features])
 	datamean <- MeanSD[1,]
 	dataSD <- MeanSD[2,]
 	#Loess Fit
@@ -98,7 +103,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
 		pvalues <- pt((SDRatio - TheMean)/tdeno, df = length(SDRatio2) - 2, lower.tail = FALSE, log.p = TRUE)
 	} else {
-		spikes <- which(colnames(datamatrix) %in% spikein)
+		spikes <- which(colnames(datamatrix[,Keep_Features]) %in% spikein)
 		SDRatio2 <- SDRatio[spikes]
 		TheMean <- mean(SDRatio2)
 		tdeno <- sqrt(sum((SDRatio2 - TheMean)^2)/(length(SDRatio2) - 2))
@@ -111,7 +116,7 @@ Linnorm.HVar <- function(datamatrix, RowSamples = FALSE, spikein=NULL, spikein_l
 	dataSD <- dataSD
 	results <- matrix(ncol=5, nrow=length(SDRatio))
 	colnames(results) <- c("Transformed.Avg.Exp", "Transformed.SD", "Normalized.Log2.SD.Fold.Change", "p.value", "q.value")
-	rownames(results) <- colnames(datamatrix)
+	rownames(results) <- colnames(datamatrix[,Keep_Features])
 	results[,1] <- datamean
 	results[,2] <- dataSD
 	results[,3] <- SDRatio

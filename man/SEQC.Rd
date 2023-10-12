@@ -4,7 +4,9 @@
 \name{SEQC}
 \alias{SEQC}
 \title{Partial RNA-seq data from SEQC/MAQC-III Sample A}
-\format{A matrix with 50227 rows (genes) and 10 columns (samples).}
+\format{
+A matrix with 50227 rows (genes) and 10 columns (samples).
+}
 \usage{
 data(SEQC)
 }

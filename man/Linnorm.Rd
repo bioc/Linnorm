@@ -4,17 +4,31 @@
 \alias{Linnorm}
 \title{Linnorm Normalizing Transformation Function}
 \usage{
-Linnorm(datamatrix, RowSamples = FALSE, spikein = NULL,
-  spikein_log2FC = NULL, showinfo = FALSE, perturbation = "Auto",
-  Filter = FALSE, minNonZeroPortion = 0.75, L_F_p = 0.3173,
-  L_F_LC_Genes = "Auto", L_F_HC_Genes = 0.01, BE_F_p = 0.3173,
-  BE_F_LC_Genes = "Auto", BE_F_HC_Genes = 0.01, BE_strength = 0.5,
-  max_F_LC = 0.75, DataImputation = FALSE, ...)
+Linnorm(
+  datamatrix,
+  RowSamples = FALSE,
+  spikein = NULL,
+  spikein_log2FC = NULL,
+  showinfo = FALSE,
+  perturbation = "Auto",
+  Filter = FALSE,
+  minNonZeroPortion = 0.75,
+  L_F_p = 0.3173,
+  L_F_LC_Genes = "Auto",
+  L_F_HC_Genes = 0.01,
+  BE_F_p = 0.3173,
+  BE_F_LC_Genes = "Auto",
+  BE_F_HC_Genes = 0.01,
+  BE_strength = 0.5,
+  max_F_LC = 0.75,
+  DataImputation = FALSE,
+  ...
+)
 }
 \arguments{
-\item{datamatrix}{The matrix or data frame that contains your dataset. Each row is a feature (or Gene) and each column is a sample (or replicate). Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
+\item{datamatrix}{The matrix or data frame that contains your dataset. Raw Counts, CPM, RPKM, FPKM or TPM are supported. Undefined values such as NA are not supported. It is not compatible with log transformed datasets.}
 
-\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to TRUE, but it should be negligable for smaller datasets. Defaults to FALSE.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Linnorm works slightly faster with this argument set to FALSE, but it should be negligable for smaller datasets. Defaults to FALSE.}
 
 \item{spikein}{character vector. Names of the spike-in genes in the datamatrix. Defaults to NULL.}
 
@@ -50,6 +64,12 @@ Linnorm(datamatrix, RowSamples = FALSE, spikein = NULL,
 }
 \value{
 This function returns a transformed data matrix.
+
+If Filter is set to True, this function will output a list with the following objects:
+\itemize{
+ \item{Linnorm:}{ The full non-filtered transformed data matrix. }
+ \item{Keep_Features:}{ The features that survived filtering, users may use it to filter the data. }
+}
 }
 \description{
 This function performs the Linear model and normality based transformation method (Linnorm) for (sc)RNA-seq expression data or large scale count data.

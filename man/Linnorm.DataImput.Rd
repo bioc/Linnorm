@@ -4,14 +4,23 @@
 \alias{Linnorm.DataImput}
 \title{Linnorm Data Imputation Function. (In development)}
 \usage{
-Linnorm.DataImput(datamatrix, RowSamples = FALSE, showinfo = FALSE,
-  MZP = 0.25, LC_F = "Auto", max_LC_F = 0.75, FG_Recov = 0.5,
-  method = "euclidean", VarPortion = 0.75, ...)
+Linnorm.DataImput(
+  datamatrix,
+  RowSamples = FALSE,
+  showinfo = FALSE,
+  MZP = 0.25,
+  LC_F = "Auto",
+  max_LC_F = 0.75,
+  FG_Recov = 0.5,
+  method = "euclidean",
+  VarPortion = 0.75,
+  ...
+)
 }
 \arguments{
 \item{datamatrix}{The matrix or data frame that contains your dataset. It is only compatible with log transformed datasets.}
 
-\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each row is a feature, set this to TRUE so that you don't need to transpose it. Defaults to FALSE.}
+\item{RowSamples}{Logical. In the datamatrix, if each row is a sample and each column is a feature, set this to TRUE so that you don't need to transpose it. Defaults to FALSE.}
 
 \item{showinfo}{Logical. Show algorithm running information. Defaults to FALSE.}
 

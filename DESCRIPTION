@@ -1,13 +1,15 @@
 Package: Linnorm
 Type: Package
 Title: Linear model and normality based normalization and transformation method (Linnorm)
-Version: 2.25.3
-Date: 2023-10-10
+Version: 2.25.4
+Date: 2023-10-12
 Authors@R: 
   c(person(given = "Ken Shun Hang",
            family = "Yip",
            role = c("aut", "cre"),
            email = "shunyip@bu.edu"))
+Author: Shun Hang Yip <shunyip@bu.edu>
+Maintainer: Shun Hang Yip <shunyip@bu.edu>
 Description: Linnorm is an algorithm for normalizing and transforming RNA-seq, single cell RNA-seq, ChIP-seq count data or any large scale count data. It has been independently reviewed by Tian et al. on Nature Methods (https://doi.org/10.1038/s41592-019-0425-8). 
     Linnorm can work with raw count, CPM, RPKM, FPKM and TPM.
 Depends: R(>= 4.1.0)
@@ -23,4 +25,4 @@ biocViews: ImmunoOncology, Sequencing, ChIPSeq, RNASeq, DifferentialExpression,
 NeedsCompilation: yes
 LazyData: false
 URL: https://doi.org/10.1093/nar/gkx828
-RoxygenNote: 6.0.1
+RoxygenNote: 7.2.3
