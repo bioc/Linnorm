@@ -137,9 +137,9 @@ Linnorm.limma <- function(datamatrix, design=NULL, RowSamples = FALSE, MZP = 0, 
 		}
 		colnames(limmaResults)[2] <- "XPM"
 	} else {
-		limmaResults[,2] <- colMeans(expdata)
-		colnames(limmaResults)[2] <- "XPM"
-		limmaResults <- limmaResults[,-c(1)]
+		exp_column <- which(colnames(limmaResults) == "AveExpr")
+		limmaResults[,exp_column] <- colMeans(expdata)
+		colnames(limmaResults)[exp_column] <- "XPM"
 	}
 	#Filter zeroes based on MZP threshold
 	if (MZP > 0) {

@@ -1,4 +1,6 @@
 12th, October, 2023
+  o 2.25.5
+    Fixed column outputs in limma output when we have more than 3 groups. Thanks to awakumaya for pointing this out.
   o 2.25.4
     Edited t-SNE and PCA to use highly variable genes only, which greatly improves cell clustering performance.
     Fixed typos in manual.
